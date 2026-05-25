@@ -1,0 +1,87 @@
+export const mockTickets = [
+  {
+    id: "TIC-8291",
+    customerName: "Sarah Jenkins",
+    initials: "SJ",
+    subject: "Problem with my order #4829",
+    time: "12:45 PM",
+    status: "new",
+    hasDraft: true,
+    avatarVariant: "blue",
+    email: "sarah.j@example.com",
+    category: "Order Issue",
+    content: "Hi support, I haven't received my order yet. It's been 5 days.",
+    sentiment: "Frustrated",
+  },
+  {
+    id: "TIC-8292",
+    customerName: "Michael Chen",
+    initials: "MC",
+    subject: "Question about premium subscription",
+    time: "11:20 AM",
+    status: "pending",
+    hasDraft: false,
+    avatarVariant: "teal",
+    email: "m.chen@techcorp.io",
+    category: "Billing",
+    content: "I want to upgrade to the annual plan, can I get a pro-rated discount?",
+    sentiment: "Neutral",
+  },
+  {
+    id: "TIC-8293",
+    customerName: "Averie Miller",
+    initials: "AM",
+    subject: "URGENT: Billing error on my statement",
+    time: "09:15 AM",
+    status: "escalated",
+    hasDraft: true,
+    avatarVariant: "purple",
+    email: "averie@miller.com",
+    category: "Refund",
+    content: "I was double charged! Please fix this immediately or I'll file a dispute.",
+    sentiment: "Angry",
+  },
+  {
+    id: "TIC-8294",
+    customerName: "David Wilson",
+    initials: "DW",
+    subject: "Feature request for mobile app",
+    time: "08:30 AM",
+    status: "pending",
+    hasDraft: true,
+    avatarVariant: "green",
+    email: "dwilson@gmail.com",
+    category: "Feedback",
+    content: "The app is great, but multi-user support would be a game changer.",
+    sentiment: "Positive",
+  }
+];
+
+export const mockStats = {
+  openTickets: 4,
+  aiDraftsReady: 3,
+  avgResponseTime: "4m 12s",
+  csatScore: 4.8,
+  volumeTrend: [
+    { label: "Mon", value: 45 },
+    { label: "Tue", value: 52 },
+    { label: "Wed", value: 38 },
+    { label: "Thu", value: 65 },
+    { label: "Fri", value: 48 },
+    { label: "Sat", value: 24, highlight: true },
+    { label: "Sun", value: 18 },
+  ],
+  categories: [
+    { name: "Order Issues", value: 42, color: "bg-brand" },
+    { name: "Billing", value: 28, color: "bg-teal" },
+    { name: "Tech Support", value: 22, color: "bg-purple" },
+    { name: "General Info", value: 8, color: "bg-warn" },
+  ]
+};
+
+export const mockChannels = [
+  { id: "gmail", name: "Gmail", description: "Official support inbox connection", connected: false },
+  { id: "whatsapp", name: "WhatsApp Business", description: "Customer chat integration", connected: true },
+  { id: "livechat", name: "Web Live Chat", description: "In-app support widget", connected: true },
+  { id: "instagram", name: "Instagram DMs", description: "Direct message management", connected: false },
+];
