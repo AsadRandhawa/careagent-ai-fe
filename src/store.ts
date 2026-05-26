@@ -29,6 +29,8 @@ interface AppState {
   user: any | null;
   setUser: (user: any | null) => void;
   saveKnowledgeBase: () => Promise<void>;
+  showOnboarding: boolean;
+  setShowOnboarding: (show: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -59,6 +61,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   user: null,
   setUser: (user) => set({ user }),
+  showOnboarding: false,
+  setShowOnboarding: (show) => set({ showOnboarding: show }),
   saveKnowledgeBase: async () => {
     const state = useAppStore.getState();
     if (!state.token) return;

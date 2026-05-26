@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Skeleton } from "./components/ui/AtomsMisc";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useAppStore } from "./store";
+import { OnboardingModal } from "./components/OnboardingModal";
 
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -111,6 +112,7 @@ export default function App() {
             </AnimatePresence>
           </main>
         </div>
+        <OnboardingModal />
       </motion.div>
     </AnimatePresence>
   );

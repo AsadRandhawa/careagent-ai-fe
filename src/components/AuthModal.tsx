@@ -13,7 +13,7 @@ export const AuthModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   const [showPassword, setShowPassword] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   
-  const { setToken, setUser, setDocuments, setBrandVoice, setBusinessIdentity } = useAppStore();
+  const { setToken, setUser, setDocuments, setBrandVoice, setBusinessIdentity, setShowOnboarding } = useAppStore();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -49,6 +49,11 @@ export const AuthModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
       
       toast(mode === "login" ? "Welcome back!" : "Account created successfully!", "success");
       onClose();
+      
+      if (mode === "register") {
+        setShowOnboarding(true);
+      }
+      
       navigate("/dashboard");
     } catch (err: any) {
       toast(err.message, "error");
