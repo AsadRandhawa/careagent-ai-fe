@@ -12,6 +12,7 @@ import { Mail, MessageSquare, Instagram, Globe, Layout, Zap, Settings, Shield } 
 import { mockChannels } from "../mockData";
 import { useSearchParams } from "react-router-dom";
 import { useToast } from "../components/ToastProvider";
+import { useAppStore } from "../store";
 
 const iconMap = {
   gmail: <Mail size={18} />,
@@ -24,6 +25,7 @@ const iconMap = {
 export const Channels = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { token } = useAppStore();
   const [channels, setChannels] = React.useState(mockChannels);
 
   React.useEffect(() => {
@@ -63,7 +65,7 @@ export const Channels = () => {
                    onConnect={() => {
                      if (channel.id === 'gmail') {
                        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-                       window.location.href = `${apiUrl}/api/auth/google`;
+                       window.location.href = `${apiUrl}/api/auth/google?token=${token || ""}`;
                      }
                    }}
                  />

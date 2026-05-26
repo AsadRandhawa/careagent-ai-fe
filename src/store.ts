@@ -88,10 +88,20 @@ export const useAppStore = create<AppState>((set, get) => ({
   setTickets: (tickets) => set({ tickets }),
   isFetchingTickets: false,
   fetchTickets: async () => {
+    const state = get();
+    if (!state.token) {
+      set({ isFetchingTickets: false });
+      return;
+    }
+    
     set({ isFetchingTickets: true });
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${apiUrl}/api/emails`);
+      const res = await fetch(`${apiUrl}/api/emails`, {
+        headers: {
+          "Authorization": `Bearer ${state.token}`
+        }
+      });
       if (res.ok) {
         const liveData = await res.json();
         if (liveData && liveData.length > 0) {

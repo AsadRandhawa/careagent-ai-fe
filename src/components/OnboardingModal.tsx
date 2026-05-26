@@ -70,8 +70,9 @@ export const OnboardingModal = () => {
   };
 
   const handleConnectGmail = () => {
+    const state = useAppStore.getState();
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-    window.location.href = `${apiUrl}/api/auth/google`;
+    window.location.href = `${apiUrl}/api/auth/google?token=${state.token || ""}`;
   };
 
   const handleComplete = () => {
