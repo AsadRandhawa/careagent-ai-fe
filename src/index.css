@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-bg: #F9FAFB;
+  --color-bg-elevated: #F3F4F6;
+  --color-surface: #FFFFFF;
+  --color-surface-high: #F1F5F9;
+  --color-overlay: #FFFFFF;
+
+  --color-border-faint: #E2E8F0;
+  --color-border-mid: #CBD5E1;
+  --color-border-strong: #94A3B8;
+  --color-border-focus: #14a800;
+
+  --color-brand: #14a800;
+  --color-brand-dim: #108e00;
+  --color-brand-glow: rgba(20, 168, 0, 0.12);
+  --color-brand-faint: rgba(20, 168, 0, 0.05);
+
+  --color-text-primary: #0F172A;
+  --color-text-second: #334155;
+  --color-text-muted: #64748B;
+  --color-text-disabled: #94A3B8;
+
+  --color-success: #14a800;
+  --color-success-faint: rgba(20, 168, 0, 0.10);
+  --color-warn: #F59E0B;
+  --color-warn-faint: rgba(245, 158, 11, 0.10);
+  --color-danger: #EF4444;
+  --color-danger-faint: rgba(239, 68, 68, 0.10);
+  --color-purple: #8B5CF6;
+  --color-purple-faint: rgba(139, 92, 246, 0.10);
+  --color-teal: #0D9488;
+  --color-teal-faint: rgba(13, 148, 136, 0.10);
+
+  --radius-card: 20px;
+  --radius-button: 10px;
+  --radius-badge: 6px;
+  --radius-input: 10px;
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-modal: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 20px rgba(20, 168, 0, 0.1), 0 0 40px rgba(20, 168, 0, 0.05);
+  --shadow-glow-sm: 0 0 10px rgba(20, 168, 0, 0.1);
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-text-primary font-sans antialiased;
+  }
+}
+
+.markdown-body {
+  @apply text-text-primary leading-relaxed;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-surface-high) 50%, var(--color-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border-strong rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-text-muted;
+}
