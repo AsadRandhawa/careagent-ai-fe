@@ -16,6 +16,7 @@ import { Badge } from "./ui/Badge";
 import { IconButton } from "./ui/IconButton";
 import { useNavigate, useLocation } from "react-router-dom";
 import * as React from "react";
+import { useAppStore } from "../store";
 
 export type SectionType = "Operations" | "Admin" | "Analytics";
 
@@ -38,6 +39,12 @@ const navItems = {
 export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, setToken } = useAppStore();
+
+  const handleLogout = () => {
+    setToken(null);
+    navigate("/");
+  };
 
   return (
     <aside className="w-[220px] h-full bg-bg-elevated border-r border-border-faint flex flex-col z-20">
@@ -101,14 +108,18 @@ export const Sidebar = () => {
       {/* Footer */}
       <div className="p-4 border-t border-border-faint">
         <div className="flex items-center justify-between group">
-          <div className="flex items-center gap-3">
-            <Avatar initials="JD" size={30} variant="purple" />
+          <div className="flex items-center gap-3 min-w-0 pr-2">
+            <Avatar initials={user?.email ? user.email.substring(0, 2).toUpperCase() : "US"} size={30} variant="purple" />
             <div className="min-w-0">
-              <div className="text-[12px] font-bold text-text-primary truncate">John Doe</div>
-              <div className="text-[10px] text-text-muted font-medium">Support Admin</div>
+              <div className="text-[12px] font-bold text-text-primary truncate">
+                {user?.email ? user.email.split('@')[0] : "Agent User"}
+              </div>
+              <div className="text-[10px] text-text-muted font-medium truncate">
+                {user?.email || "Support Admin"}
+              </div>
             </div>
           </div>
-          <IconButton className="opacity-0 group-hover:opacity-100">
+          <IconButton className="opacity-0 group-hover:opacity-100 flex-shrink-0" onClick={handleLogout} title="Log Out">
             <Settings size={14} />
           </IconButton>
         </div>
