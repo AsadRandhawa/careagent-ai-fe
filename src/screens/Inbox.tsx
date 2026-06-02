@@ -106,12 +106,10 @@ You MUST return your response as a JSON object matching this schema:
   }, [selectedId, aiDrafts, generateDraft]);
 
   React.useEffect(() => {
-    if (tickets.length > 0 && (!selectedId || !tickets.find(t => t.id === selectedId))) {
-      setSelectedId(tickets[0].id);
-    } else if (tickets.length === 0) {
+    if (tickets.length === 0) {
       setSelectedId(null);
     }
-  }, [tickets, selectedId]);
+  }, [tickets]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Approve & Send AI Draft ──────────────────────────────
   const handleApprove = React.useCallback(async () => {
@@ -139,8 +137,8 @@ You MUST return your response as a JSON object matching this schema:
       if (!res.ok) throw new Error("Failed to send");
 
       toast("Reply sent successfully ✓", "success");
-      setTickets(prev => prev.filter(t => t.id !== selectedId));
-      setSelectedId(null);
+      const nextTickets = tickets.filter(t => t.id !== selectedId);
+      setTickets(nextTickets);
       setAiDrafts(prev => {
         const newDrafts = { ...prev };
         delete newDrafts[selectedId];
@@ -148,6 +146,7 @@ You MUST return your response as a JSON object matching this schema:
       });
       setIsEditing(false);
       setManualReply("");
+      setSelectedId(nextTickets.length > 0 ? nextTickets[0].id : null);
     } catch (err) {
       console.error(err);
       toast("Failed to send reply. Please try again.", "error");
@@ -181,8 +180,9 @@ You MUST return your response as a JSON object matching this schema:
 
       toast("Manual reply sent successfully ✓", "success");
       setManualReply("");
-      setTickets(prev => prev.filter(t => t.id !== selectedId));
-      setSelectedId(null);
+      const nextTickets2 = tickets.filter(t => t.id !== selectedId);
+      setTickets(nextTickets2);
+      setSelectedId(nextTickets2.length > 0 ? nextTickets2[0].id : null);
     } catch (err) {
       console.error(err);
       toast("Failed to send reply. Please try again.", "error");
@@ -205,12 +205,13 @@ You MUST return your response as a JSON object matching this schema:
   });
 
   React.useEffect(() => {
-    if (filteredTickets.length > 0 && (!selectedId || !filteredTickets.find(t => t.id === selectedId))) {
+    if (!selectedId) return;
+    if (filteredTickets.length > 0 && !filteredTickets.find(t => t.id === selectedId)) {
       setSelectedId(filteredTickets[0].id);
     } else if (filteredTickets.length === 0) {
       setSelectedId(null);
     }
-  }, [filteredTickets, selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filteredTickets]); // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
