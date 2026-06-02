@@ -381,40 +381,92 @@ export const Landing = () => {
       </section>
 
       {/* Final CTA Immersive Section */}
-      <section className="py-48 px-6 relative overflow-hidden flex items-center justify-center text-center">
-         <div className="absolute inset-0 bg-brand -z-10" />
-         <motion.div 
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.6, 0.3]
-            }}
-            transition={{ duration: 10, repeat: Infinity }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-gradient-to-br from-white/20 to-transparent rounded-full blur-[120px] -z-10" 
-          />
-          
-          <div className="max-w-3xl relative z-10">
-             <motion.h2 
-               whileInView={{ scale: [0.95, 1], opacity: [0, 1] }}
-               viewport={{ once: true }}
-               className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-[1] mb-10"
-             >
-               Ready to stop <br />treading water?
-             </motion.h2>
-             <p className="text-white/80 text-xl font-bold mb-10 max-w-xl mx-auto">Start your 14-day mission control trial today. Connect your first channel in 90 seconds.</p>
-             <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
-                <Button 
-                  variant="default" 
-                  size="lg" 
-                  onClick={onEnterApp}
-                  className="bg-white text-brand hover:bg-neutral-100 hover:scale-105 active:scale-95 border-none px-12 py-6 text-xl font-black rounded-2xl shadow-2xl transition-all duration-300"
-                >
-                  Enter Platform
-                </Button>
-                <button className="text-white text-base font-black uppercase tracking-[0.2em] px-8 py-4 border-2 border-white/20 hover:bg-white/10 rounded-2xl transition-all">
-                  Request Info
-                </button>
-             </div>
-          </div>
+      <section
+        className="py-48 px-6 relative overflow-hidden flex items-center justify-center text-center"
+        style={{ backgroundColor: '#16a34a', isolation: 'isolate' }}
+      >
+        {/* Animated glow orb */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.45, 0.2] }}
+          transition={{ duration: 10, repeat: Infinity }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] rounded-full blur-[120px] pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%)', zIndex: 0 }}
+        />
+        {/* Top-left soft accent */}
+        <div
+          className="absolute top-0 left-0 w-[500px] h-[500px] rounded-full blur-[100px] pointer-events-none"
+          style={{ background: 'rgba(255,255,255,0.07)', zIndex: 0 }}
+        />
+        {/* Bottom-right dark accent */}
+        <div
+          className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full blur-[100px] pointer-events-none"
+          style={{ background: 'rgba(0,0,0,0.10)', zIndex: 0 }}
+        />
+
+        <div className="max-w-3xl relative" style={{ zIndex: 1 }}>
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-white/30 text-white text-[11px] font-black uppercase tracking-[0.2em] mb-10"
+            style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
+          >
+            <Sparkles size={14} />
+            <span>14-Day Free Trial</span>
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="text-5xl md:text-7xl font-black tracking-tighter leading-[1.05] mb-8"
+            style={{ color: '#ffffff' }}
+          >
+            Ready to stop <br />treading water?
+          </motion.h2>
+
+          {/* Subtext */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-xl font-bold mb-12 max-w-xl mx-auto"
+            style={{ color: 'rgba(255,255,255,0.85)' }}
+          >
+            Start your 14-day mission control trial today. Connect your first channel in 90 seconds.
+          </motion.p>
+
+          {/* Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-5"
+          >
+            <Button
+              variant="default"
+              size="lg"
+              onClick={onEnterApp}
+              className="hover:scale-105 active:scale-95 border-none px-12 py-6 text-xl font-black rounded-2xl shadow-2xl transition-all duration-300"
+              style={{ backgroundColor: '#ffffff', color: '#16a34a' }}
+            >
+              Enter Platform
+            </Button>
+            <button
+              onClick={onEnterApp}
+              className="text-base font-black uppercase tracking-[0.2em] px-8 py-4 rounded-2xl transition-all duration-300 hover:scale-105"
+              style={{ color: '#ffffff', border: '2px solid rgba(255,255,255,0.35)', backgroundColor: 'rgba(255,255,255,0.08)' }}
+            >
+              Request Info
+            </button>
+          </motion.div>
+        </div>
       </section>
 
       {/* Footer */}
