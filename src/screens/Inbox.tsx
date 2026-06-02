@@ -21,11 +21,13 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
   const navigate = useNavigate();
   const ticketIdParam = searchParams.get("ticketId");
   
-  const { documents, businessIdentity, brandVoice, tickets, setTickets, isFetchingTickets, aiDrafts, setAiDrafts } = useAppStore();
+  const { documents, businessIdentity, brandVoice, tickets, setTickets, isFetchingTickets, aiDrafts, setAiDrafts, token } = useAppStore();
   const [selectedId, setSelectedId] = React.useState<string | null>(ticketIdParam || (tickets.length > 0 ? tickets[0].id : null));
   const [activeFilter, setActiveFilter] = React.useState(defaultFilter);
   const [isDrafting, setIsDrafting] = React.useState(false);
   const [isEditing, setIsEditing] = React.useState(false);
+  const [manualReply, setManualReply] = React.useState("");
+  const [isSending, setIsSending] = React.useState(false);
   const { toast } = useToast();
 
   const selectedTicket = tickets.find(t => t.id === selectedId);
@@ -73,7 +75,10 @@ You MUST return your response as a JSON object matching this schema:
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const response = await fetch(`${apiUrl}/api/ai/draft`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           messages: [
             { role: "system", content: systemPrompt },
@@ -92,14 +97,13 @@ You MUST return your response as a JSON object matching this schema:
       setIsDrafting(false);
       setIsEditing(false);
     }
-  }, [tickets, documents, businessIdentity, brandVoice, toast]);
+  }, [tickets, documents, businessIdentity, brandVoice, toast, token]);
 
   React.useEffect(() => {
     if (selectedId && !aiDrafts[selectedId]) {
       generateDraft(selectedId);
     }
   }, [selectedId, aiDrafts, generateDraft]);
-
 
   React.useEffect(() => {
     if (tickets.length > 0 && (!selectedId || !tickets.find(t => t.id === selectedId))) {
@@ -109,17 +113,81 @@ You MUST return your response as a JSON object matching this schema:
     }
   }, [tickets, selectedId]);
 
-  const handleApprove = React.useCallback(() => {
-    if (!selectedId) return;
-    toast("AI draft approved and sent to customer", "success");
-    setTickets(prev => prev.filter(t => t.id !== selectedId));
-    setAiDrafts(prev => {
-      const newDrafts = { ...prev };
-      delete newDrafts[selectedId];
-      return newDrafts;
-    });
-    setIsEditing(false);
-  }, [selectedId, toast]);
+  // ── Approve & Send AI Draft ──────────────────────────────
+  const handleApprove = React.useCallback(async () => {
+    if (!selectedId || !selectedTicket) return;
+    const draft = aiDrafts[selectedId];
+    if (!draft?.draft) return;
+
+    setIsSending(true);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiUrl}/api/gmail/reply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          to: selectedTicket.email,
+          subject: selectedTicket.subject || "Re: Your message",
+          body: draft.draft,
+          threadId: selectedTicket.threadId
+        })
+      });
+
+      if (!res.ok) throw new Error("Failed to send");
+
+      toast("Reply sent successfully ✓", "success");
+      setTickets(prev => prev.filter(t => t.id !== selectedId));
+      setAiDrafts(prev => {
+        const newDrafts = { ...prev };
+        delete newDrafts[selectedId];
+        return newDrafts;
+      });
+      setIsEditing(false);
+      setManualReply("");
+    } catch (err) {
+      console.error(err);
+      toast("Failed to send reply. Please try again.", "error");
+    } finally {
+      setIsSending(false);
+    }
+  }, [selectedId, selectedTicket, aiDrafts, token, toast, setTickets, setAiDrafts]);
+
+  // ── Send Manual Reply ────────────────────────────────────
+  const handleManualSend = React.useCallback(async () => {
+    if (!selectedTicket || !manualReply.trim()) return;
+
+    setIsSending(true);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiUrl}/api/gmail/reply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          to: selectedTicket.email,
+          subject: selectedTicket.subject || "Re: Your message",
+          body: manualReply,
+          threadId: selectedTicket.threadId
+        })
+      });
+
+      if (!res.ok) throw new Error("Failed to send");
+
+      toast("Manual reply sent successfully ✓", "success");
+      setManualReply("");
+      setTickets(prev => prev.filter(t => t.id !== selectedId));
+    } catch (err) {
+      console.error(err);
+      toast("Failed to send reply. Please try again.", "error");
+    } finally {
+      setIsSending(false);
+    }
+  }, [selectedTicket, manualReply, token, toast, setTickets, selectedId]);
 
   const handleRegenerate = () => {
     if (selectedId) generateDraft(selectedId, "Make it shorter and more polite.");
@@ -354,10 +422,11 @@ You MUST return your response as a JSON object matching this schema:
                                        <Button 
                                         size="sm" 
                                         variant="primary" 
-                                        icon={<Send size={14} />}
+                                        icon={isSending ? <Spinner size={14} className="border-white/20 border-t-white" /> : <Send size={14} />}
                                         onClick={handleApprove}
+                                        disabled={isSending}
                                       >
-                                        Approve & Send
+                                        {isSending ? "Sending..." : "Approve & Send"}
                                       </Button>
                                       <Button 
                                         size="sm" 
@@ -403,13 +472,29 @@ You MUST return your response as a JSON object matching this schema:
                     <input 
                       type="text" 
                       placeholder="Type a manual response..."
+                      value={manualReply}
+                      onChange={(e) => setManualReply(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey && manualReply.trim()) {
+                          e.preventDefault();
+                          handleManualSend();
+                        }
+                      }}
                       className="flex-1 bg-transparent text-[13px] text-text-primary placeholder:text-text-muted outline-none h-full"
                     />
                     <div className="flex items-center gap-1 pr-2">
                        <IconButton><Paperclip size={16} /></IconButton>
                        <IconButton><Smile size={16} /></IconButton>
                     </div>
-                    <Button size="sm" variant="primary" className="h-10 px-6 font-bold shadow-lg">Send</Button>
+                    <Button 
+                      size="sm" 
+                      variant="primary" 
+                      className="h-10 px-6 font-bold shadow-lg"
+                      onClick={handleManualSend}
+                      disabled={isSending || !manualReply.trim()}
+                    >
+                      {isSending ? <Spinner size={14} className="border-white/20 border-t-white" /> : "Send"}
+                    </Button>
                   </div>
                 </div>
               </div>
