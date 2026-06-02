@@ -140,6 +140,7 @@ You MUST return your response as a JSON object matching this schema:
 
       toast("Reply sent successfully ✓", "success");
       setTickets(prev => prev.filter(t => t.id !== selectedId));
+      setSelectedId(null);
       setAiDrafts(prev => {
         const newDrafts = { ...prev };
         delete newDrafts[selectedId];
@@ -181,6 +182,7 @@ You MUST return your response as a JSON object matching this schema:
       toast("Manual reply sent successfully ✓", "success");
       setManualReply("");
       setTickets(prev => prev.filter(t => t.id !== selectedId));
+      setSelectedId(null);
     } catch (err) {
       console.error(err);
       toast("Failed to send reply. Please try again.", "error");
