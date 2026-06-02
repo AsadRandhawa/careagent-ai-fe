@@ -97,7 +97,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ isFetchingTickets: true });
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${apiUrl}/api/emails`, {
+      const res = await fetch(`${apiUrl}/api/gmail/emails`, {
         headers: {
           "Authorization": `Bearer ${state.token}`
         }

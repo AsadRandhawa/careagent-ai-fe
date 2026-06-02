@@ -71,7 +71,7 @@ You MUST return your response as a JSON object matching this schema:
 }`;
 
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const response = await fetch(`${apiUrl}/api/draft`, {
+      const response = await fetch(`${apiUrl}/api/ai/draft`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
