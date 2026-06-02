@@ -510,7 +510,7 @@ export const Landing = () => {
             </div>
           </div>
           <div className="pt-12 border-t border-border-faint flex flex-col md:flex-row items-center justify-between gap-8">
-             <div className="text-[11px] font-black text-text-disabled uppercase tracking-[0.2em]">Build for the modern era © 2024</div>
+             <div className="text-[11px] font-black text-text-disabled uppercase tracking-[0.2em]">Build for the modern era © 2026</div>
              <div className="flex gap-10">
                 {["Twitter", "LinkedIn", "GitHub"].map(p => (
                   <a key={p} href="#" className="text-[11px] font-black text-text-disabled uppercase tracking-[0.2em] hover:text-brand transition-colors">{p}</a>
