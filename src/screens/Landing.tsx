@@ -206,7 +206,7 @@ export const Landing = () => {
                   </div>
                 ))}
               </div>
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Currently in Beta</p>
+              <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Trusted by 2,000+ teams</p>
             </div>
           </motion.div>
 
@@ -350,25 +350,30 @@ export const Landing = () => {
           <div className="text-center mb-20 flex flex-col items-center">
             <div className="px-5 py-2 rounded-full bg-brand/10 border border-brand/20 text-brand text-[10px] font-black uppercase tracking-[0.2em] mb-6">Simple Plans</div>
             <h2 className="text-4xl md:text-6xl font-black text-text-primary tracking-tighter mb-6 underline decoration-brand decoration-4 underline-offset-8">Flexible like your team.</h2>
-            <p className="text-lg text-text-muted font-medium max-w-lg">Simple, transparent pricing. No per-seat costs.</p>
+            <p className="text-lg text-text-muted font-medium max-w-lg">Zero per-seat costs. You only pay for successful resolutions.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
+            <PricingCard 
+              title="Startup" 
+              price="0" 
+              desc="For testing AI workflows."
+              features={["100 AI Resolutions", "2 KB Sources", "Email Integration"]}
+              onClick={onEnterApp}
+            />
             <PricingCard 
               title="Growth" 
-              price="15,000" 
-              currency="Rs."
+              price="499" 
               popular
-              desc="Scale your customer support operations."
-              features={["2,500 AI Resolutions/mo", "Unlimited Knowledge Docs", "Gmail Integration", "WhatsApp Integration", "AI Draft Generation"]}
+              desc="Scale your support operations."
+              features={["2,500 AI Resolutions", "Unlimited KB Docs", "WhatsApp & Slack", "SSO Login"]}
               onClick={onEnterApp}
             />
             <PricingCard 
               title="Enterprise" 
-              price="50,000" 
-              currency="Rs."
-              desc="Full control for large teams."
-              features={["Unlimited AI Resolutions", "Private Deployment", "Audit Logging", "Dedicated Account Manager", "Custom Integrations"]}
+              price="Custom" 
+              desc="Full control and infinite docs."
+              features={["Custom Usage", "Private Deployment", "Audit Logging", "Account Manager"]}
               onClick={onEnterApp}
             />
           </div>
@@ -505,8 +510,9 @@ export const Landing = () => {
             </div>
           </div>
           <div className="pt-12 border-t border-border-faint flex flex-col md:flex-row items-center justify-between gap-8">
-             <div className="text-[11px] font-black text-text-disabled uppercase tracking-[0.2em]">Build for the modern era © 2026</div>
-             <div className="flex gap-10">
+             <div className="text-[11px] font-black text-text-disabled uppercase tracking-[0.2em]">Build for the modern era © 2026 · Flint Sol</div>
+             <div className="flex gap-10 items-center">
+                <a href="/privacy" className="text-[11px] font-black text-text-disabled uppercase tracking-[0.2em] hover:text-brand transition-colors">Privacy Policy</a>
                 {["Twitter", "LinkedIn", "GitHub"].map(p => (
                   <a key={p} href="#" className="text-[11px] font-black text-text-disabled uppercase tracking-[0.2em] hover:text-brand transition-colors">{p}</a>
                 ))}
@@ -519,7 +525,7 @@ export const Landing = () => {
   );
 };
 
-const PricingCard = ({ title, price, currency = "", desc, features, popular, onClick }: { title: string, price: string, currency?: string, desc: string, features: string[], popular?: boolean, onClick?: () => void }) => (
+const PricingCard = ({ title, price, desc, features, popular, onClick }: { title: string, price: string, desc: string, features: string[], popular?: boolean, onClick?: () => void }) => (
   <motion.div 
     whileHover={{ y: -10 }}
     className={`p-10 rounded-3xl border flex flex-col transition-all duration-500 ${popular ? "bg-bg border-brand shadow-glow relative ring-4 ring-brand/5" : "bg-surface border-border-faint hover:border-brand/40"}`}
@@ -528,7 +534,7 @@ const PricingCard = ({ title, price, currency = "", desc, features, popular, onC
     <div className="mb-10">
       <h4 className={`text-xl font-black mb-4 ${popular ? "text-brand" : "text-text-primary"}`}>{title}</h4>
       <div className="flex items-baseline gap-1 mb-4">
-        {price !== "Custom" && <span className="text-2xl font-black text-text-primary tracking-tighter">{currency || "Rs."}</span>}
+        {price !== "Custom" && <span className="text-2xl font-black text-text-primary tracking-tighter">$</span>}
         <span className="text-5xl font-black text-text-primary tracking-tighter">{price}</span>
         {price !== "Custom" && <span className="text-text-disabled font-black text-[10px] uppercase tracking-widest ml-1">/mo</span>}
       </div>

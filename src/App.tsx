@@ -10,6 +10,7 @@ import { Onboarding } from "./screens/Onboarding";
 import { Channels } from "./screens/Channels";
 import { Analytics } from "./screens/Analytics";
 import { Landing } from "./screens/Landing";
+import { Privacy } from "./screens/Privacy";
 import { AnimatePresence, motion } from "motion/react";
 import { Skeleton } from "./components/ui/AtomsMisc";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
@@ -54,19 +55,19 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  const isLanding = location.pathname === "/";
+  const isLanding = location.pathname === "/" || location.pathname === "/privacy";
 
   if (isLanding) {
     return (
       <AnimatePresence mode="wait">
         <motion.div
-          key="landing"
+          key={location.pathname}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.5 }}
         >
-          <Landing />
+          {location.pathname === "/privacy" ? <Privacy /> : <Landing />}
         </motion.div>
       </AnimatePresence>
     );
