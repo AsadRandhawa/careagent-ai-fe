@@ -8,78 +8,122 @@ import { MiniBarChart } from "../components/MiniBarChart";
 import { TicketRow } from "../components/TicketRow";
 import { ProgressBar } from "../components/ui/ProgressBar";
 import { Button } from "../components/ui/Button";
-import { mockStats } from "../mockData";
 import { RefreshCw, Download, Inbox, Sparkles, Clock, Star, Zap, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../components/ToastProvider";
-import { useToast } from "../components/ToastProvider";
 import { useAppStore } from "../store";
 
+const todayLabel = () =>
+  new Date().toLocaleDateString("en-US", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+  });
+
 export const Dashboard = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const { tickets, isFetchingTickets, fetchTickets } = useAppStore();
+  const navigate    = useNavigate();
+  const { toast }   = useToast();
+  const {
+    tickets, isFetchingTickets, fetchTickets,
+    ticketStats, isFetchingStats, fetchTicketStats,
+    syncTickets, token,
+  } = useAppStore();
+
   const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  // Auto-sync + fetch stats on mount
+  React.useEffect(() => {
+    if (!token) return;
+    const init = async () => {
+      await syncTickets();
+      await Promise.all([fetchTickets(), fetchTicketStats(30)]);
+    };
+    init();
+
+    // Auto-refresh every 5 minutes
+    const interval = setInterval(init, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchTickets();
+    await syncTickets();
+    await Promise.all([fetchTickets(), fetchTicketStats(30)]);
     setIsRefreshing(false);
     toast("Dashboard metrics updated", "success");
   };
+
+  const handleExportCSV = () => {
+    if (!tickets.length) { toast("No tickets to export", "error"); return; }
+    const headers = ["ID", "Customer", "Email", "Subject", "Status", "Time"];
+    const rows    = tickets.map(t =>
+      [t.id, t.customerName, t.email || "", t.subject || "", t.status, t.time].join(",")
+    );
+    const csv  = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `careagent-report-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("Weekly report downloaded", "success");
+  };
+
+  const stats = ticketStats;
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       className="p-8 max-w-[1400px] mx-auto"
     >
-      <SectionHeader 
-        title="Operations Overview" 
-        subtitle="Thursday, May 14, 2026"
+      <SectionHeader
+        title="Operations Overview"
+        subtitle={todayLabel()}
         actions={
           <>
-            <Button 
-              size="sm" 
-              variant="ghost" 
+            <Button
+              size="sm"
+              variant="ghost"
               icon={<RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />}
               onClick={handleRefresh}
               disabled={isRefreshing}
             >
               {isRefreshing ? "Refreshing..." : "Refresh"}
             </Button>
-            <Button size="sm" variant="ghost" icon={<Download size={14} />}>Export</Button>
+            <Button size="sm" variant="ghost" icon={<Download size={14} />} onClick={handleExportCSV}>
+              Export
+            </Button>
           </>
         }
       />
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <MetricCard 
-          label="Open Tickets" 
-          value={mockStats.openTickets} 
-          subtext="24 overdue" 
-          delta={{ value: "12%", type: "increase" }}
+        <MetricCard
+          label="Open Tickets"
+          value={isFetchingStats ? "..." : (stats?.openTickets ?? tickets.length)}
+          subtext={stats ? `${stats.escalated} escalated` : "Loading..."}
+          delta={{ value: "live", type: "increase" }}
           icon={<Inbox size={16} />}
         />
-        <MetricCard 
-          label="AI Drafts Ready" 
-          value={mockStats.aiDraftsReady} 
-          subtext="Batch review needed" 
+        <MetricCard
+          label="AI Drafts Ready"
+          value={isFetchingStats ? "..." : (stats?.aiDraftsReady ?? tickets.length)}
+          subtext="Awaiting review"
           icon={<Sparkles size={16} className="text-brand" />}
           className="ring-1 ring-brand/20"
         />
-        <MetricCard 
-          label="Avg Response Time" 
-          value={mockStats.avgResponseTime} 
-          subtext="-15s from yesterday" 
-          delta={{ value: "08%", type: "decrease" }}
+        <MetricCard
+          label="Avg Resolution Time"
+          value={isFetchingStats ? "..." : (stats?.avgResolutionTime ?? "N/A")}
+          subtext="This month"
           icon={<Clock size={16} />}
         />
-        <MetricCard 
-          label="CSAT Score" 
-          value={mockStats.csatScore} 
-          subtext="Based on 48 ratings" 
+        <MetricCard
+          label="Escalation Rate"
+          value={isFetchingStats ? "..." : (stats?.escalationRate ?? "0%")}
+          subtext="Last 30 days"
           icon={<Star size={16} className="text-warn" />}
         />
       </div>
@@ -90,14 +134,24 @@ export const Dashboard = () => {
           <Card variant="noPad">
             <div className="p-5 border-b border-border-faint flex items-center justify-between">
               <h3 className="text-[13px] font-bold uppercase tracking-widest text-text-muted">Recent Tickets</h3>
-              <Button size="xs" variant="ghost">View all</Button>
+              <Button size="xs" variant="ghost" onClick={() => navigate("/inbox")}>View all</Button>
             </div>
             <div className="divide-y divide-border-faint">
               {isFetchingTickets && tickets.length === 0 ? (
                 <div className="p-5 text-center text-text-muted text-sm">Loading tickets...</div>
-              ) : tickets.slice(0, 4).map((ticket) => (
-                <TicketRow key={ticket.id} {...ticket} avatarVariant={ticket.avatarVariant as any} onClick={() => navigate(`/inbox?ticketId=${ticket.id}`)} className="cursor-pointer hover:bg-bg-elevated/50 transition-colors" />
-              ))}
+              ) : tickets.length === 0 ? (
+                <div className="p-5 text-center text-text-muted text-sm">No tickets yet. Connect Gmail to get started.</div>
+              ) : (
+                tickets.slice(0, 4).map((ticket) => (
+                  <TicketRow
+                    key={ticket.id}
+                    {...ticket}
+                    avatarVariant={ticket.avatarVariant as any}
+                    onClick={() => navigate(`/inbox?ticketId=${ticket.id}`)}
+                    className="cursor-pointer hover:bg-bg-elevated/50 transition-colors"
+                  />
+                ))
+              )}
             </div>
           </Card>
 
@@ -109,16 +163,18 @@ export const Dashboard = () => {
             <div className="space-y-6">
               <div>
                 <div className="flex justify-between items-end mb-2">
-                  <span className="text-[12px] text-text-second">Draft Accuracy</span>
-                  <span className="text-[12px] font-mono text-success">98.4%</span>
+                  <span className="text-[12px] text-text-second">Tickets with AI Draft</span>
+                  <span className="text-[12px] font-mono text-success">
+                    {tickets.length > 0 ? "100%" : "0%"}
+                  </span>
                 </div>
-                <ProgressBar value={98.4} color="bg-success" />
+                <ProgressBar value={tickets.length > 0 ? 100 : 0} color="bg-success" />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <StatRow label="Tickets Automuted" value="28.5%" />
-                <StatRow label="Agent Approve Rate" value="92.1%" />
-                <StatRow label="Token Usage" value="12,402" />
-                <StatRow label="Cost Saved (Est)" value="$420.50" valueColor="text-success" />
+                <StatRow label="Open Tickets"     value={String(stats?.openTickets ?? tickets.length)} />
+                <StatRow label="Resolved (30d)"   value={String(stats?.resolvedThisPeriod ?? 0)} />
+                <StatRow label="Escalated"         value={String(stats?.escalated ?? 0)} />
+                <StatRow label="Escalation Rate"   value={stats?.escalationRate ?? "0%"} valueColor="text-warn" />
               </div>
             </div>
           </Card>
@@ -131,42 +187,69 @@ export const Dashboard = () => {
               <h3 className="text-[13px] font-bold uppercase tracking-widest text-text-muted">Sentiment Today</h3>
               <Activity size={16} className="text-text-muted" />
             </div>
-            <div className="space-y-5">
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-[11px] text-success font-bold uppercase">Positive</span>
-                  <span className="text-[11px] font-mono text-text-muted">65%</span>
+            {isFetchingStats ? (
+              <div className="text-center text-text-muted text-sm py-4">Loading...</div>
+            ) : stats?.sentimentPct ? (
+              <div className="space-y-5">
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-[11px] text-success font-bold uppercase">Positive</span>
+                    <span className="text-[11px] font-mono text-text-muted">{stats.sentimentPct.positive}%</span>
+                  </div>
+                  <ProgressBar value={stats.sentimentPct.positive} color="bg-success" />
                 </div>
-                <ProgressBar value={65} color="bg-success" />
-              </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-[11px] text-warn font-bold uppercase">Neutral</span>
-                  <span className="text-[11px] font-mono text-text-muted">25%</span>
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-[11px] text-warn font-bold uppercase">Neutral</span>
+                    <span className="text-[11px] font-mono text-text-muted">{stats.sentimentPct.neutral}%</span>
+                  </div>
+                  <ProgressBar value={stats.sentimentPct.neutral} color="bg-warn" />
                 </div>
-                <ProgressBar value={25} color="bg-warn" />
-              </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-[11px] text-danger font-bold uppercase">Frustrated</span>
-                  <span className="text-[11px] font-mono text-text-muted">10%</span>
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-[11px] text-danger font-bold uppercase">Frustrated</span>
+                    <span className="text-[11px] font-mono text-text-muted">{stats.sentimentPct.frustrated}%</span>
+                  </div>
+                  <ProgressBar value={stats.sentimentPct.frustrated} color="bg-danger" />
                 </div>
-                <ProgressBar value={10} color="bg-danger" />
               </div>
-            </div>
+            ) : (
+              <div className="text-center text-text-muted text-sm py-4">No sentiment data yet.</div>
+            )}
           </Card>
 
           <Card>
             <h3 className="text-[13px] font-bold uppercase tracking-widest text-text-muted mb-6">Ticket Volume (7d)</h3>
-            <MiniBarChart data={mockStats.volumeTrend} />
+            <MiniBarChart data={stats?.miniBarData?.length ? stats.miniBarData : []} />
           </Card>
 
           <Card>
             <h3 className="text-[13px] font-bold uppercase tracking-widest text-text-muted mb-4">Quick Actions</h3>
             <div className="space-y-2">
-              <Button className="w-full justify-start py-2" variant="surface" size="sm">Update Knowledge Base</Button>
-              <Button className="w-full justify-start py-2" variant="surface" size="sm">Resolve All Escalations</Button>
-              <Button className="w-full justify-start py-2" variant="surface" size="sm">Export Weekly Report</Button>
+              <Button
+                className="w-full justify-start py-2"
+                variant="surface"
+                size="sm"
+                onClick={() => navigate("/knowledge-base")}
+              >
+                Update Knowledge Base
+              </Button>
+              <Button
+                className="w-full justify-start py-2"
+                variant="surface"
+                size="sm"
+                onClick={() => navigate("/escalations")}
+              >
+                View All Escalations
+              </Button>
+              <Button
+                className="w-full justify-start py-2"
+                variant="surface"
+                size="sm"
+                onClick={handleExportCSV}
+              >
+                Export Weekly Report
+              </Button>
             </div>
           </Card>
         </div>

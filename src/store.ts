@@ -11,6 +11,24 @@ export interface Document {
   textContent?: string;
 }
 
+export interface TicketStats {
+  openTickets:        number;
+  resolvedThisPeriod: number;
+  escalated:          number;
+  escalationRate:     string;
+  avgResolutionTime:  string;
+  aiDraftsReady:      number;
+  sentimentPct:       { positive: number; neutral: number; frustrated: number };
+  categoryStats:      { name: string; value: number; count: number }[];
+  volumeTrend:        { name: string; count: number }[];
+  miniBarData:        { day: string; value: number }[];
+}
+
+export interface AIInsights {
+  recommendation:  string;
+  recurringIssues: { title: string; count: number; severity: 'High' | 'Medium' | 'Low' }[];
+}
+
 interface AppState {
   documents: Document[];
   setDocuments: (docs: Document[] | ((prev: Document[]) => Document[])) => void;
@@ -18,12 +36,32 @@ interface AppState {
   setBrandVoice: (voice: string) => void;
   businessIdentity: string;
   setBusinessIdentity: (identity: string) => void;
+
   tickets: any[];
-  setTickets: (tickets: any[]) => void;
+  setTickets: (tickets: any[] | ((prev: any[]) => any[])) => void;
   isFetchingTickets: boolean;
   fetchTickets: () => Promise<void>;
+
+  // Real stats from DB
+  ticketStats:        TicketStats | null;
+  isFetchingStats:    boolean;
+  fetchTicketStats:   (days?: number) => Promise<void>;
+
+  // AI insights
+  aiInsights:         AIInsights | null;
+  isFetchingInsights: boolean;
+  fetchAIInsights:    () => Promise<void>;
+
+  // Sync Gmail → DB
+  syncTickets: () => Promise<void>;
+
   aiDrafts: Record<string, { status: "draft" | "escalated"; reason?: string; draft?: string }>;
-  setAiDrafts: (drafts: Record<string, { status: "draft" | "escalated"; reason?: string; draft?: string }> | ((prev: Record<string, { status: "draft" | "escalated"; reason?: string; draft?: string }>) => Record<string, { status: "draft" | "escalated"; reason?: string; draft?: string }>)) => void;
+  setAiDrafts: (
+    drafts:
+      | Record<string, { status: "draft" | "escalated"; reason?: string; draft?: string }>
+      | ((prev: Record<string, { status: "draft" | "escalated"; reason?: string; draft?: string }>) => Record<string, { status: "draft" | "escalated"; reason?: string; draft?: string }>)
+  ) => void;
+
   token: string | null;
   setToken: (token: string | null) => void;
   user: any | null;
@@ -33,85 +71,143 @@ interface AppState {
   setShowOnboarding: (show: boolean) => void;
 }
 
+const getApiUrl = () => import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export const useAppStore = create<AppState>((set, get) => ({
+  // ── Documents ──────────────────────────────────────────
   documents: [],
   setDocuments: (updater) => {
-    set((state) => ({ documents: typeof updater === 'function' ? updater(state.documents) : updater }));
+    set((state) => ({
+      documents: typeof updater === 'function' ? updater(state.documents) : updater,
+    }));
     get().saveKnowledgeBase();
   },
-  brandVoice: "Professional, concise, but friendly. Use emojis occasionally.",
-  setBrandVoice: (brandVoice) => {
-    set({ brandVoice });
-    get().saveKnowledgeBase();
+
+  // ── Brand / Identity ───────────────────────────────────
+  brandVoice: 'Professional, concise, but friendly. Use emojis occasionally.',
+  setBrandVoice: (brandVoice) => { set({ brandVoice }); get().saveKnowledgeBase(); },
+
+  businessIdentity: 'We are a fast-growing SaaS company that sells productivity software. Our customers are busy professionals.',
+  setBusinessIdentity: (businessIdentity) => { set({ businessIdentity }); get().saveKnowledgeBase(); },
+
+  // ── Tickets (live inbox) ───────────────────────────────
+  tickets: [],
+  setTickets: (updater) =>
+    set((state) => ({
+      tickets: typeof updater === 'function' ? updater(state.tickets) : updater,
+    })),
+  isFetchingTickets: false,
+  fetchTickets: async () => {
+    const { token } = get();
+    if (!token) return;
+    set({ isFetchingTickets: true });
+    try {
+      const res = await fetch(`${getApiUrl()}/api/gmail/emails`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.length > 0) set({ tickets: data });
+      }
+    } catch (err) {
+      console.error('Could not fetch live emails:', err);
+    } finally {
+      set({ isFetchingTickets: false });
+    }
   },
-  businessIdentity: "We are a fast-growing SaaS company that sells productivity software. Our customers are busy professionals.",
-  setBusinessIdentity: (businessIdentity) => {
-    set({ businessIdentity });
-    get().saveKnowledgeBase();
+
+  // ── Sync Gmail → DB ────────────────────────────────────
+  syncTickets: async () => {
+    const { token } = get();
+    if (!token) return;
+    try {
+      await fetch(`${getApiUrl()}/api/tickets/sync`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (err) {
+      console.error('Sync failed:', err);
+    }
   },
+
+  // ── Real Stats ─────────────────────────────────────────
+  ticketStats:     null,
+  isFetchingStats: false,
+  fetchTicketStats: async (days = 30) => {
+    const { token } = get();
+    if (!token) return;
+    set({ isFetchingStats: true });
+    try {
+      const res = await fetch(`${getApiUrl()}/api/tickets/stats?days=${days}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) set({ ticketStats: await res.json() });
+    } catch (err) {
+      console.error('Stats fetch failed:', err);
+    } finally {
+      set({ isFetchingStats: false });
+    }
+  },
+
+  // ── AI Insights ────────────────────────────────────────
+  aiInsights:         null,
+  isFetchingInsights: false,
+  fetchAIInsights: async () => {
+    const { token } = get();
+    if (!token) return;
+    set({ isFetchingInsights: true });
+    try {
+      const res = await fetch(`${getApiUrl()}/api/tickets/insights`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) set({ aiInsights: await res.json() });
+    } catch (err) {
+      console.error('Insights fetch failed:', err);
+    } finally {
+      set({ isFetchingInsights: false });
+    }
+  },
+
+  // ── AI Drafts ──────────────────────────────────────────
   aiDrafts: {},
-  setAiDrafts: (updater) => set((state) => ({
-    aiDrafts: typeof updater === 'function' ? updater(state.aiDrafts) : updater
-  })),
+  setAiDrafts: (updater) =>
+    set((state) => ({
+      aiDrafts: typeof updater === 'function' ? updater(state.aiDrafts) : updater,
+    })),
+
+  // ── Auth ───────────────────────────────────────────────
   token: localStorage.getItem('careagent_token'),
   setToken: (token) => {
     if (token) localStorage.setItem('careagent_token', token);
     else localStorage.removeItem('careagent_token');
     set({ token });
   },
-  user: null,
+  user:    null,
   setUser: (user) => set({ user }),
+
+  // ── Onboarding ─────────────────────────────────────────
   showOnboarding: false,
   setShowOnboarding: (show) => set({ showOnboarding: show }),
+
+  // ── Knowledge Base ─────────────────────────────────────
   saveKnowledgeBase: async () => {
-    const state = useAppStore.getState();
+    const state = get();
     if (!state.token) return;
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      await fetch(`${apiUrl}/api/user/knowledge-base`, {
-        method: "POST",
+      await fetch(`${getApiUrl()}/api/user/knowledge-base`, {
+        method:  'POST',
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${state.token}`
+          'Content-Type':  'application/json',
+          Authorization:   `Bearer ${state.token}`,
         },
         body: JSON.stringify({
-          documents: state.documents,
+          documents:        state.documents,
           businessIdentity: state.businessIdentity,
-          brandVoice: state.brandVoice
-        })
+          brandVoice:       state.brandVoice,
+        }),
       });
     } catch (err) {
-      console.error("Failed to save knowledge base", err);
-    }
-  },
-  tickets: [],
-  setTickets: (tickets) => set({ tickets }),
-  isFetchingTickets: false,
-  fetchTickets: async () => {
-    const state = get();
-    if (!state.token) {
-      set({ isFetchingTickets: false });
-      return;
-    }
-    
-    set({ isFetchingTickets: true });
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${apiUrl}/api/gmail/emails`, {
-        headers: {
-          "Authorization": `Bearer ${state.token}`
-        }
-      });
-      if (res.ok) {
-        const liveData = await res.json();
-        if (liveData && liveData.length > 0) {
-          set({ tickets: liveData });
-        }
-      }
-    } catch (err) {
-      console.error("Could not fetch live emails:", err);
-    } finally {
-      set({ isFetchingTickets: false });
+      console.error('Failed to save knowledge base', err);
     }
   },
 }));
