@@ -24,11 +24,11 @@ export default function App() {
   const { token, setUser, setDocuments, setBrandVoice, setBusinessIdentity } = useAppStore();
 
   React.useEffect(() => {
-    // Fetch user profile first, THEN only fetch tickets if this account has Gmail connected
+    // Load user profile first — then only fetch tickets if Gmail is connected for THIS account
     if (token) {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       fetch(`${apiUrl}/api/user/me`, {
-        headers: { "Authorization": `Bearer ${token}` }
+        headers: { "Authorization": `Bearer ${token}`, "Cache-Control": "no-store" }
       })
       .then(res => res.json())
       .then(userData => {
@@ -39,7 +39,7 @@ export default function App() {
             if (userData.knowledgeBase.brandVoice) setBrandVoice(userData.knowledgeBase.brandVoice);
             if (userData.knowledgeBase.businessIdentity) setBusinessIdentity(userData.knowledgeBase.businessIdentity);
           }
-          // Only fetch tickets if THIS account has Gmail connected
+          // Only fetch tickets if this account has Gmail connected
           if (userData.googleConnected) {
             fetchTickets();
           }

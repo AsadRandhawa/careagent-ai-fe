@@ -39,16 +39,26 @@ const navItems = {
 export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, setToken, tickets, aiDrafts, seenSections, markSectionSeen } = useAppStore();
+  const { user, setToken, tickets, aiDrafts, markSectionSeen } = useAppStore();
 
   const escalatedCount = tickets.filter(
-    t => t.status === "escalated" || aiDrafts[t.id]?.status === "escalated"
+    t => t.status === "escalated" || (aiDrafts && aiDrafts[t.id]?.status === "escalated")
   ).length;
-  const inboxCount = tickets.filter(t => t.status !== "escalated").length;
 
+  // Badge shows if any ticket arrived AFTER the user last saw that section
   const getBadge = (id: string) => {
-    if (id === "inbox") return inboxCount > 0 && !seenSections["inbox"] ? String(inboxCount) : null;
-    if (id === "escalations") return escalatedCount > 0 && !seenSections["escalations"] ? String(escalatedCount) : null;
+    if (id === "inbox") {
+      const lastSeen = user?.lastSeenInboxAt ? new Date(user.lastSeenInboxAt) : null;
+      const newCount = lastSeen
+        ? tickets.filter(t => t.status !== "escalated" && new Date(t.createdAt) > lastSeen).length
+        : tickets.filter(t => t.status !== "escalated").length;
+      return newCount > 0 ? String(newCount) : null;
+    }
+    if (id === "escalations") {
+      const lastSeen = user?.lastSeenEscalAt ? new Date(user.lastSeenEscalAt) : null;
+      const newCount = lastSeen ? 0 : escalatedCount; // clear after first visit
+      return newCount > 0 ? String(newCount) : null;
+    }
     return null;
   };
 
