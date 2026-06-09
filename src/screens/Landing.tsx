@@ -146,7 +146,7 @@ export const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-36 pb-24 px-6 z-10">
+      <section className="relative pt-28 pb-12 px-6 z-10">
         <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -215,7 +215,7 @@ export const Landing = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, y: [0, 15, 0] }}
             transition={{ duration: 2.5, repeat: Infinity, delay: 1.5 }}
-            className="mt-32 w-8 h-12 rounded-full border-2 border-text-disabled flex justify-center p-2"
+            className="mt-10 w-8 h-12 rounded-full border-2 border-text-disabled flex justify-center p-2"
           >
             <motion.div className="w-1.5 h-1.5 rounded-full bg-text-disabled" />
           </motion.div>
@@ -223,7 +223,7 @@ export const Landing = () => {
       </section>
 
       {/* Feature Showcase (Bento Grid) */}
-      <section id="features" className="py-20 px-6 bg-surface/30 backdrop-blur-sm border-t border-border-faint relative overflow-hidden">
+      <section id="features" className="py-12 px-6 bg-surface/30 backdrop-blur-sm border-t border-border-faint relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="mb-20 flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="max-w-xl">
@@ -595,18 +595,17 @@ const CareAgentBot = () => {
     setInput('');
     setLoading(true);
     try {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'https://careagent-ai-be-production.up.railway.app').replace(/\/+$/, '');
       const res = await fetch(`${apiUrl}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
           system: SYSTEM_PROMPT,
           messages: next.map(m => ({ role: m.role, content: m.content })),
         })
       });
       const data = await res.json();
-      const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response.";
+      const reply = data.reply || "Sorry, I couldn't get a response.";
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: "Having trouble connecting. Please try again!" }]);
