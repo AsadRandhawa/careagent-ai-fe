@@ -21,7 +21,7 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
   const navigate = useNavigate();
   const ticketIdParam = searchParams.get("ticketId");
   
-  const { documents, businessIdentity, brandVoice, tickets, setTickets, isFetchingTickets, aiDrafts, setAiDrafts, token, incrementResolved } = useAppStore();
+  const { documents, businessIdentity, brandVoice, tickets, setTickets, isFetchingTickets, aiDrafts, setAiDrafts, token } = useAppStore();
   const [selectedId, setSelectedId] = React.useState<string | null>(ticketIdParam || (tickets.length > 0 ? tickets[0].id : null));
   const [activeFilter, setActiveFilter] = React.useState(defaultFilter);
   const [isDrafting, setIsDrafting] = React.useState(false);
@@ -130,14 +130,14 @@ You MUST return your response as a JSON object matching this schema:
           to: selectedTicket.email,
           subject: selectedTicket.subject || "Re: Your message",
           body: draft.draft,
-          threadId: selectedTicket.threadId
+          threadId: selectedTicket.threadId,
+          ticketExternalId: selectedTicket.id
         })
       });
 
       if (!res.ok) throw new Error("Failed to send");
 
       toast("Reply sent successfully ✓", "success");
-      incrementResolved();
       const nextTickets = tickets.filter(t => t.id !== selectedId);
       setTickets(nextTickets);
       setAiDrafts(prev => {
@@ -173,14 +173,14 @@ You MUST return your response as a JSON object matching this schema:
           to: selectedTicket.email,
           subject: selectedTicket.subject || "Re: Your message",
           body: manualReply,
-          threadId: selectedTicket.threadId
+          threadId: selectedTicket.threadId,
+          ticketExternalId: selectedTicket.id
         })
       });
 
       if (!res.ok) throw new Error("Failed to send");
 
       toast("Manual reply sent successfully ✓", "success");
-      incrementResolved();
       setManualReply("");
       const nextTickets2 = tickets.filter(t => t.id !== selectedId);
       setTickets(nextTickets2);

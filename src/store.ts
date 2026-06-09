@@ -55,20 +55,15 @@ interface AppState {
   // Sync Gmail → DB
   syncTickets: () => Promise<void>;
 
-  // Session-local resolved count (incremented on send/take-over)
-  resolvedCount: number;
-  incrementResolved: () => void;
-
-  // Take over a ticket (remove from list)
+  // Take over a ticket (remove from list, server increments resolved via reply endpoint)
   takeOverTicket: (ticketId: string) => void;
 
-  // Sidebar seen tracking (badges disappear after first visit)
-  seenSections: Record<string, boolean>;
-  markSectionSeen: (section: string) => void;
+  // Sidebar seen tracking — stored in DB, not localStorage
+  markSectionSeen: (section: 'inbox' | 'escalations') => Promise<void>;
 
-  // Gmail channel enabled toggle
+  // Gmail channel toggle — stored in DB
   gmailEnabled: boolean;
-  setGmailEnabled: (enabled: boolean) => void;
+  setGmailEnabled: (enabled: boolean) => Promise<void>;
 
   aiDrafts: Record<string, { status: "draft" | "escalated"; reason?: string; draft?: string }>;
   setAiDrafts: (
@@ -115,11 +110,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   fetchTickets: async () => {
     const { token, gmailEnabled } = get();
     if (!token) return;
-    // If Gmail channel is disabled, clear tickets and bail
-    if (!gmailEnabled) {
-      set({ tickets: [] });
-      return;
-    }
+    if (!gmailEnabled) { set({ tickets: [] }); return; }
     set({ isFetchingTickets: true });
     try {
       const res = await fetch(`${getApiUrl()}/api/gmail/emails`, {
@@ -127,7 +118,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       });
       if (res.ok) {
         const data = await res.json();
-        if (data?.length > 0) set({ tickets: data });
+        if (Array.isArray(data)) set({ tickets: data });
       }
     } catch (err) {
       console.error('Could not fetch live emails:', err);
@@ -150,16 +141,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  // ── Resolved Count (session + localStorage) ────────────
-  resolvedCount: parseInt(localStorage.getItem('careagent_resolved') || '0', 10),
-  incrementResolved: () => {
-    set((state) => {
-      const next = state.resolvedCount + 1;
-      localStorage.setItem('careagent_resolved', String(next));
-      return { resolvedCount: next };
-    });
-  },
-
   // ── Take Over Ticket ───────────────────────────────────
   takeOverTicket: (ticketId: string) => {
     set((state) => ({
@@ -170,24 +151,45 @@ export const useAppStore = create<AppState>((set, get) => ({
         return d;
       })(),
     }));
-    get().incrementResolved();
+    // No local resolved increment — the DB is the source of truth via /api/tickets/stats
   },
 
-  // ── Sidebar Seen Sections ──────────────────────────────
-  seenSections: JSON.parse(localStorage.getItem('careagent_seen') || '{}'),
-  markSectionSeen: (section: string) => {
-    set((state) => {
-      const updated = { ...state.seenSections, [section]: true };
-      localStorage.setItem('careagent_seen', JSON.stringify(updated));
-      return { seenSections: updated };
-    });
+  // ── Mark Section Seen (DB) ─────────────────────────────
+  markSectionSeen: async (section: 'inbox' | 'escalations') => {
+    const { token } = get();
+    if (!token) return;
+    const field = section === 'inbox' ? 'lastSeenInboxAt' : 'lastSeenEscalAt';
+    try {
+      await fetch(`${getApiUrl()}/api/user/preferences`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ [field]: new Date().toISOString() }),
+      });
+      // Update local user object so sidebar re-renders immediately
+      set((state) => ({
+        user: state.user ? { ...state.user, [field]: new Date().toISOString() } : state.user
+      }));
+    } catch (err) {
+      console.error('markSectionSeen failed:', err);
+    }
   },
 
-  // ── Gmail Channel Toggle ───────────────────────────────
-  gmailEnabled: localStorage.getItem('careagent_gmail_enabled') !== 'false',
-  setGmailEnabled: (enabled: boolean) => {
-    localStorage.setItem('careagent_gmail_enabled', String(enabled));
+  // ── Gmail Toggle (DB) ──────────────────────────────────
+  gmailEnabled: true, // will be overwritten by user profile load in App.tsx
+  setGmailEnabled: async (enabled: boolean) => {
+    const { token } = get();
     set({ gmailEnabled: enabled });
+    if (!enabled) set({ tickets: [] });
+    if (!token) return;
+    try {
+      await fetch(`${getApiUrl()}/api/user/preferences`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ gmailEnabled: enabled }),
+      });
+    } catch (err) {
+      console.error('setGmailEnabled failed:', err);
+    }
   },
 
   // ── Real Stats ─────────────────────────────────────────
@@ -238,12 +240,34 @@ export const useAppStore = create<AppState>((set, get) => ({
   // ── Auth ───────────────────────────────────────────────
   token: localStorage.getItem('careagent_token'),
   setToken: (token) => {
-    if (token) localStorage.setItem('careagent_token', token);
-    else localStorage.removeItem('careagent_token');
+    if (token) {
+      localStorage.setItem('careagent_token', token);
+    } else {
+      // Logout — clear token and reset ALL in-memory state
+      localStorage.removeItem('careagent_token');
+      set({
+        tickets: [],
+        aiDrafts: {},
+        gmailEnabled: true,
+        ticketStats: null,
+        aiInsights: null,
+        user: null,
+        documents: [],
+        brandVoice: 'Professional, concise, but friendly. Use emojis occasionally.',
+        businessIdentity: 'We are a fast-growing SaaS company that sells productivity software. Our customers are busy professionals.',
+      });
+    }
     set({ token });
   },
   user:    null,
-  setUser: (user) => set({ user }),
+  setUser: (user) => {
+    // Sync gmailEnabled from DB when user profile loads
+    if (user) {
+      set({ user, gmailEnabled: user.gmailEnabled ?? true });
+    } else {
+      set({ user: null });
+    }
+  },
 
   // ── Onboarding ─────────────────────────────────────────
   showOnboarding: false,

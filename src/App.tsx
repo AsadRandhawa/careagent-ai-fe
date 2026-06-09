@@ -24,9 +24,7 @@ export default function App() {
   const { token, setUser, setDocuments, setBrandVoice, setBusinessIdentity } = useAppStore();
 
   React.useEffect(() => {
-    fetchTickets();
-    
-    // Fetch user profile if token exists
+    // Fetch user profile first, THEN only fetch tickets if this account has Gmail connected
     if (token) {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       fetch(`${apiUrl}/api/user/me`, {
@@ -37,12 +35,13 @@ export default function App() {
         if (!userData.error) {
           setUser(userData);
           if (userData.knowledgeBase) {
-            // Update without triggering saveKnowledgeBase to avoid overwriting loop
-            // We use the direct zustand set function or we just accept that it saves back to server once, which is harmless.
-            // Actually, we should just let it save back, it's fine.
             if (userData.knowledgeBase.documents) setDocuments(userData.knowledgeBase.documents);
             if (userData.knowledgeBase.brandVoice) setBrandVoice(userData.knowledgeBase.brandVoice);
             if (userData.knowledgeBase.businessIdentity) setBusinessIdentity(userData.knowledgeBase.businessIdentity);
+          }
+          // Only fetch tickets if THIS account has Gmail connected
+          if (userData.googleConnected) {
+            fetchTickets();
           }
         }
       })
