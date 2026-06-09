@@ -14,7 +14,11 @@ export const Channels = () => {
   const [searchParams] = useSearchParams();
   const navigate      = useNavigate();
   const { toast }     = useToast();
-  const { token, user } = useAppStore();
+  const { token, user, gmailEnabled, setGmailEnabled, fetchTickets,
+    aiAutoDrafting, setAiAutoDrafting,
+    autoClassification, setAutoClassification,
+    sentimentTracking, setSentimentTracking,
+  } = useAppStore();
 
   // Derive real connection status from user object
   const gmailConnected     = !!user?.googleConnected;
@@ -65,12 +69,19 @@ export const Channels = () => {
 
   const channels = [
     {
-      id:          "gmail",
-      name:        "Gmail",
-      description: "Official support inbox connection",
-      icon:        <Mail size={18} />,
-      connected:   gmailConnected,
-      onConnect:   connectGmail,
+      id:           "gmail",
+      name:         "Gmail",
+      description:  "Official support inbox connection",
+      icon:         <Mail size={18} />,
+      connected:    gmailConnected,
+      enabled:      gmailEnabled,
+      onToggle:     (val: boolean) => {
+        setGmailEnabled(val).then(() => {
+          if (val) { toast("Gmail inbox enabled.", "success"); fetchTickets(); }
+          else { toast("Gmail inbox disabled.", "info"); }
+        });
+      },
+      onConnect:    connectGmail,
       onDisconnect: disconnectGmail,
     },
     {
@@ -79,6 +90,8 @@ export const Channels = () => {
       description: "Customer chat integration — verification in progress",
       icon:        <MessageSquare size={18} />,
       connected:   whatsappConnected,
+      enabled:     whatsappConnected,
+      onToggle:    () => {},
       onConnect:   connectWhatsApp,
       onDisconnect: () => toast("WhatsApp disconnect coming soon.", "info"),
     },
@@ -88,6 +101,8 @@ export const Channels = () => {
       description: "Direct message management — coming soon",
       icon:        <Instagram size={18} />,
       connected:   false,
+      enabled:     false,
+      onToggle:    () => {},
       onConnect:   connectInstagram,
       onDisconnect: () => {},
     },
@@ -97,6 +112,8 @@ export const Channels = () => {
       description: "In-app support widget — coming soon",
       icon:        <Globe size={18} />,
       connected:   false,
+      enabled:     false,
+      onToggle:    () => {},
       onConnect:   () => toast("Web Live Chat coming soon.", "info"),
       onDisconnect: () => {},
     },
@@ -128,7 +145,8 @@ export const Channels = () => {
                   description={channel.description}
                   icon={channel.icon}
                   connected={channel.connected}
-                  onToggle={() => {}}
+                  enabled={channel.enabled}
+                  onToggle={channel.onToggle}
                   onConnect={channel.connected ? channel.onDisconnect : channel.onConnect}
                 />
               ))}
