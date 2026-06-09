@@ -146,7 +146,7 @@ export const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-56 pb-40 px-6 z-10">
+      <section className="relative pt-36 pb-24 px-6 z-10">
         <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -223,7 +223,7 @@ export const Landing = () => {
       </section>
 
       {/* Feature Showcase (Bento Grid) */}
-      <section id="features" className="py-40 px-6 bg-surface/30 backdrop-blur-sm border-t border-border-faint relative overflow-hidden">
+      <section id="features" className="py-20 px-6 bg-surface/30 backdrop-blur-sm border-t border-border-faint relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="mb-20 flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="max-w-xl">
@@ -311,7 +311,7 @@ export const Landing = () => {
       </section>
 
       {/* Interactive Process Section */}
-      <section id="how-it-works" className="py-32 px-6 relative">
+      <section id="how-it-works" className="py-20 px-6 relative">
         <div className="max-w-7xl mx-auto">
           <div className="mb-20">
             <h4 className="text-brand font-black uppercase tracking-[0.3em] mb-3 text-center text-[10px]">The Workflow</h4>
@@ -345,7 +345,7 @@ export const Landing = () => {
       </section>
 
       {/* Pricing - Upwork Green Vibe */}
-      <section id="pricing" className="py-32 px-6 bg-surface/50 border-y border-border-faint">
+      <section id="pricing" className="py-20 px-6 bg-surface/50 border-y border-border-faint">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20 flex flex-col items-center">
             <div className="px-5 py-2 rounded-full bg-brand/10 border border-brand/20 text-brand text-[10px] font-black uppercase tracking-[0.2em] mb-6">Simple Plans</div>
@@ -357,15 +357,13 @@ export const Landing = () => {
             <PricingCard 
               title="Startup" 
               price="0" 
-              currency="Rs"
               desc="For testing AI workflows."
               features={["100 AI Resolutions", "2 KB Sources", "Email Integration"]}
               onClick={onEnterApp}
             />
             <PricingCard 
               title="Growth" 
-              price="45,000" 
-              currency="Rs"
+              price="499" 
               popular
               desc="Scale your support operations."
               features={["2,500 AI Resolutions", "Unlimited KB Docs", "WhatsApp & Slack", "SSO Login"]}
@@ -374,7 +372,6 @@ export const Landing = () => {
             <PricingCard 
               title="Enterprise" 
               price="Custom" 
-              currency="Rs"
               desc="Full control and infinite docs."
               features={["Custom Usage", "Private Deployment", "Audit Logging", "Account Manager"]}
               onClick={onEnterApp}
@@ -385,7 +382,7 @@ export const Landing = () => {
 
       {/* Final CTA Immersive Section */}
       <section
-        className="py-48 px-6 relative overflow-hidden flex items-center justify-center text-center"
+        className="py-24 px-6 relative overflow-hidden flex items-center justify-center text-center"
         style={{ backgroundColor: '#16a34a', isolation: 'isolate' }}
       >
         {/* Animated glow orb */}
@@ -407,6 +404,19 @@ export const Landing = () => {
         />
 
         <div className="max-w-3xl relative" style={{ zIndex: 1 }}>
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-white/30 text-white text-[11px] font-black uppercase tracking-[0.2em] mb-10"
+            style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
+          >
+            <Sparkles size={14} />
+            <span>14-Day Free Trial</span>
+          </motion.div>
+
           {/* Headline */}
           <motion.h2
             initial={{ opacity: 0, y: 30 }}
@@ -428,7 +438,7 @@ export const Landing = () => {
             className="text-xl font-bold mb-12 max-w-xl mx-auto"
             style={{ color: 'rgba(255,255,255,0.85)' }}
           >
-            Start your mission control today. Connect your first channel in 90 seconds.
+            Start your 14-day mission control trial today. Connect your first channel in 90 seconds.
           </motion.p>
 
           {/* Buttons */}
@@ -460,7 +470,7 @@ export const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-24 px-6 bg-bg border-t border-border-faint">
+      <footer className="py-16 px-6 bg-bg border-t border-border-faint">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-start justify-between gap-16 mb-24">
             <div className="max-w-md">
@@ -511,11 +521,12 @@ export const Landing = () => {
         </div>
       </footer>
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <CareAgentBot />
     </div>
   );
 };
 
-const PricingCard = ({ title, price, currency = "Rs", desc, features, popular, onClick }: { title: string, price: string, currency?: string, desc: string, features: string[], popular?: boolean, onClick?: () => void }) => (
+const PricingCard = ({ title, price, desc, features, popular, onClick }: { title: string, price: string, desc: string, features: string[], popular?: boolean, onClick?: () => void }) => (
   <motion.div 
     whileHover={{ y: -10 }}
     className={`p-10 rounded-3xl border flex flex-col transition-all duration-500 ${popular ? "bg-bg border-brand shadow-glow relative ring-4 ring-brand/5" : "bg-surface border-border-faint hover:border-brand/40"}`}
@@ -524,7 +535,7 @@ const PricingCard = ({ title, price, currency = "Rs", desc, features, popular, o
     <div className="mb-10">
       <h4 className={`text-xl font-black mb-4 ${popular ? "text-brand" : "text-text-primary"}`}>{title}</h4>
       <div className="flex items-baseline gap-1 mb-4">
-        {price !== "Custom" && <span className="text-2xl font-black text-text-primary tracking-tighter">{currency}</span>}
+        {price !== "Custom" && <span className="text-2xl font-black text-text-primary tracking-tighter">$</span>}
         <span className="text-5xl font-black text-text-primary tracking-tighter">{price}</span>
         {price !== "Custom" && <span className="text-text-disabled font-black text-[10px] uppercase tracking-widest ml-1">/mo</span>}
       </div>
@@ -547,3 +558,151 @@ const PricingCard = ({ title, price, currency = "Rs", desc, features, popular, o
     </Button>
   </motion.div>
 );
+
+// ── CareAgent Landing Bot ─────────────────────────────────
+const SYSTEM_PROMPT = `You are CareAgent Assistant, a helpful guide on the CareAgent.ai website. 
+You ONLY answer questions about CareAgent.ai — its features, pricing, how it works, and how to get started.
+If asked anything outside CareAgent (general coding, personal advice, other products, etc.), politely decline and redirect to CareAgent topics.
+Keep answers short, friendly, and helpful. Use bullet points for features/steps.
+
+CareAgent key facts:
+- AI-powered customer support platform
+- Auto-drafts replies to support emails using your knowledge base
+- Connects to Gmail, WhatsApp (coming soon), Instagram DMs (coming soon)
+- Pricing: Startup (Rs 0/mo - 100 AI resolutions), Growth (Rs 139,000/mo - 2,500 resolutions), Enterprise (Custom)
+- Setup takes 5 minutes: add business identity, brand voice, upload a doc, connect Gmail
+- AI escalates tickets it can't handle to human agents
+- Dashboard shows open tickets, resolved count, sentiment, escalation rate`;
+
+const CareAgentBot = () => {
+  const [open, setOpen] = React.useState(false);
+  const [messages, setMessages] = React.useState<{role: 'user'|'assistant', content: string}[]>([
+    { role: 'assistant', content: "Hi! I'm the CareAgent guide 👋 Ask me anything about the platform — features, pricing, how to get started, anything!" }
+  ]);
+  const [input, setInput] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const bottomRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const send = async () => {
+    const text = input.trim();
+    if (!text || loading) return;
+    const next = [...messages, { role: 'user' as const, content: text }];
+    setMessages(next);
+    setInput('');
+    setLoading(true);
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: SYSTEM_PROMPT,
+          messages: next.map(m => ({ role: m.role, content: m.content })),
+        })
+      });
+      const data = await res.json();
+      const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response.";
+      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+    } catch {
+      setMessages(prev => [...prev, { role: 'assistant', content: "Having trouble connecting. Please try again!" }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Toggle button */}
+      <motion.button
+        onClick={() => setOpen(o => !o)}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-brand shadow-glow flex items-center justify-center text-white"
+        aria-label="Open CareAgent guide"
+      >
+        <AnimatePresence mode="wait">
+          {open
+            ? <motion.div key="x" initial={{rotate:-90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:90,opacity:0}} transition={{duration:0.15}}><X size={22}/></motion.div>
+            : <motion.div key="bot" initial={{rotate:90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:-90,opacity:0}} transition={{duration:0.15}}><Bot size={22}/></motion.div>
+          }
+        </AnimatePresence>
+      </motion.button>
+
+      {/* Chat window */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed bottom-24 right-6 z-50 w-[340px] max-h-[500px] flex flex-col rounded-2xl border border-border-faint bg-bg shadow-2xl overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-center gap-3 px-4 py-3 bg-brand">
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                <Bot size={16} className="text-white" />
+              </div>
+              <div>
+                <div className="text-[13px] font-bold text-white">CareAgent Guide</div>
+                <div className="text-[10px] text-white/70">Ask me about the platform</div>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0 max-h-[340px]">
+              {messages.map((m, i) => (
+                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] text-[12px] px-3 py-2 rounded-2xl leading-relaxed whitespace-pre-wrap ${
+                    m.role === 'user'
+                      ? 'bg-brand text-white rounded-br-sm'
+                      : 'bg-surface border border-border-faint text-text-primary rounded-bl-sm'
+                  }`}>
+                    {m.content}
+                  </div>
+                </div>
+              ))}
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="bg-surface border border-border-faint rounded-2xl rounded-bl-sm px-3 py-2">
+                    <div className="flex gap-1 items-center h-4">
+                      {[0,1,2].map(i => (
+                        <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-brand"
+                          animate={{ y: [0,-4,0] }} transition={{ duration: 0.6, repeat: Infinity, delay: i*0.15 }} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={bottomRef} />
+            </div>
+
+            {/* Input */}
+            <div className="px-3 py-3 border-t border-border-faint flex gap-2">
+              <input
+                className="flex-1 bg-surface border border-border-mid rounded-xl px-3 py-2 text-[12px] text-text-primary outline-none focus:border-brand transition-colors placeholder:text-text-disabled"
+                placeholder="Ask about CareAgent..."
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && send()}
+                disabled={loading}
+              />
+              <button
+                onClick={send}
+                disabled={loading || !input.trim()}
+                className="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center hover:opacity-90 disabled:opacity-40 transition-opacity flex-shrink-0"
+              >
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};

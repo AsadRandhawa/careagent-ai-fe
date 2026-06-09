@@ -1,6 +1,6 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Building2, MessageSquareText, FileText, Mail, ArrowRight, ArrowLeft, Bot, CheckCircle2, Loader2 } from "lucide-react";
+import { X, Building2, MessageSquareText, FileText, Mail, ArrowRight, ArrowLeft, Bot, CheckCircle2, Loader2, HelpCircle, ChevronDown } from "lucide-react";
 import { Button } from "./ui/Button";
 import { useAppStore } from "../store";
 import { useNavigate } from "react-router-dom";
@@ -195,11 +195,14 @@ export const OnboardingModal = () => {
                 <div className="flex-1 flex flex-col justify-center items-center text-center">
                   <div className="inline-block px-3 py-1 rounded-full bg-brand/10 text-brand text-[10px] font-black uppercase tracking-widest mb-4">Step 03</div>
                   <h2 className="text-3xl font-black text-text-primary tracking-tight mb-2">Give it some brains</h2>
-                  <p className="text-sm text-text-muted mb-8 max-w-md mx-auto">Upload one file — a policy doc, FAQ list, or product manual. This is the AI's first piece of real knowledge. Even one document transforms response quality dramatically.</p>
+                  <p className="text-sm text-text-muted mb-6 max-w-md mx-auto">Upload one file — a policy doc, FAQ list, or product manual. This is the AI's first piece of real knowledge.</p>
                   
+                  {/* Format Guide Accordion */}
+                  <FormatGuide />
+
                   <div 
                     onClick={() => !isUploading && fileInputRef.current?.click()}
-                    className={`w-full max-w-md border-2 border-dashed rounded-3xl p-10 flex flex-col items-center justify-center transition-all cursor-pointer ${isUploading ? 'border-border-mid bg-surface opacity-50' : 'border-border-strong bg-brand/5 hover:border-brand/40 hover:bg-brand/10'}`}
+                    className={`w-full max-w-md border-2 border-dashed rounded-3xl p-10 flex flex-col items-center justify-center transition-all cursor-pointer mt-4 ${isUploading ? 'border-border-mid bg-surface opacity-50' : 'border-border-strong bg-brand/5 hover:border-brand/40 hover:bg-brand/10'}`}
                   >
                     <div className="w-16 h-16 rounded-2xl bg-surface border border-border-faint flex items-center justify-center mb-6 shadow-sm">
                       {isUploading ? <Loader2 size={24} className="text-brand animate-spin" /> : <FileText size={24} className="text-brand" />}
@@ -286,6 +289,51 @@ export const OnboardingModal = () => {
           </div>
         </div>
       </motion.div>
+    </div>
+  );
+};
+
+const FormatGuide = () => {
+  const [open, setOpen] = React.useState(false);
+  const formats = [
+    { ext: "PDF", color: "bg-red-500/10 text-red-500 border-red-500/20", desc: "Product manuals, policy docs, brochures" },
+    { ext: "TXT", color: "bg-blue-500/10 text-blue-500 border-blue-500/20", desc: "FAQs, plain text notes, articles" },
+    { ext: "DOCX", color: "bg-brand/10 text-brand border-brand/20", desc: "Word documents, reports, SOPs" },
+  ];
+  return (
+    <div className="w-full max-w-md mb-2">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-border-faint bg-surface hover:bg-surface-high transition-all text-[12px] font-semibold text-text-muted"
+      >
+        <div className="flex items-center gap-2">
+          <HelpCircle size={13} className="text-brand" />
+          What file formats work best?
+        </div>
+        <ChevronDown size={13} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="border border-border-faint border-t-0 rounded-b-xl bg-surface px-4 py-3 space-y-2">
+              {formats.map(f => (
+                <div key={f.ext} className="flex items-center gap-3">
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${f.color}`}>{f.ext}</span>
+                  <span className="text-[11px] text-text-muted">{f.desc}</span>
+                </div>
+              ))}
+              <p className="text-[10px] text-text-disabled pt-1 border-t border-border-faint mt-2">
+                Tip: Plain text files process fastest. Max 10MB per file.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
