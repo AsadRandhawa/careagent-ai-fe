@@ -23,8 +23,8 @@ export type SectionType = "Operations" | "Admin" | "Analytics";
 const navItems = {
   Operations: [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-    { id: "inbox", label: "Inbox", icon: Inbox, badge: "4", path: "/inbox" },
-    { id: "escalations", label: "Escalations", icon: AlertTriangle, badge: "1", path: "/escalations" },
+    { id: "inbox", label: "Inbox", icon: Inbox, path: "/inbox" },
+    { id: "escalations", label: "Escalations", icon: AlertTriangle, path: "/escalations" },
   ],
   Admin: [
     { id: "onboarding", label: "Quick Setup", icon: Rocket, path: "/onboarding" },
@@ -39,7 +39,25 @@ const navItems = {
 export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, setToken } = useAppStore();
+  const { user, setToken, tickets, aiDrafts, seenSections, markSectionSeen } = useAppStore();
+
+  const escalatedCount = tickets.filter(
+    t => t.status === "escalated" || aiDrafts[t.id]?.status === "escalated"
+  ).length;
+  const inboxCount = tickets.filter(t => t.status !== "escalated").length;
+
+  const getBadge = (id: string) => {
+    if (id === "inbox") return inboxCount > 0 && !seenSections["inbox"] ? String(inboxCount) : null;
+    if (id === "escalations") return escalatedCount > 0 && !seenSections["escalations"] ? String(escalatedCount) : null;
+    return null;
+  };
+
+  const handleNavClick = (path: string, id: string) => {
+    if (id === "inbox" || id === "escalations") {
+      markSectionSeen(id);
+    }
+    navigate(path);
+  };
 
   const handleLogout = () => {
     setToken(null);
@@ -76,11 +94,12 @@ export const Sidebar = () => {
               {navItems[section as keyof typeof navItems].map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
+                const badge = getBadge(item.id);
                 
                 return (
                   <button
                     key={item.id}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => handleNavClick(item.path, item.id)}
                     className={cn(
                       "w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group relative",
                       isActive 
@@ -92,9 +111,9 @@ export const Sidebar = () => {
                       <Icon size={14} className={cn(isActive ? "text-brand" : "text-text-muted group-hover:text-text-primary")} />
                       <span className="text-[13px] font-medium">{item.label}</span>
                     </div>
-                    {item.badge && (
+                    {badge && (
                       <Badge variant={isActive ? "brand" : "default"} size="xs" className="font-mono text-[9px]">
-                        {item.badge}
+                        {badge}
                       </Badge>
                     )}
                   </button>

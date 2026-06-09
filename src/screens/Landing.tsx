@@ -357,13 +357,15 @@ export const Landing = () => {
             <PricingCard 
               title="Startup" 
               price="0" 
+              currency="Rs"
               desc="For testing AI workflows."
               features={["100 AI Resolutions", "2 KB Sources", "Email Integration"]}
               onClick={onEnterApp}
             />
             <PricingCard 
               title="Growth" 
-              price="499" 
+              price="45,000" 
+              currency="Rs"
               popular
               desc="Scale your support operations."
               features={["2,500 AI Resolutions", "Unlimited KB Docs", "WhatsApp & Slack", "SSO Login"]}
@@ -372,6 +374,7 @@ export const Landing = () => {
             <PricingCard 
               title="Enterprise" 
               price="Custom" 
+              currency="Rs"
               desc="Full control and infinite docs."
               features={["Custom Usage", "Private Deployment", "Audit Logging", "Account Manager"]}
               onClick={onEnterApp}
@@ -404,19 +407,6 @@ export const Landing = () => {
         />
 
         <div className="max-w-3xl relative" style={{ zIndex: 1 }}>
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-white/30 text-white text-[11px] font-black uppercase tracking-[0.2em] mb-10"
-            style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
-          >
-            <Sparkles size={14} />
-            <span>14-Day Free Trial</span>
-          </motion.div>
-
           {/* Headline */}
           <motion.h2
             initial={{ opacity: 0, y: 30 }}
@@ -438,7 +428,7 @@ export const Landing = () => {
             className="text-xl font-bold mb-12 max-w-xl mx-auto"
             style={{ color: 'rgba(255,255,255,0.85)' }}
           >
-            Start your 14-day mission control trial today. Connect your first channel in 90 seconds.
+            Start your mission control today. Connect your first channel in 90 seconds.
           </motion.p>
 
           {/* Buttons */}
@@ -525,7 +515,7 @@ export const Landing = () => {
   );
 };
 
-const PricingCard = ({ title, price, desc, features, popular, onClick }: { title: string, price: string, desc: string, features: string[], popular?: boolean, onClick?: () => void }) => (
+const PricingCard = ({ title, price, currency = "Rs", desc, features, popular, onClick }: { title: string, price: string, currency?: string, desc: string, features: string[], popular?: boolean, onClick?: () => void }) => (
   <motion.div 
     whileHover={{ y: -10 }}
     className={`p-10 rounded-3xl border flex flex-col transition-all duration-500 ${popular ? "bg-bg border-brand shadow-glow relative ring-4 ring-brand/5" : "bg-surface border-border-faint hover:border-brand/40"}`}
@@ -534,7 +524,7 @@ const PricingCard = ({ title, price, desc, features, popular, onClick }: { title
     <div className="mb-10">
       <h4 className={`text-xl font-black mb-4 ${popular ? "text-brand" : "text-text-primary"}`}>{title}</h4>
       <div className="flex items-baseline gap-1 mb-4">
-        {price !== "Custom" && <span className="text-2xl font-black text-text-primary tracking-tighter">$</span>}
+        {price !== "Custom" && <span className="text-2xl font-black text-text-primary tracking-tighter">{currency}</span>}
         <span className="text-5xl font-black text-text-primary tracking-tighter">{price}</span>
         {price !== "Custom" && <span className="text-text-disabled font-black text-[10px] uppercase tracking-widest ml-1">/mo</span>}
       </div>

@@ -13,7 +13,7 @@ import { useAppStore } from "../store";
 import { cn } from "@/src/lib/utils";
 
 export const Escalations = () => {
-  const { tickets, aiDrafts, isFetchingTickets } = useAppStore();
+  const { tickets, aiDrafts, isFetchingTickets, takeOverTicket } = useAppStore();
 
   const escalatedTickets = tickets.filter(
     ticket => ticket.status === "escalated" || aiDrafts[ticket.id]?.status === "escalated"
@@ -74,7 +74,7 @@ export const Escalations = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Button variant="danger" size="sm">Take Over</Button>
+                      <Button variant="danger" size="sm" onClick={() => takeOverTicket(ticket.id)}>Take Over</Button>
                       <Button variant="ghost" size="sm">Dismiss Flag</Button>
                       <Button variant="ghost" size="sm">Review Logs</Button>
                     </div>

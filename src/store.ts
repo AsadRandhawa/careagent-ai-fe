@@ -55,6 +55,21 @@ interface AppState {
   // Sync Gmail → DB
   syncTickets: () => Promise<void>;
 
+  // Session-local resolved count (incremented on send/take-over)
+  resolvedCount: number;
+  incrementResolved: () => void;
+
+  // Take over a ticket (remove from list)
+  takeOverTicket: (ticketId: string) => void;
+
+  // Sidebar seen tracking (badges disappear after first visit)
+  seenSections: Record<string, boolean>;
+  markSectionSeen: (section: string) => void;
+
+  // Gmail channel enabled toggle
+  gmailEnabled: boolean;
+  setGmailEnabled: (enabled: boolean) => void;
+
   aiDrafts: Record<string, { status: "draft" | "escalated"; reason?: string; draft?: string }>;
   setAiDrafts: (
     drafts:
@@ -98,8 +113,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     })),
   isFetchingTickets: false,
   fetchTickets: async () => {
-    const { token } = get();
+    const { token, gmailEnabled } = get();
     if (!token) return;
+    // If Gmail channel is disabled, clear tickets and bail
+    if (!gmailEnabled) {
+      set({ tickets: [] });
+      return;
+    }
     set({ isFetchingTickets: true });
     try {
       const res = await fetch(`${getApiUrl()}/api/gmail/emails`, {
@@ -128,6 +148,46 @@ export const useAppStore = create<AppState>((set, get) => ({
     } catch (err) {
       console.error('Sync failed:', err);
     }
+  },
+
+  // ── Resolved Count (session + localStorage) ────────────
+  resolvedCount: parseInt(localStorage.getItem('careagent_resolved') || '0', 10),
+  incrementResolved: () => {
+    set((state) => {
+      const next = state.resolvedCount + 1;
+      localStorage.setItem('careagent_resolved', String(next));
+      return { resolvedCount: next };
+    });
+  },
+
+  // ── Take Over Ticket ───────────────────────────────────
+  takeOverTicket: (ticketId: string) => {
+    set((state) => ({
+      tickets: state.tickets.filter((t) => t.id !== ticketId),
+      aiDrafts: (() => {
+        const d = { ...state.aiDrafts };
+        delete d[ticketId];
+        return d;
+      })(),
+    }));
+    get().incrementResolved();
+  },
+
+  // ── Sidebar Seen Sections ──────────────────────────────
+  seenSections: JSON.parse(localStorage.getItem('careagent_seen') || '{}'),
+  markSectionSeen: (section: string) => {
+    set((state) => {
+      const updated = { ...state.seenSections, [section]: true };
+      localStorage.setItem('careagent_seen', JSON.stringify(updated));
+      return { seenSections: updated };
+    });
+  },
+
+  // ── Gmail Channel Toggle ───────────────────────────────
+  gmailEnabled: localStorage.getItem('careagent_gmail_enabled') !== 'false',
+  setGmailEnabled: (enabled: boolean) => {
+    localStorage.setItem('careagent_gmail_enabled', String(enabled));
+    set({ gmailEnabled: enabled });
   },
 
   // ── Real Stats ─────────────────────────────────────────

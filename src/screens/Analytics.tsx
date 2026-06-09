@@ -21,6 +21,7 @@ export const Analytics = () => {
     ticketStats,    isFetchingStats,    fetchTicketStats,
     aiInsights,     isFetchingInsights, fetchAIInsights,
     syncTickets,
+    resolvedCount,
   } = useAppStore();
 
   const [days, setDays] = React.useState(30);
@@ -80,7 +81,7 @@ export const Analytics = () => {
         />
         <MetricCard
           label="Resolved"
-          value={isFetchingStats ? "..." : String(stats?.resolvedThisPeriod ?? 0)}
+          value={isFetchingStats ? "..." : String((stats?.resolvedThisPeriod ?? 0) + resolvedCount)}
           subtext={`Last ${days} days`}
           icon={<Sparkles size={16} className="text-brand" />}
         />
@@ -241,7 +242,7 @@ export const Analytics = () => {
             </h3>
             <div className="space-y-1">
               <StatRow label="Open Tickets"      value={String(stats?.openTickets ?? 0)} />
-              <StatRow label="Resolved (period)" value={String(stats?.resolvedThisPeriod ?? 0)} />
+              <StatRow label="Resolved (period)" value={String((stats?.resolvedThisPeriod ?? 0) + resolvedCount)} />
               <StatRow label="Escalation Rate"   value={stats?.escalationRate ?? "0%"} />
               <StatRow
                 label="Avg Resolution"

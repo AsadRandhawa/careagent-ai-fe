@@ -15,7 +15,7 @@ export const Channels = () => {
   const [searchParams] = useSearchParams();
   const navigate      = useNavigate();
   const { toast }     = useToast();
-  const { token, user } = useAppStore();
+  const { token, user, gmailEnabled, setGmailEnabled } = useAppStore();
 
   // Derive real connection status from user object
   const gmailConnected     = !!user?.googleConnected;
@@ -71,6 +71,15 @@ export const Channels = () => {
       description: "Official support inbox connection",
       icon:        <Mail size={18} />,
       connected:   gmailConnected,
+      enabled:     gmailEnabled,
+      onToggle:    (val: boolean) => {
+        setGmailEnabled(val);
+        if (val) {
+          toast("Gmail inbox enabled. Tickets will load shortly.", "success");
+        } else {
+          toast("Gmail inbox disabled. No new tickets will load.", "info");
+        }
+      },
       onConnect:   connectGmail,
       onDisconnect: disconnectGmail,
     },
@@ -129,7 +138,8 @@ export const Channels = () => {
                   description={channel.description}
                   icon={channel.icon}
                   connected={channel.connected}
-                  onToggle={() => {}}
+                  enabled={'enabled' in channel ? channel.enabled : channel.connected}
+                  onToggle={'onToggle' in channel ? channel.onToggle : () => {}}
                   onConnect={channel.connected ? channel.onDisconnect : channel.onConnect}
                 />
               ))}

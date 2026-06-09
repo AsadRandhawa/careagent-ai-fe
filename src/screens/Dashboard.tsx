@@ -24,7 +24,7 @@ export const Dashboard = () => {
   const {
     tickets, isFetchingTickets, fetchTickets,
     ticketStats, isFetchingStats, fetchTicketStats,
-    syncTickets, token,
+    syncTickets, token, resolvedCount,
   } = useAppStore();
 
   const [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -172,7 +172,7 @@ export const Dashboard = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <StatRow label="Open Tickets"     value={String(stats?.openTickets ?? tickets.length)} />
-                <StatRow label="Resolved (30d)"   value={String(stats?.resolvedThisPeriod ?? 0)} />
+                <StatRow label="Resolved (30d)"   value={String((stats?.resolvedThisPeriod ?? 0) + resolvedCount)} />
                 <StatRow label="Escalated"         value={String(stats?.escalated ?? 0)} />
                 <StatRow label="Escalation Rate"   value={stats?.escalationRate ?? "0%"} valueColor="text-warn" />
               </div>
