@@ -65,6 +65,14 @@ interface AppState {
   gmailEnabled: boolean;
   setGmailEnabled: (enabled: boolean) => Promise<void>;
 
+  // Automation settings — stored in DB
+  aiAutoDrafting: boolean;
+  setAiAutoDrafting: (val: boolean) => Promise<void>;
+  autoClassification: boolean;
+  setAutoClassification: (val: boolean) => Promise<void>;
+  sentimentTracking: boolean;
+  setSentimentTracking: (val: boolean) => Promise<void>;
+
   aiDrafts: Record<string, { status: "draft" | "escalated"; reason?: string; draft?: string }>;
   setAiDrafts: (
     drafts:
@@ -192,6 +200,41 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  // ── Automation Settings (DB) ──────────────────────────
+  aiAutoDrafting: true,
+  setAiAutoDrafting: async (val: boolean) => {
+    set({ aiAutoDrafting: val });
+    const { token } = get();
+    if (!token) return;
+    await fetch(`${getApiUrl()}/api/user/preferences`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ aiAutoDrafting: val }),
+    }).catch(console.error);
+  },
+  autoClassification: true,
+  setAutoClassification: async (val: boolean) => {
+    set({ autoClassification: val });
+    const { token } = get();
+    if (!token) return;
+    await fetch(`${getApiUrl()}/api/user/preferences`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ autoClassification: val }),
+    }).catch(console.error);
+  },
+  sentimentTracking: false,
+  setSentimentTracking: async (val: boolean) => {
+    set({ sentimentTracking: val });
+    const { token } = get();
+    if (!token) return;
+    await fetch(`${getApiUrl()}/api/user/preferences`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ sentimentTracking: val }),
+    }).catch(console.error);
+  },
+
   // ── Real Stats ─────────────────────────────────────────
   ticketStats:     null,
   isFetchingStats: false,
@@ -249,6 +292,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         tickets: [],
         aiDrafts: {},
         gmailEnabled: true,
+        aiAutoDrafting: true,
+        autoClassification: true,
+        sentimentTracking: false,
         ticketStats: null,
         aiInsights: null,
         user: null,
@@ -263,7 +309,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   setUser: (user) => {
     // Sync gmailEnabled from DB when user profile loads
     if (user) {
-      set({ user, gmailEnabled: user.gmailEnabled ?? true });
+      set({
+        user,
+        gmailEnabled:       user.gmailEnabled       ?? true,
+        aiAutoDrafting:     user.aiAutoDrafting     ?? true,
+        autoClassification: user.autoClassification ?? true,
+        sentimentTracking:  user.sentimentTracking  ?? false,
+      });
     } else {
       set({ user: null });
     }

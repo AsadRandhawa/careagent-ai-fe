@@ -5,8 +5,7 @@ import { Card } from "../components/Card";
 import { ChannelRow } from "../components/ChannelRow";
 import { Toggle } from "../components/ui/Toggle";
 import { Button } from "../components/ui/Button";
-import { StatRow } from "../components/StatRow";
-import { Mail, MessageSquare, Instagram, Globe, Zap, Settings, Shield, ExternalLink } from "lucide-react";
+import { Mail, MessageSquare, Instagram, Globe, Zap } from "lucide-react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "../components/ToastProvider";
 import { useAppStore } from "../store";
@@ -15,7 +14,7 @@ export const Channels = () => {
   const [searchParams] = useSearchParams();
   const navigate      = useNavigate();
   const { toast }     = useToast();
-  const { token, user, gmailEnabled, setGmailEnabled } = useAppStore();
+  const { token, user } = useAppStore();
 
   // Derive real connection status from user object
   const gmailConnected     = !!user?.googleConnected;
@@ -71,15 +70,6 @@ export const Channels = () => {
       description: "Official support inbox connection",
       icon:        <Mail size={18} />,
       connected:   gmailConnected,
-      enabled:     gmailEnabled,
-      onToggle:    (val: boolean) => {
-        setGmailEnabled(val);
-        if (val) {
-          toast("Gmail inbox enabled. Tickets will load shortly.", "success");
-        } else {
-          toast("Gmail inbox disabled. No new tickets will load.", "info");
-        }
-      },
       onConnect:   connectGmail,
       onDisconnect: disconnectGmail,
     },
@@ -138,8 +128,7 @@ export const Channels = () => {
                   description={channel.description}
                   icon={channel.icon}
                   connected={channel.connected}
-                  enabled={'enabled' in channel ? channel.enabled : channel.connected}
-                  onToggle={'onToggle' in channel ? channel.onToggle : () => {}}
+                  onToggle={() => {}}
                   onConnect={channel.connected ? channel.onDisconnect : channel.onConnect}
                 />
               ))}
@@ -165,45 +154,26 @@ export const Channels = () => {
                   <div className="text-[12px] font-semibold text-text-primary">AI Auto-Drafting</div>
                   <div className="text-[11px] text-text-muted">Draft replies instantly</div>
                 </div>
-                <Toggle checked={true} onChange={() => {}} />
+                <Toggle checked={aiAutoDrafting} onChange={setAiAutoDrafting} />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-[12px] font-semibold text-text-primary">Auto-Classification</div>
                   <div className="text-[11px] text-text-muted">Apply tags automatically</div>
                 </div>
-                <Toggle checked={true} onChange={() => {}} />
+                <Toggle checked={autoClassification} onChange={setAutoClassification} />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-[12px] font-semibold text-text-primary">Sentiment Tracking</div>
                   <div className="text-[11px] text-text-muted">Real-time tone analysis</div>
                 </div>
-                <Toggle checked={false} onChange={() => {}} />
+                <Toggle checked={sentimentTracking} onChange={setSentimentTracking} />
               </div>
             </div>
           </Card>
 
-          {/* Security & Privacy — honest values */}
-          <Card>
-            <div className="flex items-center gap-3 mb-6">
-              <Shield size={16} className="text-success" />
-              <h3 className="text-[13px] font-bold text-text-primary">Security & Privacy</h3>
-            </div>
-            <div className="space-y-1">
-              <StatRow label="Gmail OAuth" value={gmailConnected ? "Connected" : "Not connected"} valueColor={gmailConnected ? "text-success" : "text-text-muted"} />
-              <StatRow label="WhatsApp" value={whatsappConnected ? "Connected" : "Pending verification"} valueColor={whatsappConnected ? "text-success" : "text-warn"} />
-              <StatRow label="Data Storage" value="Railway (EU)" />
-              <StatRow label="Passwords" value="bcrypt encrypted" valueColor="text-success" />
-            </div>
-            <a
-              href="/privacy"
-              className="flex items-center gap-2 text-[11px] text-brand hover:underline mt-4 font-semibold"
-            >
-              <ExternalLink size={11} />
-              View Privacy Policy
-            </a>
-          </Card>
+
         </div>
       </div>
     </motion.div>
