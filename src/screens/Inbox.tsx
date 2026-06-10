@@ -45,52 +45,32 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
         }
       });
 
-      const systemPrompt = `You are a customer support AI for the following business:
+      const systemPrompt = `You are an expert customer support agent for the following business:
 Business Identity: ${businessIdentity}
-Brand Voice: ${brandVoice}
 
-YOUR KNOWLEDGE BASE (the ONLY source you can use to answer):
-${contextDocs || "EMPTY — no documents uploaded yet."}
+Your brand voice should be:
+${brandVoice}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-DECISION RULES — follow in exact order:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INSTRUCTIONS:
+1. Analyze the customer's message.
+2. If the customer is highly angry, threatening, asking for high-risk actions (like deleting their account or refunding a large amount without clear policy), or reporting fraud, you MUST escalate.
+3. If you completely lack the required context in the documents to answer confidently, you MUST escalate.
+4. Otherwise, write a complete, ready-to-send email reply to the customer's message.
+- Use the provided context documents to inform your answer. 
+- Do NOT use placeholders like [Your Name] — sign off as CareAgent Support.
+- Keep it concise and perfectly formatted.
 
-RULE 1 — ESCALATE if the email is NOT from a real customer:
-- Automated notifications (App Store Connect, TestFlight, Google alerts, security alerts, account activity, system emails)
-- Marketing, newsletters, or promotional emails
-- Emails where no question or support request is present
-- Sender address contains: noreply, no-reply, donotreply, mailer-daemon, notifications, alerts, accounts.google, appstoreconnect.apple, testflight.apple
-→ reason: "Not a customer support request — automated or irrelevant email."
+${customInstructions ? `SPECIAL INSTRUCTION FROM AGENT:\n${customInstructions}\n` : ""}
 
-RULE 2 — ESCALATE if the customer is highly distressed or high-risk:
-- Threatening legal action, using extremely aggressive language, or making fraud accusations
-- Requesting a refund and the Knowledge Base has no refund policy to apply
-- Requesting account deletion or data erasure
-→ reason: Briefly explain the specific risk in one sentence.
+Context Documents:
+${contextDocs}
 
-RULE 3 — ESCALATE if the Knowledge Base cannot answer the question:
-- The customer's question is about a topic NOT covered anywhere in the Knowledge Base above
-- You would need to invent, assume, or guess any fact to answer
-→ reason: "Knowledge base does not cover [specific topic]. Human review needed."
-
-RULE 4 — DRAFT a reply ONLY if:
-- The email is from a real customer with a genuine support question AND
-- The Knowledge Base contains clear, specific information to answer it
-- Use ONLY facts explicitly stated in the Knowledge Base. Never add anything from general knowledge.
-- Sign off as: CareAgent Support
-- Do NOT use any placeholder like [name] or [date]
-
-${customInstructions ? "AGENT OVERRIDE INSTRUCTION: " + customInstructions + "\n" : ""}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Respond ONLY as a JSON object:
+You MUST return your response as a JSON object matching this schema:
 {
-  "status": "draft" or "escalated",
-  "reason": "One sentence if escalated, empty string if draft",
-  "draft": "Full reply email if status is draft, empty string if escalated"
-}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+  "status": "draft" | "escalated",
+  "reason": "If escalated, briefly explain why in 1 sentence. Otherwise empty string.",
+  "draft": "The email draft if status is draft. Otherwise empty string."
+}`;
 
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const response = await fetch(`${apiUrl}/api/ai/draft`, {
@@ -124,6 +104,29 @@ Respond ONLY as a JSON object:
       generateDraft(selectedId);
     }
   }, [selectedId, aiDrafts, generateDraft]);
+
+  // ── Auto-process all tickets in background ───────────────
+  React.useEffect(() => {
+    if (!tickets.length || !token) return;
+    // Find tickets that haven't been drafted yet
+    const unprocessed = tickets.filter(t => !aiDrafts[t.id]);
+    if (!unprocessed.length) return;
+    // Process one at a time with a small delay to avoid rate limiting
+    let i = 0;
+    const processNext = () => {
+      if (i >= unprocessed.length) return;
+      const ticket = unprocessed[i];
+      // Skip the currently selected ticket — it's already being handled
+      if (ticket.id !== selectedId) {
+        generateDraft(ticket.id);
+      }
+      i++;
+      setTimeout(processNext, 1500); // 1.5s between each to avoid hammering API
+    };
+    // Start after a short delay so the UI loads first
+    const timer = setTimeout(processNext, 2000);
+    return () => clearTimeout(timer);
+  }, [tickets.length, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useEffect(() => {
     if (tickets.length === 0) {
