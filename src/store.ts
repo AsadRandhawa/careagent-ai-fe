@@ -98,15 +98,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((state) => ({
       documents: typeof updater === 'function' ? updater(state.documents) : updater,
     }));
+    // Documents save is triggered explicitly by the KB page
     get().saveKnowledgeBase();
   },
 
   // ── Brand / Identity ───────────────────────────────────
   brandVoice: 'Professional, concise, but friendly. Use emojis occasionally.',
-  setBrandVoice: (brandVoice) => { set({ brandVoice }); get().saveKnowledgeBase(); },
+  setBrandVoice: (brandVoice) => { set({ brandVoice }); },
 
   businessIdentity: 'We are a fast-growing SaaS company that sells productivity software. Our customers are busy professionals.',
-  setBusinessIdentity: (businessIdentity) => { set({ businessIdentity }); get().saveKnowledgeBase(); },
+  setBusinessIdentity: (businessIdentity) => { set({ businessIdentity }); },
 
   // ── Tickets (live inbox) ───────────────────────────────
   tickets: [],

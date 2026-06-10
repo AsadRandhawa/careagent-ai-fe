@@ -4,12 +4,25 @@ import { SectionHeader } from "../components/SectionHeader";
 import { Card } from "../components/Card";
 import { Button } from "../components/ui/Button";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { useAppStore } from "../store";
 
 export const Onboarding = () => {
   const navigate = useNavigate();
-  const { businessIdentity, setBusinessIdentity, brandVoice, setBrandVoice } = useAppStore();
+  const { businessIdentity, setBusinessIdentity, brandVoice, setBrandVoice, saveKnowledgeBase } = useAppStore();
+  const [saving, setSaving] = React.useState(false);
+  const [saved, setSaved] = React.useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await saveKnowledgeBase();
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => {
+      setSaved(false);
+      navigate("/knowledge-base");
+    }, 800);
+  };
 
   return (
     <motion.div 
@@ -46,8 +59,19 @@ export const Onboarding = () => {
         </Card>
 
         <div className="flex justify-end">
-          <Button variant="primary" size="lg" className="px-8 shadow-glow" onClick={() => navigate("/knowledge-base")}>
-            Save & Continue <ArrowRight className="ml-2" size={16} />
+          <Button
+            variant="primary"
+            size="lg"
+            className="px-8 shadow-glow"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saved
+              ? <><CheckCircle2 size={16} className="mr-2" /> Saved!</>
+              : saving
+              ? "Saving..."
+              : <> Save & Continue <ArrowRight className="ml-2" size={16} /></>
+            }
           </Button>
         </div>
       </div>
