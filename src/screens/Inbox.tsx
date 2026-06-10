@@ -105,28 +105,6 @@ You MUST return your response as a JSON object matching this schema:
     }
   }, [selectedId, aiDrafts, generateDraft]);
 
-  // ── Auto-process all tickets in background ───────────────
-  React.useEffect(() => {
-    if (!tickets.length || !token) return;
-    // Find tickets that haven't been drafted yet
-    const unprocessed = tickets.filter(t => !aiDrafts[t.id]);
-    if (!unprocessed.length) return;
-    // Process one at a time with a small delay to avoid rate limiting
-    let i = 0;
-    const processNext = () => {
-      if (i >= unprocessed.length) return;
-      const ticket = unprocessed[i];
-      // Skip the currently selected ticket — it's already being handled
-      if (ticket.id !== selectedId) {
-        generateDraft(ticket.id);
-      }
-      i++;
-      setTimeout(processNext, 1500); // 1.5s between each to avoid hammering API
-    };
-    // Start after a short delay so the UI loads first
-    const timer = setTimeout(processNext, 2000);
-    return () => clearTimeout(timer);
-  }, [tickets.length, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useEffect(() => {
     if (tickets.length === 0) {
