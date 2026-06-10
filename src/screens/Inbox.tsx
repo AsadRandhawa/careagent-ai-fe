@@ -72,9 +72,7 @@ INSTRUCTIONS FOR REAL CUSTOMER EMAILS:
 - Keep it concise and perfectly formatted.
 - Never invent information not present in the documents.
 
-${customInstructions ? \`SPECIAL INSTRUCTION FROM AGENT:
-${customInstructions}
-\` : ""}
+${customInstructions ? "SPECIAL INSTRUCTION FROM AGENT:\n" + customInstructions + "\n" : ""}
 
 Context Documents:
 ${contextDocs || "No documents uploaded yet. Escalate all tickets until documents are added."}
