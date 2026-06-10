@@ -390,11 +390,28 @@ You MUST return your response as a JSON object matching this schema:
                                  </p>
                               </div>
                               <div className="bg-danger/5 p-3 border-t border-danger/10 flex items-center justify-end">
-                                 <Button size="sm" variant="ghost" className="text-danger hover:bg-danger/10" onClick={() => {
-                                    // Mark ticket status as escalated so badge shows ESCALATED
+                                 <Button size="sm" variant="ghost" className="text-danger hover:bg-danger/10" onClick={async () => {
+                                    // Update in-memory state immediately
                                     setTickets((prev: any[]) => prev.map((t: any) => 
                                       t.id === selectedTicket.id ? { ...t, status: 'escalated' } : t
                                     ));
+                                    // Persist to DB so it survives refresh
+                                    try {
+                                      const apiUrl = (import.meta.env.VITE_API_URL || 'https://careagent-ai-be-production.up.railway.app').replace(/\/+$/, '');
+                                      await fetch(`${apiUrl}/api/tickets/escalate`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                        body: JSON.stringify({
+                                          ticketId: selectedTicket.id,
+                                          subject: selectedTicket.subject,
+                                          customerName: selectedTicket.customerName,
+                                          customerEmail: selectedTicket.email,
+                                          content: selectedTicket.content,
+                                          threadId: selectedTicket.threadId,
+                                          reason: aiDrafts[selectedTicket.id]?.reason || 'Manually escalated by agent',
+                                        })
+                                      });
+                                    } catch (e) { console.error('Failed to persist escalation:', e); }
                                     navigate("/escalations");
                                   }}>Take Over Ticket</Button>
                               </div>
