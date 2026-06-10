@@ -42,9 +42,10 @@ export const Escalations = () => {
   // Derive detection signals from actual escalated tickets
   const sentimentVolatility = escalatedTickets.length > 3 ? "High" : escalatedTickets.length > 1 ? "Medium" : "Low";
   const sentimentColor = sentimentVolatility === "High" ? "text-danger" : sentimentVolatility === "Medium" ? "text-warn" : "text-success";
-  const refundCount = escalatedTickets.filter(t =>
-    ((aiDrafts[t.id]?.reason || "") + (t.subject || "") + (t.content || "")).toLowerCase().includes("refund")
-  ).length;
+  const refundCount = escalatedTickets.filter(t => {
+    const text = ((aiDrafts[t.id]?.reason || "") + " " + (t.subject || "") + " " + (t.content || "") + " " + (t.customerName || "")).toLowerCase();
+    return text.includes("refund") || text.includes("money back") || text.includes("charge") || text.includes("payment");
+  }).length;
   const refundLikelihood = escalatedTickets.length > 0 ? Math.round((refundCount / escalatedTickets.length) * 100) : 0;
 
   const handleDismiss = (ticketId: string) => {

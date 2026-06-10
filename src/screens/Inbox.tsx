@@ -80,6 +80,9 @@ You MUST return your response as a JSON object matching this schema:
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
+          ticketId: ticketId,
+          ticketContent: ticket.content,
+          ticketSubject: ticket.subject,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: `Customer Name: ${ticket.customerName}\nMessage: ${ticket.content}` }
@@ -130,8 +133,7 @@ You MUST return your response as a JSON object matching this schema:
           to: selectedTicket.email,
           subject: selectedTicket.subject || "Re: Your message",
           body: draft.draft,
-          threadId: selectedTicket.threadId,
-          ticketExternalId: selectedTicket.id
+          threadId: selectedTicket.threadId
         })
       });
 
@@ -173,8 +175,7 @@ You MUST return your response as a JSON object matching this schema:
           to: selectedTicket.email,
           subject: selectedTicket.subject || "Re: Your message",
           body: manualReply,
-          threadId: selectedTicket.threadId,
-          ticketExternalId: selectedTicket.id
+          threadId: selectedTicket.threadId
         })
       });
 

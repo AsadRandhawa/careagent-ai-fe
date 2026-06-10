@@ -590,7 +590,7 @@ CareAgent key facts:
 const CareAgentBot = () => {
   const [open, setOpen] = React.useState(false);
   const [messages, setMessages] = React.useState<{role: 'user'|'assistant', content: string}[]>([
-    { role: 'assistant', content: "Hi! I'm the CareAgent guide 👋 Ask me anything about the platform — features, pricing, how to get started, anything!" }
+    { role: 'assistant', content: "Hi! I'm the CareAgent guide! Ask me anything about the platform, features, pricing, how to get started, anything!" }
   ]);
   const [input, setInput] = React.useState('');
   const [loading, setLoading] = React.useState(false);
@@ -630,6 +630,19 @@ const CareAgentBot = () => {
   return (
     <>
       {/* Toggle button */}
+      {/* Tooltip label above button */}
+      {!open && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.5 }}
+          className="fixed bottom-24 right-4 z-50 bg-text-primary text-bg text-[11px] font-bold px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap pointer-events-none"
+        >
+          Ask me anything 👋
+          <div className="absolute bottom-[-5px] right-5 w-2.5 h-2.5 bg-text-primary rotate-45" />
+        </motion.div>
+      )}
+
       <motion.button
         onClick={() => setOpen(o => !o)}
         whileHover={{ scale: 1.08 }}
