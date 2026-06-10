@@ -21,7 +21,7 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
   const navigate = useNavigate();
   const ticketIdParam = searchParams.get("ticketId");
   
-  const { documents, businessIdentity, brandVoice, tickets, setTickets, isFetchingTickets, aiDrafts, setAiDrafts, token } = useAppStore();
+  const { documents, businessIdentity, brandVoice, tickets, setTickets, isFetchingTickets, aiDrafts, setAiDrafts, token, takeOverTicket } = useAppStore();
   const [selectedId, setSelectedId] = React.useState<string | null>(ticketIdParam || (tickets.length > 0 ? tickets[0].id : null));
   const [activeFilter, setActiveFilter] = React.useState(defaultFilter);
   const [isDrafting, setIsDrafting] = React.useState(false);
@@ -200,7 +200,7 @@ You MUST return your response as a JSON object matching this schema:
     if (activeFilter === "All") return true;
     if (activeFilter === "New") return ticket.status === "new";
     if (activeFilter === "Pending") return ticket.status === "pending";
-    if (activeFilter === "Escalated") return ticket.status === "escalated" || aiDrafts[ticket.id]?.status === "escalated";
+    if (activeFilter === "Escalated") return ticket.status === "escalated";
     if (activeFilter === "Draft Ready") return ticket.hasDraft;
     return true;
   });
@@ -294,7 +294,8 @@ You MUST return your response as a JSON object matching this schema:
               filteredTickets.map((ticket) => (
                 <TicketRow 
                   key={ticket.id} 
-                  {...ticket} 
+                  {...ticket}
+                  status={ticket.status === 'escalated' ? 'escalated' : 'new'}
                   selected={ticket.id === selectedId}
                   onClick={() => setSelectedId(ticket.id)}
                   avatarVariant={ticket.avatarVariant as any}
@@ -389,7 +390,13 @@ You MUST return your response as a JSON object matching this schema:
                                  </p>
                               </div>
                               <div className="bg-danger/5 p-3 border-t border-danger/10 flex items-center justify-end">
-                                 <Button size="sm" variant="ghost" className="text-danger hover:bg-danger/10" onClick={() => navigate("/escalations")}>Take Over Ticket</Button>
+                                 <Button size="sm" variant="ghost" className="text-danger hover:bg-danger/10" onClick={() => {
+                                    // Mark ticket status as escalated so badge shows ESCALATED
+                                    setTickets((prev: any[]) => prev.map((t: any) => 
+                                      t.id === selectedTicket.id ? { ...t, status: 'escalated' } : t
+                                    ));
+                                    navigate("/escalations");
+                                  }}>Take Over Ticket</Button>
                               </div>
                             </div>
                           </div>
