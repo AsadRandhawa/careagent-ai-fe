@@ -203,9 +203,7 @@ OR
   const filteredTickets = tickets.filter(ticket => {
     if (activeFilter === "All") return true;
     if (activeFilter === "New") return ticket.status === "new";
-    if (activeFilter === "Pending") return ticket.status === "pending";
     if (activeFilter === "Escalated") return ticket.status === "escalated";
-    if (activeFilter === "Draft Ready") return ticket.hasDraft;
     return true;
   });
 
@@ -257,7 +255,7 @@ OR
         </div>
         
         <div className="flex items-center gap-1">
-          {["All", "New", "Pending", "Escalated", "Draft Ready"].map((filter) => (
+          {["All", "New", "Escalated"].map((filter) => (
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
