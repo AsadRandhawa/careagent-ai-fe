@@ -146,7 +146,7 @@ export const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-28 pb-12 px-6 z-10">
+      <section className="relative pt-56 pb-40 px-6 z-10">
         <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -215,7 +215,7 @@ export const Landing = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, y: [0, 15, 0] }}
             transition={{ duration: 2.5, repeat: Infinity, delay: 1.5 }}
-            className="mt-10 w-8 h-12 rounded-full border-2 border-text-disabled flex justify-center p-2"
+            className="mt-32 w-8 h-12 rounded-full border-2 border-text-disabled flex justify-center p-2"
           >
             <motion.div className="w-1.5 h-1.5 rounded-full bg-text-disabled" />
           </motion.div>
@@ -223,7 +223,7 @@ export const Landing = () => {
       </section>
 
       {/* Feature Showcase (Bento Grid) */}
-      <section id="features" className="py-12 px-6 bg-surface/30 backdrop-blur-sm border-t border-border-faint relative overflow-hidden">
+      <section id="features" className="py-40 px-6 bg-surface/30 backdrop-blur-sm border-t border-border-faint relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="mb-20 flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="max-w-xl">
@@ -311,7 +311,50 @@ export const Landing = () => {
       </section>
 
       {/* Interactive Process Section */}
-      <section id="how-it-works" className="py-20 px-6 relative">
+      {/* Integrations Section */}
+      <section id="integrations" className="py-20 px-6 relative overflow-hidden">
+        <div className="max-w-5xl mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-14">
+            <div className="inline-block px-4 py-1.5 rounded-full bg-brand/10 text-brand text-[11px] font-black uppercase tracking-widest mb-4">Integrations</div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-text-primary mb-4">Meet your customers <span className="text-brand">where they are</span></h2>
+            <p className="text-lg text-text-muted max-w-xl mx-auto">Connect your support channels in minutes. One inbox. Every conversation.</p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            {[
+              { name: "Gmail", status: "Live", icon: "📧", desc: "Official support inbox connection" },
+              { name: "WhatsApp", status: "Coming Soon", icon: "💬", desc: "Business messaging at scale" },
+              { name: "Instagram DMs", status: "Coming Soon", icon: "📸", desc: "Direct message management" },
+              { name: "Web Chat", status: "Coming Soon", icon: "🌐", desc: "In-app support widget" },
+            ].map((integration, i) => (
+              <motion.div
+                key={integration.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.08 }}
+                whileHover={{ y: -5 }}
+                className="p-6 rounded-2xl border border-border-faint bg-surface/50 hover:border-brand/30 hover:bg-brand/5 transition-all flex flex-col items-center text-center gap-3"
+              >
+                <div className="text-4xl">{integration.icon}</div>
+                <div className="text-[14px] font-bold text-text-primary">{integration.name}</div>
+                <div className="text-[11px] text-text-muted leading-relaxed">{integration.desc}</div>
+                <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${integration.status === "Live" ? "bg-brand/15 text-brand" : "bg-surface-high text-text-disabled border border-border-faint"}`}>
+                  {integration.status}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div {...fadeInUp} className="text-center">
+            <Button variant="primary" size="lg" className="px-10 shadow-glow" onClick={onEnterApp}>
+              Connect Your Channels <ArrowRight className="ml-2" size={18} />
+            </Button>
+          </motion.div>
+        </div>
+      </section>
+
+      <section id="how-it-works" className="py-32 px-6 relative">
         <div className="max-w-7xl mx-auto">
           <div className="mb-20">
             <h4 className="text-brand font-black uppercase tracking-[0.3em] mb-3 text-center text-[10px]">The Workflow</h4>
@@ -345,7 +388,7 @@ export const Landing = () => {
       </section>
 
       {/* Pricing - Upwork Green Vibe */}
-      <section id="pricing" className="py-20 px-6 bg-surface/50 border-y border-border-faint">
+      <section id="pricing" className="py-32 px-6 bg-surface/50 border-y border-border-faint">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20 flex flex-col items-center">
             <div className="px-5 py-2 rounded-full bg-brand/10 border border-brand/20 text-brand text-[10px] font-black uppercase tracking-[0.2em] mb-6">Simple Plans</div>
@@ -357,15 +400,13 @@ export const Landing = () => {
             <PricingCard 
               title="Startup" 
               price="0" 
-              currency="Rs"
               desc="For testing AI workflows."
               features={["100 AI Resolutions", "2 KB Sources", "Email Integration"]}
               onClick={onEnterApp}
             />
             <PricingCard 
               title="Growth" 
-              price="45,000" 
-              currency="Rs"
+              price="499" 
               popular
               desc="Scale your support operations."
               features={["2,500 AI Resolutions", "Unlimited KB Docs", "WhatsApp & Slack", "SSO Login"]}
@@ -374,7 +415,6 @@ export const Landing = () => {
             <PricingCard 
               title="Enterprise" 
               price="Custom" 
-              currency="Rs"
               desc="Full control and infinite docs."
               features={["Custom Usage", "Private Deployment", "Audit Logging", "Account Manager"]}
               onClick={onEnterApp}
@@ -385,7 +425,7 @@ export const Landing = () => {
 
       {/* Final CTA Immersive Section */}
       <section
-        className="py-24 px-6 relative overflow-hidden flex items-center justify-center text-center"
+        className="py-48 px-6 relative overflow-hidden flex items-center justify-center text-center"
         style={{ backgroundColor: '#16a34a', isolation: 'isolate' }}
       >
         {/* Animated glow orb */}
@@ -473,7 +513,7 @@ export const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-16 px-6 bg-bg border-t border-border-faint">
+      <footer className="py-24 px-6 bg-bg border-t border-border-faint">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-start justify-between gap-16 mb-24">
             <div className="max-w-md">
@@ -524,12 +564,11 @@ export const Landing = () => {
         </div>
       </footer>
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
-      <CareAgentBot />
     </div>
   );
 };
 
-const PricingCard = ({ title, price, currency = "Rs", desc, features, popular, onClick }: { title: string, price: string, currency?: string, desc: string, features: string[], popular?: boolean, onClick?: () => void }) => (
+const PricingCard = ({ title, price, desc, features, popular, onClick }: { title: string, price: string, desc: string, features: string[], popular?: boolean, onClick?: () => void }) => (
   <motion.div 
     whileHover={{ y: -10 }}
     className={`p-10 rounded-3xl border flex flex-col transition-all duration-500 ${popular ? "bg-bg border-brand shadow-glow relative ring-4 ring-brand/5" : "bg-surface border-border-faint hover:border-brand/40"}`}
@@ -538,7 +577,7 @@ const PricingCard = ({ title, price, currency = "Rs", desc, features, popular, o
     <div className="mb-10">
       <h4 className={`text-xl font-black mb-4 ${popular ? "text-brand" : "text-text-primary"}`}>{title}</h4>
       <div className="flex items-baseline gap-1 mb-4">
-        {price !== "Custom" && <span className="text-2xl font-black text-text-primary tracking-tighter">{currency}</span>}
+        {price !== "Custom" && <span className="text-2xl font-black text-text-primary tracking-tighter">$</span>}
         <span className="text-5xl font-black text-text-primary tracking-tighter">{price}</span>
         {price !== "Custom" && <span className="text-text-disabled font-black text-[10px] uppercase tracking-widest ml-1">/mo</span>}
       </div>
@@ -561,173 +600,3 @@ const PricingCard = ({ title, price, currency = "Rs", desc, features, popular, o
     </Button>
   </motion.div>
 );
-
-// ── CareAgent Landing Bot ─────────────────────────────────
-const SYSTEM_PROMPT = `You are the CareAgent guide — a friendly assistant embedded on the CareAgent.ai website.
-You ONLY answer questions about CareAgent. If asked anything unrelated, politely decline and redirect.
-
-CRITICAL FORMATTING RULES:
-- Never use markdown: no **, no *, no #, no bullet dashes
-- Write in plain conversational text only
-- Use numbered lists like "1. Step one 2. Step two" inline or on new lines without any symbols
-- Keep answers short and direct
-
-CONTEXT RULES:
-- The user is already ON the CareAgent website
-- Never say "visit the CareAgent website" — they are already here
-- When someone asks how to get started or sign up, tell them to click the "Launch Platform" button at the top right of this page
-- When referencing setup steps, mention they happen inside the platform after clicking Launch Platform
-
-CareAgent key facts:
-- AI-powered customer support platform that auto-drafts email replies
-- Connects to Gmail (live), WhatsApp and Instagram DMs (coming soon)
-- Pricing: Startup Rs 0/mo (100 AI resolutions), Growth Rs 45,000/mo (2,500 resolutions), Enterprise custom pricing
-- 5-minute setup inside the platform: business identity, brand voice, upload a knowledge doc, connect Gmail
-- AI escalates complex tickets to human agents automatically
-- Dashboard shows open tickets, resolved count, sentiment analysis, escalation rate
-- Zero per-seat costs — you only pay for successful resolutions`;
-
-const CareAgentBot = () => {
-  const [open, setOpen] = React.useState(false);
-  const [messages, setMessages] = React.useState<{role: 'user'|'assistant', content: string}[]>([
-    { role: 'assistant', content: "Hi! I'm the CareAgent guide! Ask me anything about the platform, features, pricing, how to get started, anything!" }
-  ]);
-  const [input, setInput] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
-  const bottomRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const send = async () => {
-    const text = input.trim();
-    if (!text || loading) return;
-    const next = [...messages, { role: 'user' as const, content: text }];
-    setMessages(next);
-    setInput('');
-    setLoading(true);
-    try {
-      const apiUrl = (import.meta.env.VITE_API_URL || 'https://careagent-ai-be-production.up.railway.app').replace(/\/+$/, '');
-      const res = await fetch(`${apiUrl}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system: SYSTEM_PROMPT,
-          messages: next.map(m => ({ role: m.role, content: m.content })),
-        })
-      });
-      const data = await res.json();
-      const reply = data.reply || "Sorry, I couldn't get a response.";
-      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-    } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Having trouble connecting. Please try again!" }]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <>
-      {/* Toggle button */}
-      {/* Tooltip label above button */}
-      {!open && (
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5 }}
-          className="fixed bottom-24 right-4 z-50 bg-text-primary text-bg text-[11px] font-bold px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap pointer-events-none"
-        >
-          Ask me anything 👋
-          <div className="absolute bottom-[-5px] right-5 w-2.5 h-2.5 bg-text-primary rotate-45" />
-        </motion.div>
-      )}
-
-      <motion.button
-        onClick={() => setOpen(o => !o)}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.95 }}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-brand shadow-glow flex items-center justify-center text-white"
-        aria-label="Open CareAgent guide"
-      >
-        <AnimatePresence mode="wait">
-          {open
-            ? <motion.div key="x" initial={{rotate:-90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:90,opacity:0}} transition={{duration:0.15}}><X size={22}/></motion.div>
-            : <motion.div key="bot" initial={{rotate:90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:-90,opacity:0}} transition={{duration:0.15}}><Bot size={22}/></motion.div>
-          }
-        </AnimatePresence>
-      </motion.button>
-
-      {/* Chat window */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-6 z-50 w-[340px] max-h-[500px] flex flex-col rounded-2xl border border-border-faint bg-bg shadow-2xl overflow-hidden"
-          >
-            {/* Header */}
-            <div className="flex items-center gap-3 px-4 py-3 bg-brand">
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                <Bot size={16} className="text-white" />
-              </div>
-              <div>
-                <div className="text-[13px] font-bold text-white">CareAgent Guide</div>
-                <div className="text-[10px] text-white/70">Ask me about the platform</div>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0 max-h-[340px]">
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] text-[12px] px-3 py-2 rounded-2xl leading-relaxed whitespace-pre-wrap ${
-                    m.role === 'user'
-                      ? 'bg-brand text-white rounded-br-sm'
-                      : 'bg-surface border border-border-faint text-text-primary rounded-bl-sm'
-                  }`}>
-                    {m.content}
-                  </div>
-                </div>
-              ))}
-              {loading && (
-                <div className="flex justify-start">
-                  <div className="bg-surface border border-border-faint rounded-2xl rounded-bl-sm px-3 py-2">
-                    <div className="flex gap-1 items-center h-4">
-                      {[0,1,2].map(i => (
-                        <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-brand"
-                          animate={{ y: [0,-4,0] }} transition={{ duration: 0.6, repeat: Infinity, delay: i*0.15 }} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={bottomRef} />
-            </div>
-
-            {/* Input */}
-            <div className="px-3 py-3 border-t border-border-faint flex gap-2">
-              <input
-                className="flex-1 bg-surface border border-border-mid rounded-xl px-3 py-2 text-[12px] text-text-primary outline-none focus:border-brand transition-colors placeholder:text-text-disabled"
-                placeholder="Ask about CareAgent..."
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && send()}
-                disabled={loading}
-              />
-              <button
-                onClick={send}
-                disabled={loading || !input.trim()}
-                className="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center hover:opacity-90 disabled:opacity-40 transition-opacity flex-shrink-0"
-              >
-                <ArrowRight size={14} />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-};
