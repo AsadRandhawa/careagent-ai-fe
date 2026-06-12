@@ -115,8 +115,8 @@ export const Landing = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.6 }}
             >
-              <Button variant="brand" onClick={onEnterApp} className="px-8 py-5 rounded-full font-bold shadow-glow hover:translate-y-[-2px] active:translate-y-[0] transition-all">
-                Launch Platform
+              <Button variant="brand" onClick={onEnterApp} className="px-8 py-5 rounded-full font-bold shadow-glow hover:translate-y-[-2px] active:translate-y-[0] transition-all flex items-center gap-2">
+                Sign In / Sign Up
               </Button>
             </motion.div>
           </div>
@@ -682,10 +682,10 @@ const CareAgentBot = () => {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.5 }}
-          className="fixed bottom-24 right-4 z-50 bg-text-primary text-bg text-[11px] font-bold px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap pointer-events-none"
+          className="fixed bottom-24 left-6 z-50 bg-text-primary text-bg text-[11px] font-bold px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap pointer-events-none"
         >
-          Ask me anything 👋
-          <div className="absolute bottom-[-5px] right-5 w-2.5 h-2.5 bg-text-primary rotate-45" />
+          Ask me anything
+          <div className="absolute bottom-[-5px] left-5 w-2.5 h-2.5 bg-text-primary rotate-45" />
         </motion.div>
       )}
 
@@ -693,7 +693,7 @@ const CareAgentBot = () => {
         onClick={() => setOpen(o => !o)}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-brand shadow-glow flex items-center justify-center text-white"
+        className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-brand shadow-glow flex items-center justify-center text-white"
         aria-label="Open CareAgent guide"
       >
         <AnimatePresence mode="wait">
@@ -711,7 +711,7 @@ const CareAgentBot = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-6 z-50 w-[340px] max-h-[500px] flex flex-col rounded-2xl border border-border-faint bg-bg shadow-2xl overflow-hidden"
+            className="fixed bottom-24 left-6 z-50 w-[340px] max-h-[500px] flex flex-col rounded-2xl border border-border-faint bg-bg shadow-2xl overflow-hidden"
           >
             <div className="flex items-center gap-3 px-4 py-3 bg-brand">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
