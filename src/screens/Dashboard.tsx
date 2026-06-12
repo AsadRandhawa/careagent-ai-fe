@@ -70,6 +70,29 @@ export const Dashboard = () => {
 
   const stats = ticketStats;
 
+  // Build 7-day volume from live tickets
+  const miniBarData = React.useMemo(() => {
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const today = new Date();
+    const counts: Record<string, number> = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      counts[days[d.getDay()]] = 0;
+    }
+    tickets.forEach(t => {
+      if (!t.createdAt) return;
+      const d = new Date(t.createdAt);
+      const daysSince = Math.floor((today.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysSince <= 6) {
+        const label = days[d.getDay()];
+        counts[label] = (counts[label] || 0) + 1;
+      }
+    });
+    const todayLabel = days[today.getDay()];
+    return Object.entries(counts).map(([label, value]) => ({ label, value, highlight: label === todayLabel }));
+  }, [tickets]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -172,7 +195,7 @@ export const Dashboard = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <StatRow label="Open Tickets"     value={String(stats?.openTickets ?? tickets.length)} />
-                <StatRow label="Resolved (30d)"   value={String(Number.isFinite(stats?.resolvedThisPeriod) ? stats.resolvedThisPeriod : 0)} />
+                <StatRow label="Resolved (30d)"   value={String(stats?.resolvedThisPeriod ?? 0)} />
                 <StatRow label="Escalated"         value={String(stats?.escalated ?? 0)} />
                 <StatRow label="Escalation Rate"   value={stats?.escalationRate ?? "0%"} valueColor="text-warn" />
               </div>
@@ -220,7 +243,7 @@ export const Dashboard = () => {
 
           <Card>
             <h3 className="text-[13px] font-bold uppercase tracking-widest text-text-muted mb-6">Ticket Volume (7d)</h3>
-            <MiniBarChart data={stats?.miniBarData?.length ? stats.miniBarData : []} />
+            <MiniBarChart data={miniBarData} />
           </Card>
 
           <Card>
