@@ -321,10 +321,30 @@ export const Landing = () => {
           </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             {[
-              { name: "Gmail", status: "Live", icon: "📧", desc: "Official support inbox connection" },
-              { name: "WhatsApp", status: "Coming Soon", icon: "💬", desc: "Business messaging at scale" },
-              { name: "Instagram DMs", status: "Coming Soon", icon: "📸", desc: "Direct message management" },
-              { name: "Web Chat", status: "Coming Soon", icon: "🌐", desc: "In-app support widget" },
+              {
+                name: "Gmail", status: "Live", desc: "Official support inbox connection",
+                icon: (
+                  <svg viewBox="0 0 48 48" className="w-12 h-12"><path fill="#EA4335" d="M6 40h7V23.6L4 17.5V37c0 1.7 1.3 3 3 3z"/><path fill="#34A853" d="M35 40h7c1.7 0 3-1.3 3-3V17.5l-10 6.1z"/><path fill="#FBBC05" d="M35 10l-11 7.4L13 10H6v7.5l18 11.6 18-11.6V10z"/><path fill="#4285F4" d="M4 17.5l9 6.1V10H6c-1.1 0-2 .9-2 2z"/><path fill="#C5221F" d="M44 12c0-1.1-.9-2-2-2h-7v13.6l9-6.1z"/></svg>
+                )
+              },
+              {
+                name: "WhatsApp", status: "Coming Soon", desc: "Business messaging at scale",
+                icon: (
+                  <svg viewBox="0 0 48 48" className="w-12 h-12"><circle cx="24" cy="24" r="24" fill="#25D366"/><path fill="#fff" d="M34.5 13.5C32 11 28.6 9.5 25 9.5c-7.4 0-13.4 6-13.4 13.4 0 2.4.6 4.7 1.8 6.7L11 38l8.6-2.3c2 1.1 4.2 1.6 6.4 1.6 7.4 0 13.4-6 13.4-13.4 0-3.6-1.4-7-3.9-9.4zM25 35.2c-2 0-4-.5-5.7-1.5l-.4-.2-4.2 1.1 1.1-4.1-.3-.4c-1.1-1.8-1.7-3.8-1.7-5.9C13.8 18 18.8 13 25 13c3 0 5.8 1.2 7.9 3.3 2.1 2.1 3.3 4.9 3.3 7.9-.1 6.1-5.1 11-11.2 11zm6.1-8.2c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.6c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5s-.7-1.7-.9-2.3c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.2.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.6-.7 1.9-1.3.2-.6.2-1.2.1-1.3-.2-.1-.4-.2-.7-.3z"/></svg>
+                )
+              },
+              {
+                name: "Instagram DMs", status: "Coming Soon", desc: "Direct message management",
+                icon: (
+                  <svg viewBox="0 0 48 48" className="w-12 h-12"><radialGradient id="ig1" cx="19%" cy="99%" r="128%"><stop offset="0" stopColor="#ffd879"/><stop offset=".25" stopColor="#f7a84a"/><stop offset=".5" stopColor="#f05c3c"/><stop offset="1" stopColor="#c22f86"/></radialGradient><radialGradient id="ig2" cx="99%" cy="5%" r="100%"><stop offset="0" stopColor="#3a5bce"/><stop offset=".3" stopColor="#3a5bce" stopOpacity=".5"/><stop offset="1" stopColor="#3a5bce" stopOpacity="0"/></radialGradient><rect width="48" height="48" rx="12" fill="url(#ig1)"/><rect width="48" height="48" rx="12" fill="url(#ig2)"/><path fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" d="M24 17.5c-3.6 0-6.5 2.9-6.5 6.5s2.9 6.5 6.5 6.5 6.5-2.9 6.5-6.5-2.9-6.5-6.5-6.5z"/><rect fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" x="12" y="12" width="24" height="24" rx="7"/><circle cx="32" cy="16" r="1.5" fill="#fff"/></svg>
+                )
+              },
+              {
+                name: "Web Chat", status: "Coming Soon", desc: "In-app support widget",
+                icon: (
+                  <svg viewBox="0 0 48 48" className="w-12 h-12"><rect width="48" height="48" rx="12" fill="#0ea5e9"/><path fill="#fff" d="M10 14a4 4 0 0 1 4-4h20a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H28l-6 4v-4h-8a4 4 0 0 1-4-4V14z"/><circle cx="17" cy="22" r="2" fill="#0ea5e9"/><circle cx="24" cy="22" r="2" fill="#0ea5e9"/><circle cx="31" cy="22" r="2" fill="#0ea5e9"/></svg>
+                )
+              },
             ].map((integration, i) => (
               <motion.div
                 key={integration.name}
@@ -335,7 +355,7 @@ export const Landing = () => {
                 whileHover={{ y: -5 }}
                 className="p-6 rounded-2xl border border-border-faint bg-surface/50 hover:border-brand/30 hover:bg-brand/5 transition-all flex flex-col items-center text-center gap-3"
               >
-                <div className="text-4xl">{integration.icon}</div>
+                {integration.icon}
                 <div className="text-[14px] font-bold text-text-primary">{integration.name}</div>
                 <div className="text-[11px] text-text-muted leading-relaxed">{integration.desc}</div>
                 <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${integration.status === "Live" ? "bg-brand/15 text-brand" : "bg-surface-high text-text-disabled border border-border-faint"}`}>
