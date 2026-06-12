@@ -28,7 +28,7 @@ const getRiskScore = (ticket: any, reason: string): number => {
 
 export const Escalations = () => {
   const navigate = useNavigate();
-  const { tickets, aiDrafts, isFetchingTickets, takeOverTicket, setTickets, setAiDrafts } = useAppStore();
+  const { tickets, aiDrafts, isFetchingTickets, takeOverTicket, setTickets, setAiDrafts, token } = useAppStore();
 
   const escalatedTickets = tickets.filter(
     ticket => ticket.status === "escalated" || (aiDrafts && aiDrafts[ticket.id]?.status === "escalated")
@@ -48,14 +48,23 @@ export const Escalations = () => {
   }).length;
   const refundLikelihood = escalatedTickets.length > 0 ? Math.round((refundCount / escalatedTickets.length) * 100) : 0;
 
-  const handleDismiss = (ticketId: string) => {
-    // Move back to inbox as normal ticket
+  const handleDismiss = async (ticketId: string) => {
+    // Update memory immediately
     setTickets((prev: any[]) => prev.map(t => t.id === ticketId ? { ...t, status: "new" } : t));
     setAiDrafts((prev: any) => {
       const d = { ...prev };
       if (d[ticketId]) d[ticketId] = { ...d[ticketId], status: "draft" };
       return d;
     });
+    // Persist to DB — reset status to 'new'
+    try {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'https://careagent-ai-be-production.up.railway.app').replace(/\/+$/, '');
+      await fetch(`${apiUrl}/api/tickets/dismiss`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ ticketId })
+      });
+    } catch (e) { console.error('Dismiss failed:', e); }
   };
 
   const handleReviewLogs = (ticketId: string) => {
@@ -118,7 +127,21 @@ export const Escalations = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Button variant="danger" size="sm" onClick={() => takeOverTicket(ticket.id)}>
+                      <Button variant="danger" size="sm" onClick={async () => {
+                        // Remove from escalation queue in memory
+                        setTickets((prev: any[]) => prev.map(t => t.id === ticket.id ? { ...t, status: "new" } : t));
+                        // Persist to DB as in_progress
+                        try {
+                          const apiUrl = (import.meta.env.VITE_API_URL || 'https://careagent-ai-be-production.up.railway.app').replace(/\/+$/, '');
+                          await fetch(`${apiUrl}/api/tickets/dismiss`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ ticketId: ticket.id, status: 'in_progress' })
+                          });
+                        } catch (e) { console.error('Take over failed:', e); }
+                        // Navigate to inbox to reply
+                        navigate(`/inbox?ticket=${ticket.id}`);
+                      }}>
                         <UserCheck size={13} className="mr-1" /> Take Over
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleDismiss(ticket.id)}>
