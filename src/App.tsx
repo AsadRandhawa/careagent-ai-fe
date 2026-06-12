@@ -24,7 +24,7 @@ export default function App() {
   const { token, setUser, setDocuments, setBrandVoice, setBusinessIdentity } = useAppStore();
 
   React.useEffect(() => {
-    // Load user profile first — then only fetch tickets if Gmail is connected for THIS account
+    // Load user profile first, then fetch tickets once we know gmail is connected
     if (token) {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       fetch(`${apiUrl}/api/user/me`, {
@@ -40,19 +40,15 @@ export default function App() {
             if (userData.knowledgeBase.businessIdentity) setBusinessIdentity(userData.knowledgeBase.businessIdentity);
           }
           // Only fetch tickets if this account has Gmail connected
-          if (userData.googleConnected) {
-            fetchTickets();
-          }
+          if (userData.googleConnected) fetchTickets();
         }
       })
-      .catch(console.error);
-    }
-
-    const timer = setTimeout(() => {
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+    } else {
       setIsLoading(false);
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, []);
+    }
+  }, [token]);
 
   const isLanding = location.pathname === "/" || location.pathname === "/privacy";
 

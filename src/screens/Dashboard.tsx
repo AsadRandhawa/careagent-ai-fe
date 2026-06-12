@@ -125,27 +125,31 @@ export const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <MetricCard
           label="Open Tickets"
-          value={isFetchingStats ? "..." : (stats?.openTickets ?? tickets.length)}
-          subtext={stats ? `${stats.escalated} escalated` : "Loading..."}
+          value={stats?.openTickets ?? tickets.length}
+          subtext={stats ? (stats.escalated > 0 ? `${stats.escalated} escalated` : "All clear") : ""}
+          loading={isFetchingStats || isFetchingTickets}
           delta={{ value: "live", type: "increase" }}
           icon={<Inbox size={16} />}
         />
         <MetricCard
           label="AI Drafts Ready"
-          value={isFetchingStats ? "..." : (stats?.aiDraftsReady ?? tickets.length)}
+          value={stats?.aiDraftsReady ?? tickets.length}
+          loading={isFetchingStats || isFetchingTickets}
           subtext="Awaiting review"
           icon={<Sparkles size={16} className="text-brand" />}
           className="ring-1 ring-brand/20"
         />
         <MetricCard
           label="Avg Resolution Time"
-          value={isFetchingStats ? "..." : (stats?.avgResolutionTime ?? "N/A")}
+          value={stats?.avgResolutionTime ?? "N/A"}
+          loading={isFetchingStats}
           subtext="This month"
           icon={<Clock size={16} />}
         />
         <MetricCard
           label="Escalation Rate"
-          value={isFetchingStats ? "..." : (stats?.escalationRate ?? "0%")}
+          value={stats?.escalationRate ?? "0%"}
+          loading={isFetchingStats}
           subtext="Last 30 days"
           icon={<Star size={16} className="text-warn" />}
         />
