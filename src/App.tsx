@@ -8,6 +8,7 @@ import { Escalations } from "./screens/Escalations";
 import { KnowledgeBase } from "./screens/KnowledgeBase";
 import { Onboarding } from "./screens/Onboarding";
 import { Channels } from "./screens/Channels";
+import { PaymentSuccess } from "./screens/PaymentSuccess";
 import { Analytics } from "./screens/Analytics";
 import { Landing } from "./screens/Landing";
 import { Privacy } from "./screens/Privacy";
@@ -101,6 +102,7 @@ export default function App() {
                     <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/channels" element={<Channels />} />
                     <Route path="/analytics" element={<Analytics />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 )}

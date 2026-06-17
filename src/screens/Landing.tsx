@@ -58,10 +58,32 @@ import { AuthModal } from "../components/AuthModal";
 export const Landing = () => {
   const navigate = useNavigate();
   const { token } = useAppStore();
+  const token = useAppStore(state => state.token);
   const [isAuthModalOpen, setIsAuthModalOpen] = React.useState(false);
   const onEnterApp = () => {
     if (token) navigate("/dashboard");
     else setIsAuthModalOpen(true);
+  };
+
+  const handleStripeCheckout = async () => {
+    if (!token) {
+      // Not logged in — open auth first, then redirect to checkout
+      setIsAuthModalOpen(true);
+      return;
+    }
+    try {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'https://careagent-ai-be-production.up.railway.app').replace(/\/+$/, '');
+      const res = await fetch(`${apiUrl}/api/stripe/create-checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else alert('Failed to start checkout. Please try again.');
+    } catch (err) {
+      console.error('Stripe checkout error:', err);
+      alert('Failed to connect to payment system.');
+    }
   };
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
@@ -115,7 +137,7 @@ export const Landing = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.6 }}
             >
-              <Button variant="brand" onClick={onEnterApp} className="px-8 py-5 rounded-full font-bold shadow-glow hover:translate-y-[-2px] active:translate-y-[0] transition-all flex items-center gap-2">
+              <Button variant="brand" onClick={onEnterApp} className="px-8 py-4 text-sm rounded-full font-bold shadow-glow border-2 border-brand/20 hover:translate-y-[-2px] active:translate-y-[0] transition-all flex items-center gap-2">
                 Sign In / Sign Up
               </Button>
             </motion.div>
@@ -152,18 +174,37 @@ export const Landing = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand/10 border border-brand/20 text-brand text-[12px] font-black uppercase tracking-[0.2em] mb-12 shadow-glow-sm"
+            className="inline-flex items-center gap-2 mb-10 text-brand text-[11px] font-black uppercase tracking-[0.3em]"
           >
-            <Sparkles size={16} className="text-brand animate-pulse" />
-            <span>Autonomous Intelligence for Support</span>
+            <span className="w-12 h-0.5 bg-brand/30 rounded-full" />
+            <span>Next Generation Support Platform</span>
+            <span className="w-12 h-0.5 bg-brand/30 rounded-full" />
           </motion.div>
           
-          <div className="max-w-4xl overflow-hidden mb-8">
+          <div className="max-w-5xl overflow-visible mb-12 relative">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ delay: 1.5, duration: 0.8 }}
+              className="absolute -top-12 -left-12 bg-white border-2 border-border-faint p-4 rounded-3xl shadow-2xl rotate-[-12deg] z-20 hidden md:flex items-center gap-2"
+            >
+              <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white"><Check size={16} strokeWidth={4} /></div>
+              <span className="font-black tracking-tighter">99% CSAT</span>
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ delay: 1.7, duration: 0.8 }}
+              className="absolute -bottom-6 -right-12 bg-text-primary text-white p-4 rounded-3xl shadow-2xl rotate-[8deg] z-20 hidden md:block"
+            >
+              <span className="font-black tracking-tighter">24/7 Autopilot</span>
+            </motion.div>
+
             <motion.h1 
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="text-4xl md:text-7xl font-black text-text-primary tracking-tighter leading-[1]"
+              className="text-5xl md:text-[4.5rem] font-black text-text-primary tracking-tighter leading-[1]"
             >
               <TypewriterText text="Customer support" /> <br />
               <TypewriterText text="that " delay={0.6} /> 
@@ -173,7 +214,7 @@ export const Landing = () => {
                   initial={{ width: 0 }} 
                   animate={{ width: "100%" }} 
                   transition={{ delay: 1.2, duration: 1 }} 
-                  className="absolute bottom-2 left-0 h-3 bg-brand/10 -z-10" 
+                  className="absolute bottom-2 left-0 h-4 md:h-6 bg-brand/20 -z-10" 
                 />
               </span>
             </motion.h1>
@@ -222,25 +263,38 @@ export const Landing = () => {
         </div>
       </section>
 
+      {/* Dynamic Marquee */}
+      <div className="w-full overflow-hidden bg-text-primary text-white py-6 border-y border-border-faint flex items-center relative z-20">
+        <div className="flex whitespace-nowrap animate-marquee">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex items-center gap-10 mx-6">
+              <span className="text-2xl font-black uppercase tracking-tighter">Autonomous Intelligence</span>
+              <Sparkles className="text-brand w-6 h-6" />
+              <span className="text-2xl font-black uppercase tracking-tighter">Zero Training Required</span>
+              <Sparkles className="text-brand w-6 h-6" />
+              <span className="text-2xl font-black uppercase tracking-tighter">Omnichannel Brain</span>
+              <Sparkles className="text-brand w-6 h-6" />
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Feature Showcase (Bento Grid) */}
-      <section id="features" className="py-12 px-6 bg-surface/30 backdrop-blur-sm border-t border-border-faint relative overflow-hidden">
+      <section id="features" className="py-20 px-6 bg-surface/30 backdrop-blur-sm border-t border-border-faint relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="mb-20 flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="max-w-xl">
               <h2 className="text-3xl md:text-5xl font-black text-text-primary tracking-tighter mb-6 leading-[1]">Experience the <br /><span className="text-brand">CareAgent</span> difference.</h2>
               <p className="text-lg text-text-muted font-medium">Standard chatbots guess. CareAgent understands context, history, and intent.</p>
             </div>
-            <div className="flex gap-3">
-               <div className="w-10 h-10 rounded-full border border-border-faint flex items-center justify-center text-text-muted hover:bg-surface-high transition-colors"><ArrowRight className="rotate-180" /></div>
-               <div className="w-10 h-10 rounded-full border border-brand bg-brand/5 text-brand flex items-center justify-center hover:bg-brand/10 transition-colors"><ArrowRight /></div>
-            </div>
+
           </div>
 
           <div className="grid lg:grid-cols-12 gap-6">
             {/* Bento Card 1 */}
             <motion.div 
               {...fadeInUp}
-              className="lg:col-span-7 bg-bg rounded-3xl border border-border-faint p-10 overflow-hidden relative group"
+              className="lg:col-span-7 bg-bg rounded-3xl border-2 border-border-faint p-10 overflow-hidden relative group hover:-translate-y-2 hover:-rotate-1 hover:shadow-2xl transition-all duration-300"
             >
               <div className="relative z-10">
                 <div className="w-14 h-14 rounded-2xl bg-brand/10 flex items-center justify-center text-brand mb-8 group-hover:bg-brand group-hover:text-white transition-all duration-500">
@@ -257,7 +311,7 @@ export const Landing = () => {
             {/* Bento Card 2 */}
             <motion.div 
               {...fadeInUp}
-              className="lg:col-span-5 bg-brand text-white rounded-3xl p-10 flex flex-col justify-between shadow-glow group overflow-hidden relative"
+              className="lg:col-span-5 bg-brand text-white rounded-3xl p-10 flex flex-col justify-between shadow-glow group overflow-hidden relative hover:-translate-y-2 hover:rotate-1 hover:shadow-2xl transition-all duration-300"
             >
               <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2" />
               <div className="relative z-10">
@@ -276,7 +330,7 @@ export const Landing = () => {
             {/* Bento Card 3 */}
             <motion.div 
               {...fadeInUp}
-              className="lg:col-span-4 bg-bg-elevated rounded-3xl border border-border-faint p-10 flex flex-col items-center text-center group"
+              className="lg:col-span-4 bg-bg-elevated rounded-3xl border-2 border-border-faint p-10 flex flex-col items-center text-center group hover:-translate-y-2 hover:-rotate-1 hover:shadow-2xl transition-all duration-300"
             >
               <div className="w-16 h-16 rounded-2xl bg-white border border-border-faint flex items-center justify-center text-brand mb-8 shadow-sm group-hover:scale-110 transition-transform">
                 <MessageSquare size={30} />
@@ -288,7 +342,7 @@ export const Landing = () => {
             {/* Bento Card 4 */}
             <motion.div 
               {...fadeInUp}
-              className="lg:col-span-8 bg-surface-high border border-border-strong rounded-3xl p-10 flex flex-col md:flex-row items-center gap-10 group"
+              className="lg:col-span-8 bg-surface-high border-2 border-border-strong rounded-3xl p-10 flex flex-col md:flex-row items-center gap-10 group hover:-translate-y-2 hover:rotate-1 hover:shadow-2xl transition-all duration-300"
             >
               <div className="flex-1">
                 <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-widest mb-5">Security First</div>
@@ -314,9 +368,9 @@ export const Landing = () => {
       {/* Integrations Section */}
       <section id="integrations" className="py-20 px-6 relative overflow-hidden">
         <div className="max-w-5xl mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-14">
+          <motion.div {...fadeInUp} className="text-center mb-20">
             <div className="inline-block px-4 py-1.5 rounded-full bg-brand/10 text-brand text-[11px] font-black uppercase tracking-widest mb-4">Integrations</div>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-text-primary mb-4">Meet your customers <span className="text-brand">where they are</span></h2>
+            <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-text-primary mb-4 leading-none">Meet your customers <br/><span className="text-brand">where they are.</span></h2>
             <p className="text-lg text-text-muted max-w-xl mx-auto">Connect your support channels in minutes. One inbox. Every conversation.</p>
           </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
@@ -352,8 +406,8 @@ export const Landing = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.08 }}
-                whileHover={{ y: -5 }}
-                className="p-6 rounded-2xl border border-border-faint bg-surface/50 hover:border-brand/30 hover:bg-brand/5 transition-all flex flex-col items-center text-center gap-3"
+                whileHover={{ y: -10, rotate: i % 2 === 0 ? 2 : -2 }}
+                className="p-8 rounded-3xl border-2 border-border-faint bg-surface hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center gap-4"
               >
                 {integration.icon}
                 <div className="text-[14px] font-bold text-text-primary">{integration.name}</div>
@@ -364,22 +418,22 @@ export const Landing = () => {
               </motion.div>
             ))}
           </div>
-          <motion.div {...fadeInUp} className="text-center">
-            <Button variant="primary" size="lg" className="px-10 shadow-glow" onClick={onEnterApp}>
-              Connect Your Channels <ArrowRight className="ml-2" size={18} />
+          <motion.div {...fadeInUp} className="text-center mt-8">
+            <Button variant="brand" size="lg" className="px-8 py-5 text-lg font-black shadow-2xl rounded-2xl" onClick={onEnterApp}>
+              Connect Your Channels <ArrowRight className="ml-2" size={24} />
             </Button>
           </motion.div>
         </div>
       </section>
 
-      <section id="how-it-works" className="py-20 px-6 relative">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-20">
-            <h4 className="text-brand font-black uppercase tracking-[0.3em] mb-3 text-center text-[10px]">The Workflow</h4>
-            <h2 className="text-4xl md:text-6xl font-black text-text-primary text-center tracking-tighter leading-[0.9]">From Noise to Clarity.</h2>
+      <section id="how-it-works" className="py-32 px-6 relative bg-bg">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-24 text-center">
+            <h4 className="text-brand font-black uppercase tracking-[0.3em] mb-3 text-[10px]">The Workflow</h4>
+            <h2 className="text-4xl md:text-[5rem] font-black text-text-primary tracking-tighter leading-[0.9]">From Noise to Clarity.</h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-16">
+          <div className="flex flex-col gap-12 relative pb-32">
             {[
               { icon: <Database />, title: "1. Connect", desc: "Sync your data sources and communication channels instantly." },
               { icon: <Bot />, title: "2. Train", desc: "Our AI analyzes your tone, history, and logic to build your agent." },
@@ -387,18 +441,22 @@ export const Landing = () => {
             ].map((step, i) => (
               <motion.div 
                 key={i}
-                viewport={{ once: true }}
+                initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                initial={{ opacity: 0, y: 30 }}
-                transition={{ delay: i * 0.2 }}
-                className="relative flex flex-col items-center text-center"
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.5 }}
+                className="sticky flex flex-col md:flex-row items-center gap-8 p-6 md:p-10 bg-bg rounded-[1.5rem] border-2 border-brand shadow-2xl"
+                style={{ top: `calc(120px + ${i * 24}px)`, zIndex: 10 + i }}
               >
-                <div className="w-20 h-20 rounded-3xl bg-surface border border-border-faint flex items-center justify-center text-brand mb-8 shadow-glow shadow-brand/10 group">
-                   {step.icon}
+                <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl bg-bg border-2 border-border-faint flex items-center justify-center text-brand shrink-0 shadow-glow">
+                   <div className="scale-110">
+                     {step.icon}
+                   </div>
                 </div>
-                <h3 className="text-2xl font-black text-text-primary mb-4 tracking-tight">{step.title}</h3>
-                <p className="text-text-muted text-base font-medium leading-relaxed">{step.desc}</p>
-                {i < 2 && <div className="hidden lg:block absolute top-10 left-[100%] w-16 border-t-2 border-dashed border-border-faint -translate-x-1/2" />}
+                <div>
+                  <h3 className="text-2xl md:text-3xl font-black text-text-primary mb-2 tracking-tight">{step.title}</h3>
+                  <p className="text-text-muted text-base md:text-lg font-medium leading-relaxed max-w-xl">{step.desc}</p>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -416,26 +474,26 @@ export const Landing = () => {
 
           <div className="grid md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
             <PricingCard 
-              title="Startup" 
+              title="Starter" 
               price="0" 
-              currency="Rs"
+              currency="$"
               desc="For testing AI workflows."
               features={["100 AI Resolutions", "2 KB Sources", "Email Integration"]}
               onClick={onEnterApp}
             />
             <PricingCard 
-              title="Growth" 
-              price="45,000" 
-              currency="Rs"
+              title="Pro" 
+              price="20" 
+              currency="$"
               popular
               desc="Scale your support operations."
               features={["2,500 AI Resolutions", "Unlimited KB Docs", "WhatsApp & Slack", "SSO Login"]}
               onClick={onEnterApp}
             />
             <PricingCard 
-              title="Enterprise" 
+              title="Premium" 
               price="Custom" 
-              currency="Rs"
+              currency="$"
               desc="Full control and infinite docs."
               features={["Custom Usage", "Private Deployment", "Audit Logging", "Account Manager"]}
               onClick={onEnterApp}
@@ -474,10 +532,10 @@ export const Landing = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            className="text-5xl md:text-7xl font-black tracking-tighter leading-[1.05] mb-8"
+            className="text-5xl md:text-[4.5rem] font-black tracking-tighter leading-[1] mb-8"
             style={{ color: '#ffffff' }}
           >
-            Ready to stop <br />treading water?
+            Scale your support. <br /> Without scaling headcount.
           </motion.h2>
 
           {/* Subtext */}
@@ -521,52 +579,44 @@ export const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-16 px-6 bg-bg border-t border-border-faint">
+      <footer className="pt-24 pb-12 px-6 bg-bg">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-start justify-between gap-16 mb-24">
-            <div className="max-w-md">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center shadow-glow">
-                  <Bot className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-3xl font-black text-text-primary tracking-tighter">CareAgent.ai</span>
+            <div className="max-w-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <Bot className="w-8 h-8 text-brand" />
+                <span className="text-2xl font-black text-text-primary tracking-tighter uppercase">CAREAGENT</span>
               </div>
-              <p className="text-text-muted text-xl font-medium leading-relaxed">Scaling the world's most responsive customer experiences through autonomous intelligence.</p>
+              <p className="text-text-muted text-base font-medium leading-relaxed mb-8">
+                We are passionate about helping businesses leverage the power of technology to achieve their goals.
+              </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-16 md:gap-24">
+            
+            <div className="grid grid-cols-2 gap-16 md:gap-24">
                <div>
-                  <h6 className="font-black text-text-primary text-[10px] uppercase tracking-[0.3em] mb-8">Product</h6>
-                  <ul className="space-y-4 font-bold text-text-muted text-sm">
-                    <li><a href="#" className="hover:text-brand transition-colors">Platform</a></li>
-                    <li><a href="#" className="hover:text-brand transition-colors">Brains</a></li>
-                    <li><a href="#" className="hover:text-brand transition-colors">Pricing</a></li>
-                  </ul>
-               </div>
-               <div>
-                  <h6 className="font-black text-text-primary text-[10px] uppercase tracking-[0.3em] mb-8">Engine</h6>
-                  <ul className="space-y-4 font-bold text-text-muted text-sm">
-                    <li><a href="#" className="hover:text-brand transition-colors">Security</a></li>
-                    <li><a href="#" className="hover:text-brand transition-colors">Compliance</a></li>
-                    <li><a href="#" className="hover:text-brand transition-colors">Labs</a></li>
-                  </ul>
-               </div>
-               <div className="col-span-2 md:col-span-1">
-                  <h6 className="font-black text-text-primary text-[10px] uppercase tracking-[0.3em] mb-8">Company</h6>
-                  <ul className="space-y-4 font-bold text-text-muted text-sm">
-                    <li><a href="#" className="hover:text-brand transition-colors">About</a></li>
-                    <li><a href="#" className="hover:text-brand transition-colors">Careers</a></li>
+                  <h6 className="font-bold text-lg text-text-primary mb-6">Company</h6>
+                  <ul className="space-y-4 font-medium text-text-muted text-base">
+                    <li><a href="#" className="hover:text-brand transition-colors">Home</a></li>
+                    <li><a href="#" className="hover:text-brand transition-colors">About Us</a></li>
                     <li><a href="#" className="hover:text-brand transition-colors">Blog</a></li>
+                    <li><a href="#" className="hover:text-brand transition-colors">Pricing</a></li>
+                    <li><a href="/privacy" className="hover:text-brand transition-colors">Privacy Policy</a></li>
+                  </ul>
+               </div>
+               <div>
+                  <h6 className="font-bold text-lg text-text-primary mb-6">Support</h6>
+                  <ul className="space-y-4 font-medium text-text-muted text-base">
+                    <li><a href="#" className="hover:text-brand transition-colors">Contact</a></li>
+                    <li><a href="#" className="hover:text-brand transition-colors">Licenses</a></li>
+                    <li><a href="#" className="hover:text-brand transition-colors">Changelog</a></li>
                   </ul>
                </div>
             </div>
           </div>
-          <div className="pt-12 border-t border-border-faint flex flex-col md:flex-row items-center justify-between gap-8">
-             <div className="text-[11px] font-black text-text-disabled uppercase tracking-[0.2em]">Build for the modern era © 2026 · Flint Sol</div>
-             <div className="flex gap-10 items-center">
-                <a href="/privacy" className="text-[11px] font-black text-text-disabled uppercase tracking-[0.2em] hover:text-brand transition-colors">Privacy Policy</a>
-                {["Twitter", "LinkedIn", "GitHub"].map(p => (
-                  <a key={p} href="#" className="text-[11px] font-black text-text-disabled uppercase tracking-[0.2em] hover:text-brand transition-colors">{p}</a>
-                ))}
+          
+          <div className="pt-12 flex flex-col md:flex-row items-center justify-between gap-8">
+             <div className="text-sm font-medium text-text-muted">
+               2026 CareAgent. Powered by Flint Sol
              </div>
           </div>
         </div>
@@ -577,10 +627,10 @@ export const Landing = () => {
   );
 };
 
-const PricingCard = ({ title, price, currency = "Rs", desc, features, popular, onClick }: { title: string, price: string, currency?: string, desc: string, features: string[], popular?: boolean, onClick?: () => void }) => (
+const PricingCard = ({ title, price, currency = "$", desc, features, popular, onClick, onEnroll, enrollLabel }: { title: string, price: string, currency?: string, desc: string, features: string[], popular?: boolean, onClick?: () => void, onEnroll?: () => void, enrollLabel?: string }) => (
   <motion.div 
-    whileHover={{ y: -10 }}
-    className={`p-10 rounded-3xl border flex flex-col transition-all duration-500 ${popular ? "bg-bg border-brand shadow-glow relative ring-4 ring-brand/5" : "bg-surface border-border-faint hover:border-brand/40"}`}
+    whileHover={{ y: -10, rotate: popular ? 0 : 1 }}
+    className={`p-10 rounded-3xl border-2 flex flex-col transition-all duration-500 ${popular ? "bg-bg border-brand shadow-2xl relative ring-4 ring-brand/10 scale-105 z-10" : "bg-surface border-border-faint hover:border-brand/40 hover:shadow-2xl"}`}
   >
     {popular && <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand text-white text-[9px] font-black uppercase tracking-[0.3em] px-5 py-2 rounded-full shadow-glow">Most Popular</div>}
     <div className="mb-10">
@@ -588,7 +638,7 @@ const PricingCard = ({ title, price, currency = "Rs", desc, features, popular, o
       <div className="flex items-baseline gap-1 mb-4">
         {price !== "Custom" && <span className="text-2xl font-black text-text-primary tracking-tighter">{currency}</span>}
         <span className="text-5xl font-black text-text-primary tracking-tighter">{price}</span>
-        {price !== "Custom" && <span className="text-text-disabled font-black text-[10px] uppercase tracking-widest ml-1">/mo</span>}
+        {price !== "Custom" && <span className="text-text-disabled font-bold text-sm ml-1">/ Month</span>}
       </div>
       <p className="text-text-muted font-bold text-base leading-tight">{desc}</p>
     </div>
@@ -677,29 +727,20 @@ const CareAgentBot = () => {
 
   return (
     <>
-      {!open && (
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5 }}
-          className="fixed bottom-24 right-6 z-50 bg-text-primary text-bg text-[11px] font-bold px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap pointer-events-none"
-        >
-          Ask me anything
-          <div className="absolute bottom-[-5px] right-5 w-2.5 h-2.5 bg-text-primary rotate-45" />
-        </motion.div>
-      )}
-
       <motion.button
         onClick={() => setOpen(o => !o)}
-        whileHover={{ scale: 1.08 }}
+        whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-brand shadow-glow flex items-center justify-center text-white"
+        className="fixed bottom-8 right-8 z-50 h-14 px-5 rounded-full bg-brand shadow-2xl flex items-center justify-center gap-2.5 text-white"
         aria-label="Open CareAgent guide"
       >
         <AnimatePresence mode="wait">
           {open
-            ? <motion.div key="x" initial={{rotate:-90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:90,opacity:0}} transition={{duration:0.15}}><X size={22}/></motion.div>
-            : <motion.div key="bot" initial={{rotate:90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:-90,opacity:0}} transition={{duration:0.15}}><Bot size={22}/></motion.div>
+            ? <motion.div key="x" initial={{rotate:-90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:90,opacity:0}} transition={{duration:0.15}}><X size={24}/></motion.div>
+            : <motion.div key="bot" className="flex items-center gap-2.5" initial={{rotate:90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:-90,opacity:0}} transition={{duration:0.15}}>
+                <Bot size={24}/>
+                <span className="font-black tracking-widest uppercase text-[11px]">Ask CareAgent</span>
+              </motion.div>
           }
         </AnimatePresence>
       </motion.button>
