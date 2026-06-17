@@ -58,7 +58,6 @@ import { AuthModal } from "../components/AuthModal";
 export const Landing = () => {
   const navigate = useNavigate();
   const { token } = useAppStore();
-  const token = useAppStore(state => state.token);
   const [isAuthModalOpen, setIsAuthModalOpen] = React.useState(false);
   const onEnterApp = () => {
     if (token) navigate("/dashboard");
