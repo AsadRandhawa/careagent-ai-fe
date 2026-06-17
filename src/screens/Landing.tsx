@@ -57,7 +57,7 @@ import { AuthModal } from "../components/AuthModal";
 
 export const Landing = () => {
   const navigate = useNavigate();
-  const { token } = useAppStore();
+  const { token, setPendingPlan } = useAppStore();
   const [isAuthModalOpen, setIsAuthModalOpen] = React.useState(false);
   const onEnterApp = () => {
     if (token) navigate("/dashboard");
@@ -66,7 +66,8 @@ export const Landing = () => {
 
   const handleStripeCheckout = async () => {
     if (!token) {
-      // Not logged in — open auth first, then redirect to checkout
+      // Save intent, open auth — AuthModal will redirect to Stripe after login
+      setPendingPlan('growth');
       setIsAuthModalOpen(true);
       return;
     }

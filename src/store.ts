@@ -183,6 +183,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  // ── Pending Plan ──────────────────────────────────────
+  pendingPlan: null,
+  setPendingPlan: (plan) => set({ pendingPlan: plan }),
+
   // ── Gmail Toggle (DB) ──────────────────────────────────
   gmailEnabled: true, // will be overwritten by user profile load in App.tsx
   setGmailEnabled: async (enabled: boolean) => {
@@ -292,6 +296,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({
         tickets: [],
         aiDrafts: {},
+        pendingPlan: null,
         gmailEnabled: true,
         aiAutoDrafting: true,
         autoClassification: true,
@@ -331,6 +336,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     const state = get();
     if (!state.token) return;
     try {
+      // Strip base64 field before saving — only keep metadata and textContent
+      const docsToSave = state.documents.map(({ base64, ...rest }) => rest);
       await fetch(`${getApiUrl()}/api/user/knowledge-base`, {
         method:  'POST',
         headers: {
@@ -338,7 +345,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           Authorization:   `Bearer ${state.token}`,
         },
         body: JSON.stringify({
-          documents:        state.documents,
+          documents:        docsToSave,
           businessIdentity: state.businessIdentity,
           brandVoice:       state.brandVoice,
         }),
