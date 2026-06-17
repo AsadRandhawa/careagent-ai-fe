@@ -8,7 +8,7 @@ import { MiniBarChart } from "../components/MiniBarChart";
 import { TicketRow } from "../components/TicketRow";
 import { ProgressBar } from "../components/ui/ProgressBar";
 import { Button } from "../components/ui/Button";
-import { RefreshCw, Download, Inbox, Sparkles, Clock, Star, Zap, Activity } from "lucide-react";
+import { RefreshCw, Download, Inbox, Sparkles, Clock, Star, Zap, Activity, CreditCard, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../components/ToastProvider";
 import { useAppStore } from "../store";
@@ -28,6 +28,16 @@ export const Dashboard = () => {
   } = useAppStore();
 
   const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [currentPlan, setCurrentPlan] = React.useState<string>("startup");
+
+  React.useEffect(() => {
+    if (!token) return;
+    const apiUrl = (import.meta.env.VITE_API_URL || 'https://careagent-ai-be-production.up.railway.app').replace(/\/+$/, '');
+    fetch(`${apiUrl}/api/stripe/plan`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => { if (d.plan) setCurrentPlan(d.plan); })
+      .catch(() => {});
+  }, [token]);
 
   // Auto-sync + fetch stats on mount
   React.useEffect(() => {
@@ -253,6 +263,19 @@ export const Dashboard = () => {
           <Card>
             <h3 className="text-[13px] font-bold uppercase tracking-widest text-text-muted mb-4">Quick Actions</h3>
             <div className="space-y-2">
+              {/* Upgrade prompt for startup users */}
+              {currentPlan === "startup" && (
+                <div className="rounded-xl bg-brand/8 border border-brand/20 p-3 mb-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles size={12} className="text-brand" />
+                    <span className="text-[11px] font-black text-brand uppercase tracking-wide">Upgrade to Growth</span>
+                  </div>
+                  <p className="text-[10px] text-text-muted mb-2 leading-relaxed">Get 2,500 AI resolutions, unlimited docs, and WhatsApp support.</p>
+                  <Button variant="brand" size="sm" className="w-full shadow-glow text-[11px]" onClick={() => navigate("/billing")}>
+                    View Plans <ArrowRight size={11} className="ml-1" />
+                  </Button>
+                </div>
+              )}
               <Button
                 className="w-full justify-start py-2"
                 variant="surface"
