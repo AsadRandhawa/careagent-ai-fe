@@ -51,12 +51,33 @@ export const Billing = () => {
 
   React.useEffect(() => {
     if (!token) return;
-    fetch(`${apiUrl}/api/stripe/plan`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(r => r.json())
-      .then(d => { if (d.plan) setCurrentPlan(d.plan); })
-      .catch(console.error);
+
+    // Check if returning from successful Stripe checkout
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    const planParam = params.get('plan');
+
+    // If returning from Stripe, sync plan from Stripe then fetch
+    const syncAndFetch = async () => {
+      if (sessionId) {
+        // Tell backend to sync this session
+        await fetch(`${apiUrl}/api/stripe/sync-session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ sessionId }),
+        }).catch(() => {});
+        // Clean URL
+        window.history.replaceState({}, '', '/billing');
+      }
+      // Fetch current plan
+      const res = await fetch(`${apiUrl}/api/stripe/plan`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const d = await res.json();
+      if (d.plan) setCurrentPlan(d.plan);
+    };
+
+    syncAndFetch().catch(console.error);
   }, [token]);
 
   const handleUpgrade = async () => {
