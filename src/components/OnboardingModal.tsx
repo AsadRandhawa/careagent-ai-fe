@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "./ToastProvider";
 
 const steps = [
+  { id: "plan", icon: CreditCard, title: "Choose Plan", desc: "Free or Growth?" },
   { id: "business", icon: Building2, title: "Business Identity", desc: "What do you do?" },
   { id: "voice", icon: MessageSquareText, title: "Brand Voice", desc: "How do you sound?" },
   { id: "docs", icon: FileText, title: "First Document", desc: "Upload knowledge" },
@@ -14,7 +15,7 @@ const steps = [
 ];
 
 export const OnboardingModal = () => {
-  const { showOnboarding, setShowOnboarding, businessIdentity, setBusinessIdentity, brandVoice, setBrandVoice, setDocuments } = useAppStore();
+  const { showOnboarding, setShowOnboarding, businessIdentity, setBusinessIdentity, brandVoice, setBrandVoice, setDocuments, token } = useAppStore();
   const [currentStep, setCurrentStep] = React.useState(0);
   const [isTyping, setIsTyping] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
@@ -26,7 +27,7 @@ export const OnboardingModal = () => {
   const [previewText, setPreviewText] = React.useState("Hello! How can I help you today?");
   
   React.useEffect(() => {
-    if (currentStep === 1) {
+    if (currentStep === 2) {
       setIsTyping(true);
       const timer = setTimeout(() => {
         setIsTyping(false);
@@ -111,6 +112,20 @@ export const OnboardingModal = () => {
     window.location.href = `${apiUrl}/api/auth/google?token=${state.token || ""}`;
   };
 
+  const handleStripeCheckout = async () => {
+    try {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'https://careagent-ai-be-production.up.railway.app').replace(/\/+$/, '');
+      const res = await fetch(`${apiUrl}/api/stripe/create-checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch (err) {
+      console.error('Stripe error:', err);
+    }
+  };
+
   const handleComplete = () => {
     setShowOnboarding(false);
     toast("Setup complete! Welcome to CareAgent.", "success");
@@ -177,8 +192,52 @@ export const OnboardingModal = () => {
               transition={{ duration: 0.3 }}
               className="flex-1 flex flex-col"
             >
-              {/* Step 1: Business Identity */}
+              {/* Step 0: Choose Plan */}
               {currentStep === 0 && (
+                <div className="flex-1 flex flex-col justify-center items-center text-center">
+                  <div className="inline-block px-3 py-1 rounded-full bg-brand/10 text-brand text-[10px] font-black uppercase tracking-widest mb-4">Step 00</div>
+                  <h2 className="text-3xl font-black text-text-primary tracking-tight mb-2">Pick your plan</h2>
+                  <p className="text-sm text-text-muted mb-8 max-w-md">Start free and upgrade anytime. No credit card required for Startup.</p>
+                  <div className="grid grid-cols-2 gap-4 w-full max-w-lg">
+                    {/* Startup */}
+                    <button onClick={() => setCurrentStep(1)} className="p-6 rounded-2xl border-2 border-border-faint hover:border-brand/40 bg-surface text-left transition-all group hover:shadow-lg">
+                      <div className="w-10 h-10 rounded-xl bg-surface-high flex items-center justify-center mb-3">
+                        <Zap size={18} className="text-text-muted group-hover:text-brand transition-colors" />
+                      </div>
+                      <div className="text-[16px] font-black text-text-primary mb-1">Startup</div>
+                      <div className="text-2xl font-black text-brand mb-2">$0<span className="text-[12px] text-text-muted font-semibold">/mo</span></div>
+                      <div className="space-y-1">
+                        {["100 AI Resolutions", "2 KB Sources", "Email Integration"].map(f => (
+                          <div key={f} className="flex items-center gap-1.5 text-[11px] text-text-muted">
+                            <CheckCircle2 size={10} className="text-brand flex-shrink-0" />{f}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 text-[11px] font-black text-brand">Continue free →</div>
+                    </button>
+                    {/* Growth */}
+                    <button onClick={handleStripeCheckout} className="p-6 rounded-2xl border-2 border-brand bg-brand/5 text-left transition-all relative shadow-glow hover:shadow-xl">
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Most Popular</div>
+                      <div className="w-10 h-10 rounded-xl bg-brand/15 flex items-center justify-center mb-3">
+                        <Sparkles size={18} className="text-brand" />
+                      </div>
+                      <div className="text-[16px] font-black text-text-primary mb-1">Growth</div>
+                      <div className="text-2xl font-black text-brand mb-2">$20<span className="text-[12px] text-text-muted font-semibold">/mo</span></div>
+                      <div className="space-y-1">
+                        {["2,500 AI Resolutions", "Unlimited KB Docs", "WhatsApp & Slack", "SSO Login"].map(f => (
+                          <div key={f} className="flex items-center gap-1.5 text-[11px] text-text-muted">
+                            <CheckCircle2 size={10} className="text-brand flex-shrink-0" />{f}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 text-[11px] font-black text-brand">Subscribe with Stripe →</div>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 1: Business Identity */}
+              {currentStep === 1 && (
                 <div className="flex-1 flex flex-col justify-center">
                   <div className="inline-block px-3 py-1 rounded-full bg-brand/10 text-brand text-[10px] font-black uppercase tracking-widest mb-4 w-fit">Step 01</div>
                   <h2 className="text-3xl font-black text-text-primary tracking-tight mb-2">Define your business</h2>

@@ -1,7 +1,7 @@
 import { cn } from "@/src/lib/utils";
 import { 
   LayoutDashboard, Inbox, Sparkles, AlertTriangle,
-  Database, Rocket, Plug, ChartBar, LogOut, ChevronRight
+  Database, Rocket, Plug, ChartBar, LogOut, ChevronRight, CreditCard
 } from "lucide-react";
 import { Badge } from "./ui/Badge";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -21,6 +21,7 @@ const navItems = {
     { id: "onboarding", label: "Quick Setup", icon: Rocket, path: "/onboarding" },
     { id: "kb", label: "Knowledge Base", icon: Database, path: "/knowledge-base" },
     { id: "channels", label: "Channels", icon: Plug, path: "/channels" },
+    { id: "billing", label: "Billing", icon: CreditCard, path: "/billing" },
   ],
   Analytics: [
     { id: "insights", label: "Analytics", icon: ChartBar, path: "/analytics" },
