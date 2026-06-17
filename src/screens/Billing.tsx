@@ -6,6 +6,7 @@ import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
 import { useAppStore } from "../store";
 import { CreditCard, Zap, Sparkles, CheckCircle2, ArrowRight, ExternalLink, Building } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const PLANS = [
   {
@@ -44,6 +45,7 @@ const PLANS = [
 export const Billing = () => {
   const { token, user } = useAppStore();
   const [currentPlan, setCurrentPlan] = React.useState<string>("startup");
+  const navigate = useNavigate();
   const [loading, setLoading] = React.useState(false);
   const [portalLoading, setPortalLoading] = React.useState(false);
 
@@ -196,12 +198,7 @@ export const Billing = () => {
                   {loading ? "Redirecting..." : "Upgrade Now"}
                 </Button>
               ) : plan.id === "enterprise" ? (
-                <Button variant="surface" size="sm" className="w-full" onClick={() => {
-                  const email = user?.email || '';
-                  const subject = encodeURIComponent('Enterprise Plan Inquiry – CareAgent');
-                  const body = encodeURIComponent(`Hi CareAgent Sales Team,\n\nI'm interested in the Enterprise plan.\n\nMy account email: ${email}\n\nPlease get in touch to discuss pricing and requirements.\n\nThanks`);
-                  window.location.href = `mailto:support@careagent.ai?subject=${subject}&body=${body}`;
-                }}>
+                <Button variant="surface" size="sm" className="w-full" onClick={() => navigate("/contact")}>
                   Contact Sales
                 </Button>
               ) : (
