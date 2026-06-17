@@ -196,7 +196,12 @@ export const Billing = () => {
                   {loading ? "Redirecting..." : "Upgrade Now"}
                 </Button>
               ) : plan.id === "enterprise" ? (
-                <Button variant="surface" size="sm" className="w-full" onClick={() => window.location.href = "mailto:support@careagent.ai?subject=Enterprise Plan"}>
+                <Button variant="surface" size="sm" className="w-full" onClick={() => {
+                  const email = user?.email || '';
+                  const subject = encodeURIComponent('Enterprise Plan Inquiry – CareAgent');
+                  const body = encodeURIComponent(`Hi CareAgent Sales Team,\n\nI'm interested in the Enterprise plan.\n\nMy account email: ${email}\n\nPlease get in touch to discuss pricing and requirements.\n\nThanks`);
+                  window.location.href = `mailto:support@careagent.ai?subject=${subject}&body=${body}`;
+                }}>
                   Contact Sales
                 </Button>
               ) : (
