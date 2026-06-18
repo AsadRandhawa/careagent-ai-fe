@@ -6,6 +6,7 @@ import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
 import { useAppStore } from "../store";
 import { CreditCard, Zap, Sparkles, CheckCircle2, ArrowRight, ExternalLink, Building } from "lucide-react";
+import { getPaddle } from "../paddle";
 import { useNavigate } from "react-router-dom";
 
 const PLANS = [
@@ -48,6 +49,28 @@ export const Billing = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = React.useState(false);
   const [portalLoading, setPortalLoading] = React.useState(false);
+  const [paddleLoading, setPaddleLoading] = React.useState(false);
+
+  const handlePaddleCheckout = async () => {
+    setPaddleLoading(true);
+    try {
+      const paddle = await getPaddle();
+      if (!paddle) throw new Error('Paddle not initialized');
+      paddle.Checkout.open({
+        items: [{ priceId: import.meta.env.VITE_PADDLE_PRICE_ID, quantity: 1 }],
+        customer: { email: user?.email || '' },
+        settings: {
+          displayMode: 'overlay',
+          theme: 'light',
+          successUrl: `${window.location.origin}/billing?paddle=success`,
+        },
+      });
+    } catch (err) {
+      console.error('Paddle checkout error:', err);
+    } finally {
+      setPaddleLoading(false);
+    }
+  };
 
   const apiUrl = (import.meta.env.VITE_API_URL || 'https://careagent-ai-be-production.up.railway.app').replace(/\/+$/, '');
 
@@ -151,9 +174,14 @@ export const Billing = () => {
           </div>
         </div>
         {currentPlan === "startup" && (
-          <Button variant="brand" size="sm" onClick={handleUpgrade} disabled={loading} className="shadow-glow">
-            {loading ? "Redirecting..." : "Upgrade to Growth"} <ArrowRight size={13} className="ml-1.5" />
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="brand" size="sm" onClick={handleUpgrade} disabled={loading} className="shadow-glow">
+              {loading ? "..." : "Stripe"} <ArrowRight size={13} className="ml-1" />
+            </Button>
+            <Button variant="surface" size="sm" onClick={handlePaddleCheckout} disabled={paddleLoading}>
+              {paddleLoading ? "..." : "Paddle"}
+            </Button>
+          </div>
         )}
       </Card>
 
@@ -194,9 +222,14 @@ export const Billing = () => {
               {isActive ? (
                 <Badge variant="success" size="sm" className="w-full justify-center py-2">Current Plan</Badge>
               ) : plan.id === "growth" ? (
-                <Button variant="brand" size="sm" className="w-full shadow-glow" onClick={handleUpgrade} disabled={loading}>
-                  {loading ? "Redirecting..." : "Upgrade Now"}
-                </Button>
+                <div className="space-y-2">
+                  <Button variant="brand" size="sm" className="w-full shadow-glow" onClick={handleUpgrade} disabled={loading}>
+                    {loading ? "Redirecting..." : "Pay with Stripe"}
+                  </Button>
+                  <Button variant="surface" size="sm" className="w-full" onClick={handlePaddleCheckout} disabled={paddleLoading}>
+                    {paddleLoading ? "Loading..." : "Pay with Paddle"}
+                  </Button>
+                </div>
               ) : plan.id === "enterprise" ? (
                 <Button variant="surface" size="sm" className="w-full" onClick={() => navigate("/contact")}>
                   Contact Sales
