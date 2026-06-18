@@ -62,6 +62,7 @@ export const Billing = () => {
         settings: {
           displayMode: 'overlay',
           theme: 'light',
+          successUrl: `${window.location.origin}/billing?paddle=success`,
         },
         onCompleted: async () => {
           // Sync plan to DB after successful Paddle payment
@@ -93,16 +94,27 @@ export const Billing = () => {
 
     // If returning from Stripe, sync plan from Stripe then fetch
     const syncAndFetch = async () => {
+      // Handle Stripe session
       if (sessionId) {
-        // Tell backend to sync this session
         await fetch(`${apiUrl}/api/stripe/sync-session`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ sessionId }),
         }).catch(() => {});
-        // Clean URL
         window.history.replaceState({}, '', '/billing');
       }
+
+      // Handle Paddle success redirect
+      if (params.get('paddle') === 'success') {
+        await fetch(`${apiUrl}/api/paddle/sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+        window.history.replaceState({}, '', '/billing');
+        setCurrentPlan('growth');
+        return;
+      }
+
       // Fetch current plan
       const res = await fetch(`${apiUrl}/api/stripe/plan`, {
         headers: { Authorization: `Bearer ${token}` }
