@@ -62,7 +62,16 @@ export const Billing = () => {
         settings: {
           displayMode: 'overlay',
           theme: 'light',
-          successUrl: `${window.location.origin}/billing?paddle=success`,
+        },
+        onCompleted: async () => {
+          // Sync plan to DB after successful Paddle payment
+          try {
+            await fetch(`${apiUrl}/api/paddle/sync`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            });
+            setCurrentPlan('growth');
+          } catch (e) { console.error('Paddle sync failed:', e); }
         },
       });
     } catch (err) {
