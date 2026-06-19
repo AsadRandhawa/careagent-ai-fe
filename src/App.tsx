@@ -54,7 +54,7 @@ export default function App() {
     }
   }, [token]);
 
-  const isLanding = location.pathname === "/" || location.pathname === "/privacy";
+  const isLanding = location.pathname === "/" || location.pathname === "/privacy" || location.pathname === "/refund-policy";
 
   if (isLanding) {
     return (
@@ -66,7 +66,7 @@ export default function App() {
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.5 }}
         >
-          {location.pathname === "/privacy" ? <Privacy /> : <Landing />}
+          {location.pathname === "/privacy" ? <Privacy /> : location.pathname === "/refund-policy" ? <RefundPolicy /> : <Landing />}
         </motion.div>
       </AnimatePresence>
     );
