@@ -12,6 +12,7 @@ import { PaymentSuccess } from "./screens/PaymentSuccess";
 import { Billing } from "./screens/Billing";
 import { Contact } from "./screens/Contact";
 import { RefundPolicy } from "./screens/RefundPolicy";
+import { TermsOfService } from "./screens/TermsOfService";
 import { Analytics } from "./screens/Analytics";
 import { Landing } from "./screens/Landing";
 import { Privacy } from "./screens/Privacy";
@@ -54,7 +55,7 @@ export default function App() {
     }
   }, [token]);
 
-  const isLanding = location.pathname === "/" || location.pathname === "/privacy" || location.pathname === "/refund-policy";
+  const isLanding = location.pathname === "/" || location.pathname === "/privacy" || location.pathname === "/refund-policy" || location.pathname === "/terms";
 
   if (isLanding) {
     return (
@@ -66,7 +67,7 @@ export default function App() {
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.5 }}
         >
-          {location.pathname === "/privacy" ? <Privacy /> : location.pathname === "/refund-policy" ? <RefundPolicy /> : <Landing />}
+          {location.pathname === "/privacy" ? <Privacy /> : location.pathname === "/refund-policy" || location.pathname === "/terms" ? <RefundPolicy /> : <Landing />}
         </motion.div>
       </AnimatePresence>
     );
