@@ -602,6 +602,7 @@ export const Landing = () => {
                     <li><a href="#" className="hover:text-brand transition-colors">Pricing</a></li>
                     <li><a href="/privacy" className="hover:text-brand transition-colors">Privacy Policy</a></li>
                     <li><a href="/refund-policy" className="hover:text-brand transition-colors">Refund Policy</a></li>
+                    <li><a href="/terms" className="hover:text-brand transition-colors">Terms of Service</a></li>
                   </ul>
                </div>
                <div>
