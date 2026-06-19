@@ -67,7 +67,12 @@ export default function App() {
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.5 }}
         >
-          {location.pathname === "/privacy" ? <Privacy /> : location.pathname === "/refund-policy" || location.pathname === "/terms" ? <RefundPolicy /> : <Landing />}
+          {
+            location.pathname === "/privacy" ? <Privacy /> : 
+            location.pathname === "/refund-policy" ? <RefundPolicy /> : 
+            location.pathname === "/terms" ? <TermsOfService /> : 
+            <Landing />
+          }
         </motion.div>
       </AnimatePresence>
     );
@@ -106,9 +111,9 @@ export default function App() {
                     <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/channels" element={<Channels />} />
                     <Route path="/analytics" element={<Analytics />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="/billing" element={<Billing />} />
-              <Route path="/contact" element={<Contact />} />
+                    <Route path="/payment-success" element={<PaymentSuccess />} />
+                    <Route path="/billing" element={<Billing />} />
+                    <Route path="/contact" element={<Contact />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 )}
