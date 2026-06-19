@@ -11,6 +11,7 @@ import { Channels } from "./screens/Channels";
 import { PaymentSuccess } from "./screens/PaymentSuccess";
 import { Billing } from "./screens/Billing";
 import { Contact } from "./screens/Contact";
+import { RefundPolicy } from "./screens/RefundPolicy";
 import { Analytics } from "./screens/Analytics";
 import { Landing } from "./screens/Landing";
 import { Privacy } from "./screens/Privacy";
