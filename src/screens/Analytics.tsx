@@ -14,7 +14,7 @@ import {
 import { TrendingUp, AlertCircle, Plus, Sparkles, Filter, Calendar, MessageCircle, Globe, Clock } from "lucide-react";
 import { useAppStore } from "../store";
 import { useNavigate } from "react-router-dom";
-import { mockStats } from "../data/mockData";
+import { mockStats } from "../mockData";
 
 const CATEGORY_COLORS = ["bg-brand", "bg-danger", "bg-purple", "bg-teal", "bg-warn"];
 
