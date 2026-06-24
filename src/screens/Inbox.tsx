@@ -149,6 +149,7 @@ OR
     }
   }, [tickets, documents, businessIdentity, brandVoice, toast, token]);
 
+  // Auto-generate draft when a ticket is selected
   React.useEffect(() => {
     if (selectedId && !aiDrafts[selectedId]) generateDraft(selectedId);
   }, [selectedId, aiDrafts, generateDraft]);
@@ -156,6 +157,31 @@ OR
   React.useEffect(() => {
     if (tickets.length === 0) setSelectedId(null);
   }, [tickets]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Manual Escalate (no AI needed) ───────────────────────────────────────
+  const handleManualEscalate = React.useCallback(async () => {
+    if (!selectedTicket) return;
+    setTickets((prev: any[]) => prev.map((t: any) =>
+      t.id === selectedTicket.id ? { ...t, status: "escalated" } : t
+    ));
+    try {
+      const apiUrl = (import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app").replace(/\/+$/, "");
+      await fetch(`${apiUrl}/api/tickets/escalate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({
+          ticketId: selectedTicket.id,
+          subject: selectedTicket.subject,
+          customerName: selectedTicket.customerName,
+          customerEmail: selectedTicket.email,
+          content: selectedTicket.content,
+          threadId: selectedTicket.threadId,
+          reason: "Manually escalated by agent",
+        }),
+      });
+    } catch (e) { console.error("Failed to persist escalation:", e); }
+    navigate("/escalations");
+  }, [selectedTicket, token, setTickets, navigate]);
 
   // ── Approve & Send AI Draft ───────────────────────────────────────────────
   const handleApprove = React.useCallback(async () => {
@@ -428,9 +454,10 @@ OR
                   </div>
                 </div>
 
-                {/* AI Draft Section */}
+                {/* AI Draft / Action Section */}
                 <AnimatePresence mode="wait">
                   {isDrafting ? (
+                    /* ── Generating spinner ─────────────────────────────── */
                     <motion.div
                       initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -444,111 +471,89 @@ OR
                         </div>
                       </Card>
                     </motion.div>
-                  ) : (
-                    aiDrafts[selectedTicket.id] && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        key="ready"
-                      >
-                        {aiDrafts[selectedTicket.id].status === "escalated" ? (
-                          <div className="flex flex-col items-end max-w-[85%] ml-auto">
-                            <div className="flex items-center gap-2 mb-1.5 px-1">
-                              <AlertTriangle size={10} className="text-danger" />
-                              <span className="text-[10px] font-bold text-danger uppercase tracking-wider">AI Escalation</span>
-                            </div>
-                            <div className="w-full bg-danger-faint border border-danger/20 rounded-2xl rounded-br-sm overflow-hidden shadow-sm">
-                              <div className="p-5">
-                                <h4 className="text-[13px] font-bold text-danger mb-2">Ticket requires human attention</h4>
-                                <p className="text-[13px] text-danger/90 leading-relaxed">
-                                  {aiDrafts[selectedTicket.id].reason}
-                                </p>
-                              </div>
-                              <div className="bg-danger/5 p-3 border-t border-danger/10 flex items-center justify-end">
-                                <Button size="sm" variant="ghost" className="text-danger hover:bg-danger/10" onClick={async () => {
-                                  setTickets((prev: any[]) => prev.map((t: any) =>
-                                    t.id === selectedTicket.id ? { ...t, status: "escalated" } : t
-                                  ));
-                                  try {
-                                    const apiUrl = (import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app").replace(/\/+$/, "");
-                                    await fetch(`${apiUrl}/api/tickets/escalate`, {
-                                      method: "POST",
-                                      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                                      body: JSON.stringify({
-                                        ticketId: selectedTicket.id,
-                                        subject: selectedTicket.subject,
-                                        customerName: selectedTicket.customerName,
-                                        customerEmail: selectedTicket.email,
-                                        content: selectedTicket.content,
-                                        threadId: selectedTicket.threadId,
-                                        reason: aiDrafts[selectedTicket.id]?.reason || "Manually escalated by agent",
-                                      }),
-                                    });
-                                  } catch (e) { console.error("Failed to persist escalation:", e); }
-                                  navigate("/escalations");
-                                }}>Take Over Ticket</Button>
-                              </div>
-                            </div>
+                  ) : aiDrafts[selectedTicket.id] ? (
+                    /* ── Draft or AI-escalation result ──────────────────── */
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      key="ready"
+                    >
+                      {aiDrafts[selectedTicket.id].status === "escalated" ? (
+                        /* AI flagged for escalation — show a single button, user decides */
+                        <div className="flex justify-end">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            icon={<AlertTriangle size={14} className="text-danger" />}
+                            className="border-danger/20 text-danger hover:bg-danger/10"
+                            onClick={handleManualEscalate}
+                          >
+                            Escalate Ticket
+                          </Button>
+                        </div>
+                      ) : (
+                        /* AI draft ready */
+                        <div className="flex flex-col items-end max-w-[85%] ml-auto">
+                          <div className="flex items-center gap-2 mb-1.5 px-1">
+                            <Sparkles size={10} className="text-brand" />
+                            <span className="text-[10px] font-bold text-brand uppercase tracking-wider">AI Generated Draft</span>
+                            <Badge variant="brand" size="xs" className="font-mono bg-brand/5 border-brand/10">98% CONFIDENCE</Badge>
                           </div>
-                        ) : (
-                          <div className="flex flex-col items-end max-w-[85%] ml-auto">
-                            <div className="flex items-center gap-2 mb-1.5 px-1">
-                              <Sparkles size={10} className="text-brand" />
-                              <span className="text-[10px] font-bold text-brand uppercase tracking-wider">AI Generated Draft</span>
-                              <Badge variant="brand" size="xs" className="font-mono bg-brand/5 border-brand/10">98% CONFIDENCE</Badge>
+                          <div className="w-full bg-gradient-to-br from-brand-faint to-surface border border-brand/20 rounded-2xl rounded-br-sm overflow-hidden shadow-glow">
+                            <div className="p-5">
+                              {isEditing ? (
+                                <textarea
+                                  className="w-full bg-bg/50 border border-brand/20 rounded-lg p-3 text-[13px] text-text-primary h-48 focus:ring-1 focus:ring-brand outline-none"
+                                  value={aiDrafts[selectedTicket.id].draft}
+                                  onChange={e => setAiDrafts({ ...aiDrafts, [selectedTicket.id]: { ...aiDrafts[selectedTicket.id], draft: e.target.value } })}
+                                />
+                              ) : (
+                                <p className="text-[13px] text-text-primary leading-relaxed whitespace-pre-wrap">
+                                  {aiDrafts[selectedTicket.id].draft}
+                                </p>
+                              )}
                             </div>
-                            <div className="w-full bg-gradient-to-br from-brand-faint to-surface border border-brand/20 rounded-2xl rounded-br-sm overflow-hidden shadow-glow">
-                              <div className="p-5">
+                            <div className="bg-brand-faint/50 p-3 border-t border-brand/10 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
                                 {isEditing ? (
-                                  <textarea
-                                    className="w-full bg-bg/50 border border-brand/20 rounded-lg p-3 text-[13px] text-text-primary h-48 focus:ring-1 focus:ring-brand outline-none"
-                                    value={aiDrafts[selectedTicket.id].draft}
-                                    onChange={e => setAiDrafts({ ...aiDrafts, [selectedTicket.id]: { ...aiDrafts[selectedTicket.id], draft: e.target.value } })}
-                                  />
+                                  <Button size="sm" variant="primary" onClick={() => setIsEditing(false)}>Done Editing</Button>
                                 ) : (
-                                  <p className="text-[13px] text-text-primary leading-relaxed whitespace-pre-wrap">
-                                    {aiDrafts[selectedTicket.id].draft}
-                                  </p>
+                                  <>
+                                    <Button
+                                      size="sm" variant="primary"
+                                      icon={isSending ? <Spinner size={14} className="border-white/20 border-t-white" /> : <Send size={14} />}
+                                      onClick={handleApprove}
+                                      disabled={isSending}
+                                    >
+                                      {isSending ? "Sending..." : "Approve & Send"}
+                                    </Button>
+                                    <Button size="sm" variant="ghost" className="bg-surface/50 border-border-mid" icon={<Edit3 size={14} />} onClick={() => setIsEditing(true)}>
+                                      Edit
+                                    </Button>
+                                  </>
                                 )}
                               </div>
-                              <div className="bg-brand-faint/50 p-3 border-t border-brand/10 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  {isEditing ? (
-                                    <Button size="sm" variant="primary" onClick={() => setIsEditing(false)}>Done Editing</Button>
-                                  ) : (
-                                    <>
-                                      <Button
-                                        size="sm" variant="primary"
-                                        icon={isSending ? <Spinner size={14} className="border-white/20 border-t-white" /> : <Send size={14} />}
-                                        onClick={handleApprove}
-                                        disabled={isSending}
-                                      >
-                                        {isSending ? "Sending..." : "Approve & Send"}
-                                      </Button>
-                                      <Button size="sm" variant="ghost" className="bg-surface/50 border-border-mid" icon={<Edit3 size={14} />} onClick={() => setIsEditing(true)}>
-                                        Edit
-                                      </Button>
-                                    </>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <IconButton className="bg-surface/50 border-border-mid" onClick={handleRegenerate}>
-                                    <RotateCw size={14} />
-                                  </IconButton>
-                                  <IconButton className="bg-danger-faint border-danger/10 text-danger hover:bg-danger/20">
-                                    <AlertTriangle size={14} />
-                                  </IconButton>
-                                </div>
+                              <div className="flex items-center gap-2">
+                                <IconButton className="bg-surface/50 border-border-mid" onClick={handleRegenerate}>
+                                  <RotateCw size={14} />
+                                </IconButton>
+                                <IconButton
+                                  className="bg-danger-faint border-danger/10 text-danger hover:bg-danger/20"
+                                  onClick={handleManualEscalate}
+                                  title="Escalate ticket"
+                                >
+                                  <AlertTriangle size={14} />
+                                </IconButton>
                               </div>
                             </div>
-                            <div className="mt-3 flex items-center gap-4 text-[10px] text-text-muted font-mono">
-                              <span className="flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-text-muted" /> PRESS A TO APPROVE</span>
-                              <span className="flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-text-muted" /> PRESS E TO EDIT</span>
-                            </div>
                           </div>
-                        )}
-                      </motion.div>
-                    )
+                          <div className="mt-3 flex items-center gap-4 text-[10px] text-text-muted font-mono">
+                            <span className="flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-text-muted" /> PRESS A TO APPROVE</span>
+                            <span className="flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-text-muted" /> PRESS E TO EDIT</span>
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </div>
