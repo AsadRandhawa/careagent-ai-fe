@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { mockChannelTickets, mockAiDrafts } from './mockData';
 
 export interface Document {
   name: string;
@@ -119,7 +120,18 @@ export const useAppStore = create<AppState>((set, get) => ({
   fetchTickets: async () => {
     const { token, gmailEnabled } = get();
     if (!token) return;
-    if (!gmailEnabled) { set({ tickets: [] }); return; }
+
+    // Always pre-populate AI drafts for mock channel tickets
+    set(state => ({
+      aiDrafts: { ...mockAiDrafts, ...state.aiDrafts },
+    }));
+
+    if (!gmailEnabled) {
+      // No Gmail — show only mock channel tickets
+      set({ tickets: mockChannelTickets });
+      return;
+    }
+
     set({ isFetchingTickets: true });
     try {
       const res = await fetch(`${getApiUrl()}/api/gmail/emails`, {
@@ -127,10 +139,17 @@ export const useAppStore = create<AppState>((set, get) => ({
       });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data)) set({ tickets: data });
+        if (Array.isArray(data)) {
+          // Tag real Gmail tickets with channel, then merge with mock channel tickets
+          const gmailTickets = data.map((t: any) => ({ ...t, channel: 'gmail' }));
+          set({ tickets: [...gmailTickets, ...mockChannelTickets] });
+        }
+      } else {
+        set({ tickets: mockChannelTickets });
       }
     } catch (err) {
       console.error('Could not fetch live emails:', err);
+      set({ tickets: mockChannelTickets });
     } finally {
       set({ isFetchingTickets: false });
     }

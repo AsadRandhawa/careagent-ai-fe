@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   Search, Filter, Sparkles, Send, Edit3, RotateCw,
   AlertTriangle, User, Hash, MoreVertical, Paperclip,
-  Smile, Plus, MessageCircle, Globe,
+  Smile, Plus, MessageCircle, Globe, Mail,
 } from "lucide-react";
 import { SectionHeader } from "../components/SectionHeader";
 import { TicketRow } from "../components/TicketRow";
@@ -22,26 +22,20 @@ type AIDraftResponse = { status: "draft" | "escalated"; reason?: string; draft?:
 
 // ── Channel config ────────────────────────────────────────────────────────────
 const CHANNELS = [
-  { id: "All",      label: "All",       icon: null,                       color: "" },
-  { id: "whatsapp", label: "WhatsApp",  icon: <MessageCircle size={12} />, color: "text-[#25D366]" },
+  { id: "All",      label: "All",      icon: null,                  accent: "", bg: "", text: "", dot: "" },
+  { id: "gmail",    label: "Gmail",    icon: <Mail size={14} />,    accent: "border-danger/50",      bg: "bg-danger/8",      text: "text-danger",      dot: "bg-danger"      },
+  { id: "whatsapp", label: "WhatsApp", icon: <MessageCircle size={14} />, accent: "border-[#25D366]/50", bg: "bg-[#25D366]/8",   text: "text-[#25D366]",   dot: "bg-[#25D366]"   },
   {
-    id: "facebook",
-    label: "Facebook",
+    id: "facebook", label: "Facebook",
     icon: (
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
       </svg>
     ),
-    color: "text-[#1877F2]",
+    accent: "border-[#1877F2]/50", bg: "bg-[#1877F2]/8", text: "text-[#1877F2]", dot: "bg-[#1877F2]",
   },
-  { id: "website",  label: "Website",   icon: <Globe size={12} />,        color: "text-teal" },
+  { id: "website",  label: "Website",  icon: <Globe size={14} />,   accent: "border-teal/50",        bg: "bg-teal/8",        text: "text-teal",        dot: "bg-teal"        },
 ];
-
-const CHANNEL_ESC_COLOR: Record<string, string> = {
-  whatsapp: "bg-[#25D366]",
-  facebook: "bg-[#1877F2]",
-  website:  "bg-teal",
-};
 
 export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => {
   const [searchParams] = useSearchParams();
@@ -69,13 +63,14 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
   // ── Per-channel escalation counts ────────────────────────────────────────────
   const channelEscCounts = React.useMemo(() => {
     const counts: Record<string, { total: number; escalated: number }> = {
+      gmail:    { total: 0, escalated: 0 },
       whatsapp: { total: 0, escalated: 0 },
       facebook: { total: 0, escalated: 0 },
       website:  { total: 0, escalated: 0 },
     };
     tickets.forEach(t => {
-      const ch = (t as any).channel as string | undefined;
-      if (!ch || !counts[ch]) return;
+      const ch = ((t as any).channel as string | undefined) ?? "gmail";
+      if (!counts[ch]) return;
       counts[ch].total++;
       if (t.status === "escalated" || aiDrafts[t.id]?.status === "escalated") {
         counts[ch].escalated++;
@@ -285,38 +280,55 @@ OR
           </div>
         </div>
 
-        {/* ── Per-channel Escalation Bar ──────────────────────────────────── */}
-        <div className="flex items-center gap-3 mb-4">
-          {(["whatsapp", "facebook", "website"] as const).map(ch => {
-            const meta = channelEscCounts[ch];
-            const escPct = meta.total > 0 ? Math.round((meta.escalated / meta.total) * 100) : 0;
-            const chCfg = CHANNELS.find(c => c.id === ch)!;
+        {/* ── Sidebar-style Channel Boxes ────────────────────────────────── */}
+        <div className="flex items-center gap-2 mb-3">
+          {CHANNELS.filter(c => c.id !== "All").map(ch => {
+            const meta = channelEscCounts[ch.id] ?? { total: 0, escalated: 0 };
+            const isActive = activeChannel === ch.id;
             return (
-              <div
-                key={ch}
-                className="flex items-center gap-2 bg-surface/60 border border-border-faint rounded-xl px-3 py-2 flex-1 cursor-pointer hover:border-border-mid transition-all"
-                onClick={() => setActiveChannel(activeChannel === ch ? "All" : ch)}
-              >
-                <span className={cn("flex items-center gap-1 text-[11px] font-bold", chCfg.color)}>
-                  {chCfg.icon}
-                  {chCfg.label}
-                </span>
-                <div className="flex-1 h-1.5 bg-surface-high rounded-full overflow-hidden">
-                  <div
-                    className={cn("h-full rounded-full transition-all", CHANNEL_ESC_COLOR[ch])}
-                    style={{ width: `${escPct}%`, opacity: 0.85 }}
-                  />
-                </div>
-                <span className="text-[10px] font-mono text-text-muted">{meta.escalated}/{meta.total}</span>
-                {meta.escalated > 0 && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-danger animate-pulse" />
+              <button
+                key={ch.id}
+                onClick={() => setActiveChannel(isActive ? "All" : ch.id)}
+                className={cn(
+                  "flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border transition-all duration-150 flex-1 group",
+                  isActive
+                    ? cn("border-l-2", ch.accent, ch.bg, "border-border-faint shadow-sm")
+                    : "bg-bg-elevated/60 border-border-faint hover:bg-surface/60 hover:border-border-mid"
                 )}
-              </div>
+              >
+                <div className="flex items-center gap-2">
+                  <div className={cn(
+                    "w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0",
+                    isActive ? ch.bg : "bg-surface-high"
+                  )}>
+                    <span className={cn("flex items-center", isActive ? ch.text : "text-text-muted")}>
+                      {ch.icon}
+                    </span>
+                  </div>
+                  <span className={cn(
+                    "text-[12px] font-semibold",
+                    isActive ? ch.text : "text-text-muted group-hover:text-text-second"
+                  )}>
+                    {ch.label}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {meta.escalated > 0 && (
+                    <span className={cn("w-1.5 h-1.5 rounded-full animate-pulse", ch.dot ?? "bg-danger")} />
+                  )}
+                  <span className={cn(
+                    "text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[22px] text-center",
+                    isActive ? cn(ch.bg, ch.text) : "bg-surface-high text-text-muted"
+                  )}>
+                    {meta.total}
+                  </span>
+                </div>
+              </button>
             );
           })}
         </div>
 
-        {/* ── Status + Channel Filters ────────────────────────────────────── */}
+        {/* ── Status Filters ──────────────────────────────────────────────── */}
         <div className="flex items-center gap-1 pb-3">
           {["All", "New", "Escalated"].map(f => (
             <button
@@ -328,24 +340,6 @@ OR
               )}
             >
               {f}
-            </button>
-          ))}
-
-          <div className="h-4 w-px bg-border-faint mx-2" />
-
-          {CHANNELS.map(ch => (
-            <button
-              key={ch.id}
-              onClick={() => setActiveChannel(ch.id)}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all",
-                activeChannel === ch.id
-                  ? "bg-surface-high text-text-primary"
-                  : "text-text-muted hover:text-text-second"
-              )}
-            >
-              {ch.icon && <span className={ch.color}>{ch.icon}</span>}
-              {ch.label}
             </button>
           ))}
         </div>
