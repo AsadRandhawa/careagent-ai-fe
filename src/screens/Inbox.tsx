@@ -554,7 +554,7 @@ OR
                         </div>
                       )}
                     </motion.div>
-                  )}
+                  ) : null}
                 </AnimatePresence>
               </div>
 
