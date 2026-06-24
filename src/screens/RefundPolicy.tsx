@@ -134,7 +134,7 @@ export const RefundPolicy = () => {
         <Section title="10. Contact Us">
           <p>For refund requests or billing questions, please contact us:</p>
           <div className="space-y-1.5 mt-2">
-            <Bullet>Email: <a href="mailto:flintsol.internal@gmail.com" className="text-brand hover:underline font-semibold">flintsol.internal@gmail.com</a></Bullet>
+            <Bullet>Email: <a href="mailto:support@careagent.ai" className="text-brand hover:underline font-semibold">support@careagent.ai</a></Bullet>
             <Bullet>Website: <a href="https://careagent.flint-sol.com" className="text-brand hover:underline">careagent.flint-sol.com</a></Bullet>
             <Bullet>Response time: Within 3 business days</Bullet>
           </div>

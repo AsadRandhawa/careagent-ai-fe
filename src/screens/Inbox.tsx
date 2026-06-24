@@ -1,6 +1,10 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Search, Filter, Sparkles, Send, Edit3, RotateCw, AlertTriangle, User, Hash, MoreVertical, Paperclip, Smile, Plus } from "lucide-react";
+import {
+  Search, Filter, Sparkles, Send, Edit3, RotateCw,
+  AlertTriangle, User, Hash, MoreVertical, Paperclip,
+  Smile, Plus, MessageCircle, Globe,
+} from "lucide-react";
 import { SectionHeader } from "../components/SectionHeader";
 import { TicketRow } from "../components/TicketRow";
 import { Avatar } from "../components/ui/Avatar";
@@ -16,26 +20,73 @@ import { cn } from "@/src/lib/utils";
 
 type AIDraftResponse = { status: "draft" | "escalated"; reason?: string; draft?: string };
 
+// ── Channel config ────────────────────────────────────────────────────────────
+const CHANNELS = [
+  { id: "All",      label: "All",       icon: null,                       color: "" },
+  { id: "whatsapp", label: "WhatsApp",  icon: <MessageCircle size={12} />, color: "text-[#25D366]" },
+  {
+    id: "facebook",
+    label: "Facebook",
+    icon: (
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+      </svg>
+    ),
+    color: "text-[#1877F2]",
+  },
+  { id: "website",  label: "Website",   icon: <Globe size={12} />,        color: "text-teal" },
+];
+
+const CHANNEL_ESC_COLOR: Record<string, string> = {
+  whatsapp: "bg-[#25D366]",
+  facebook: "bg-[#1877F2]",
+  website:  "bg-teal",
+};
+
 export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const ticketIdParam = searchParams.get("ticketId");
-  
-  const { documents, businessIdentity, brandVoice, tickets, setTickets, isFetchingTickets, aiDrafts, setAiDrafts, token, takeOverTicket } = useAppStore();
-  const [selectedId, setSelectedId] = React.useState<string | null>(ticketIdParam || (tickets.length > 0 ? tickets[0].id : null));
+
+  const {
+    documents, businessIdentity, brandVoice,
+    tickets, setTickets, isFetchingTickets,
+    aiDrafts, setAiDrafts,
+    token, takeOverTicket,
+  } = useAppStore();
+
+  const [selectedId,   setSelectedId]   = React.useState<string | null>(ticketIdParam || (tickets.length > 0 ? tickets[0].id : null));
   const [activeFilter, setActiveFilter] = React.useState(defaultFilter);
-  const [isDrafting, setIsDrafting] = React.useState(false);
-  const [isEditing, setIsEditing] = React.useState(false);
-  const [manualReply, setManualReply] = React.useState("");
-  const [isSending, setIsSending] = React.useState(false);
+  const [activeChannel, setActiveChannel] = React.useState("All");
+  const [isDrafting,   setIsDrafting]   = React.useState(false);
+  const [isEditing,    setIsEditing]    = React.useState(false);
+  const [manualReply,  setManualReply]  = React.useState("");
+  const [isSending,    setIsSending]    = React.useState(false);
   const { toast } = useToast();
 
   const selectedTicket = tickets.find(t => t.id === selectedId);
 
+  // ── Per-channel escalation counts ────────────────────────────────────────────
+  const channelEscCounts = React.useMemo(() => {
+    const counts: Record<string, { total: number; escalated: number }> = {
+      whatsapp: { total: 0, escalated: 0 },
+      facebook: { total: 0, escalated: 0 },
+      website:  { total: 0, escalated: 0 },
+    };
+    tickets.forEach(t => {
+      const ch = (t as any).channel as string | undefined;
+      if (!ch || !counts[ch]) return;
+      counts[ch].total++;
+      if (t.status === "escalated" || aiDrafts[t.id]?.status === "escalated") {
+        counts[ch].escalated++;
+      }
+    });
+    return counts;
+  }, [tickets, aiDrafts]);
+
   const generateDraft = React.useCallback(async (ticketId: string, customInstructions?: string) => {
     const ticket = tickets.find(t => t.id === ticketId);
     if (!ticket) return;
-
     setIsDrafting(true);
     try {
       let contextDocs = "";
@@ -81,14 +132,14 @@ OR
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: `Customer Name: ${ticket.customerName}\nMessage: ${ticket.content}` }
-          ]
-        })
+            { role: "user", content: `Customer Name: ${ticket.customerName}\nMessage: ${ticket.content}` },
+          ],
+        }),
       });
 
       if (!response.ok) throw new Error("Backend error");
@@ -104,51 +155,36 @@ OR
   }, [tickets, documents, businessIdentity, brandVoice, toast, token]);
 
   React.useEffect(() => {
-    if (selectedId && !aiDrafts[selectedId]) {
-      generateDraft(selectedId);
-    }
+    if (selectedId && !aiDrafts[selectedId]) generateDraft(selectedId);
   }, [selectedId, aiDrafts, generateDraft]);
 
-
   React.useEffect(() => {
-    if (tickets.length === 0) {
-      setSelectedId(null);
-    }
+    if (tickets.length === 0) setSelectedId(null);
   }, [tickets]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Approve & Send AI Draft ──────────────────────────────
+  // ── Approve & Send AI Draft ───────────────────────────────────────────────
   const handleApprove = React.useCallback(async () => {
     if (!selectedId || !selectedTicket) return;
     const draft = aiDrafts[selectedId];
     if (!draft?.draft) return;
-
     setIsSending(true);
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${apiUrl}/api/gmail/reply`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({
           to: selectedTicket.email,
           subject: selectedTicket.subject || "Re: Your message",
           body: draft.draft,
-          threadId: selectedTicket.threadId
-        })
+          threadId: selectedTicket.threadId,
+        }),
       });
-
       if (!res.ok) throw new Error("Failed to send");
-
       toast("Reply sent successfully ✓", "success");
       const nextTickets = tickets.filter(t => t.id !== selectedId);
       setTickets(nextTickets);
-      setAiDrafts(prev => {
-        const newDrafts = { ...prev };
-        delete newDrafts[selectedId];
-        return newDrafts;
-      });
+      setAiDrafts(prev => { const d = { ...prev }; delete d[selectedId]; return d; });
       setIsEditing(false);
       setManualReply("");
       setSelectedId(nextTickets.length > 0 ? nextTickets[0].id : null);
@@ -160,29 +196,23 @@ OR
     }
   }, [selectedId, selectedTicket, aiDrafts, token, toast, setTickets, setAiDrafts]);
 
-  // ── Send Manual Reply ────────────────────────────────────
+  // ── Send Manual Reply ─────────────────────────────────────────────────────
   const handleManualSend = React.useCallback(async () => {
     if (!selectedTicket || !manualReply.trim()) return;
-
     setIsSending(true);
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${apiUrl}/api/gmail/reply`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({
           to: selectedTicket.email,
           subject: selectedTicket.subject || "Re: Your message",
           body: manualReply,
-          threadId: selectedTicket.threadId
-        })
+          threadId: selectedTicket.threadId,
+        }),
       });
-
       if (!res.ok) throw new Error("Failed to send");
-
       toast("Manual reply sent successfully ✓", "success");
       setManualReply("");
       const nextTickets2 = tickets.filter(t => t.id !== selectedId);
@@ -201,10 +231,13 @@ OR
   };
 
   const filteredTickets = tickets.filter(ticket => {
-    if (activeFilter === "All") return true;
-    if (activeFilter === "New") return ticket.status === "new";
-    if (activeFilter === "Escalated") return ticket.status === "escalated";
-    return true;
+    const statusOk =
+      activeFilter === "All"       ? true :
+      activeFilter === "New"       ? ticket.status === "new" :
+      activeFilter === "Escalated" ? ticket.status === "escalated" :
+      true;
+    const channelOk = activeChannel === "All" ? true : (ticket as any).channel === activeChannel;
+    return statusOk && channelOk;
   });
 
   React.useEffect(() => {
@@ -219,33 +252,31 @@ OR
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) return;
-
-      if (e.key === 'j' || e.key === 'J') {
-        const currentIndex = filteredTickets.findIndex(t => t.id === selectedId);
-        if (currentIndex < filteredTickets.length - 1) setSelectedId(filteredTickets[currentIndex + 1].id);
-      } else if (e.key === 'k' || e.key === 'K') {
-        const currentIndex = filteredTickets.findIndex(t => t.id === selectedId);
-        if (currentIndex > 0) setSelectedId(filteredTickets[currentIndex - 1].id);
-      } else if ((e.key === 'a' || e.key === 'A') && aiDrafts[selectedId || '']?.status !== 'escalated') {
+      if (e.key === "j" || e.key === "J") {
+        const i = filteredTickets.findIndex(t => t.id === selectedId);
+        if (i < filteredTickets.length - 1) setSelectedId(filteredTickets[i + 1].id);
+      } else if (e.key === "k" || e.key === "K") {
+        const i = filteredTickets.findIndex(t => t.id === selectedId);
+        if (i > 0) setSelectedId(filteredTickets[i - 1].id);
+      } else if ((e.key === "a" || e.key === "A") && aiDrafts[selectedId || ""]?.status !== "escalated") {
         handleApprove();
-      } else if ((e.key === 'e' || e.key === 'E') && aiDrafts[selectedId || '']?.status !== 'escalated') {
+      } else if ((e.key === "e" || e.key === "E") && aiDrafts[selectedId || ""]?.status !== "escalated") {
         setIsEditing(true);
         e.preventDefault();
       }
     };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [filteredTickets, selectedId, handleApprove, aiDrafts]);
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="flex flex-col h-full bg-bg"
     >
-      {/* Header with Filters */}
-      <div className="px-8 pt-6 pb-4 border-b border-border-faint bg-bg-elevated/50 backdrop-blur-md sticky top-0 z-10">
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <div className="px-8 pt-6 pb-0 border-b border-border-faint bg-bg-elevated/50 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center justify-between mb-4">
           <SectionHeader title="Active Inbox" className="mb-0" />
           <div className="flex items-center gap-2">
@@ -253,51 +284,100 @@ OR
             <Button size="sm" variant="primary" icon={<Plus size={14} />}>New Ticket</Button>
           </div>
         </div>
-        
-        <div className="flex items-center gap-1">
-          {["All", "New", "Escalated"].map((filter) => (
+
+        {/* ── Per-channel Escalation Bar ──────────────────────────────────── */}
+        <div className="flex items-center gap-3 mb-4">
+          {(["whatsapp", "facebook", "website"] as const).map(ch => {
+            const meta = channelEscCounts[ch];
+            const escPct = meta.total > 0 ? Math.round((meta.escalated / meta.total) * 100) : 0;
+            const chCfg = CHANNELS.find(c => c.id === ch)!;
+            return (
+              <div
+                key={ch}
+                className="flex items-center gap-2 bg-surface/60 border border-border-faint rounded-xl px-3 py-2 flex-1 cursor-pointer hover:border-border-mid transition-all"
+                onClick={() => setActiveChannel(activeChannel === ch ? "All" : ch)}
+              >
+                <span className={cn("flex items-center gap-1 text-[11px] font-bold", chCfg.color)}>
+                  {chCfg.icon}
+                  {chCfg.label}
+                </span>
+                <div className="flex-1 h-1.5 bg-surface-high rounded-full overflow-hidden">
+                  <div
+                    className={cn("h-full rounded-full transition-all", CHANNEL_ESC_COLOR[ch])}
+                    style={{ width: `${escPct}%`, opacity: 0.85 }}
+                  />
+                </div>
+                <span className="text-[10px] font-mono text-text-muted">{meta.escalated}/{meta.total}</span>
+                {meta.escalated > 0 && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-danger animate-pulse" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ── Status + Channel Filters ────────────────────────────────────── */}
+        <div className="flex items-center gap-1 pb-3">
+          {["All", "New", "Escalated"].map(f => (
             <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
+              key={f}
+              onClick={() => setActiveFilter(f)}
               className={cn(
                 "px-3 py-1.5 rounded-full text-[12px] font-medium transition-all",
-                activeFilter === filter 
-                  ? "bg-surface-high text-text-primary" 
+                activeFilter === f ? "bg-surface-high text-text-primary" : "text-text-muted hover:text-text-second"
+              )}
+            >
+              {f}
+            </button>
+          ))}
+
+          <div className="h-4 w-px bg-border-faint mx-2" />
+
+          {CHANNELS.map(ch => (
+            <button
+              key={ch.id}
+              onClick={() => setActiveChannel(ch.id)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all",
+                activeChannel === ch.id
+                  ? "bg-surface-high text-text-primary"
                   : "text-text-muted hover:text-text-second"
               )}
             >
-              {filter}
+              {ch.icon && <span className={ch.color}>{ch.icon}</span>}
+              {ch.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Main 2-Panel Split */}
+      {/* ── Main 2-Panel Split ───────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel: Ticket List */}
         <div className="w-[320px] flex flex-col border-r border-border-faint h-full bg-bg-elevated/20">
           <div className="p-4 border-b border-border-faint">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Find a conversation..."
                 className="w-full bg-bg border border-border-mid rounded-lg h-9 pl-9 pr-3 text-[12px] placeholder:text-text-muted outline-none focus:border-brand/40"
               />
             </div>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto">
             {isFetchingTickets && tickets.length === 0 ? (
               <div className="p-8 text-center text-[13px] text-text-muted">Loading emails...</div>
             ) : filteredTickets.length === 0 ? (
               <div className="p-8 text-center text-[13px] text-text-muted">No active tickets!</div>
             ) : (
-              filteredTickets.map((ticket) => (
-                <TicketRow 
-                  key={ticket.id} 
+              filteredTickets.map(ticket => (
+                <TicketRow
+                  key={ticket.id}
                   {...ticket}
-                  status={ticket.status === 'escalated' ? 'escalated' : 'new'}
+                  channel={(ticket as any).channel}
+                  status={ticket.status === "escalated" ? "escalated" : "new"}
                   selected={ticket.id === selectedId}
                   onClick={() => setSelectedId(ticket.id)}
                   avatarVariant={ticket.avatarVariant as any}
@@ -307,7 +387,7 @@ OR
           </div>
         </div>
 
-        {/* Right Panel: Conversation Details */}
+        {/* Right Panel: Conversation */}
         <div className="flex-1 flex flex-col h-full bg-bg">
           {selectedTicket ? (
             <>
@@ -327,7 +407,7 @@ OR
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Badge variant="default" size="sm" className="bg-surface border-border-mid px-3">
                     {selectedTicket.status}
@@ -357,7 +437,7 @@ OR
                 {/* AI Draft Section */}
                 <AnimatePresence mode="wait">
                   {isDrafting ? (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
@@ -372,7 +452,7 @@ OR
                     </motion.div>
                   ) : (
                     aiDrafts[selectedTicket.id] && (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         key="ready"
@@ -383,39 +463,36 @@ OR
                               <AlertTriangle size={10} className="text-danger" />
                               <span className="text-[10px] font-bold text-danger uppercase tracking-wider">AI Escalation</span>
                             </div>
-                            
                             <div className="w-full bg-danger-faint border border-danger/20 rounded-2xl rounded-br-sm overflow-hidden shadow-sm">
                               <div className="p-5">
-                                 <h4 className="text-[13px] font-bold text-danger mb-2">Ticket requires human attention</h4>
-                                 <p className="text-[13px] text-danger/90 leading-relaxed">
-                                   {aiDrafts[selectedTicket.id].reason}
-                                 </p>
+                                <h4 className="text-[13px] font-bold text-danger mb-2">Ticket requires human attention</h4>
+                                <p className="text-[13px] text-danger/90 leading-relaxed">
+                                  {aiDrafts[selectedTicket.id].reason}
+                                </p>
                               </div>
                               <div className="bg-danger/5 p-3 border-t border-danger/10 flex items-center justify-end">
-                                 <Button size="sm" variant="ghost" className="text-danger hover:bg-danger/10" onClick={async () => {
-                                    // Update in-memory state immediately
-                                    setTickets((prev: any[]) => prev.map((t: any) => 
-                                      t.id === selectedTicket.id ? { ...t, status: 'escalated' } : t
-                                    ));
-                                    // Persist to DB so it survives refresh
-                                    try {
-                                      const apiUrl = (import.meta.env.VITE_API_URL || 'https://careagent-ai-be-production.up.railway.app').replace(/\/+$/, '');
-                                      await fetch(`${apiUrl}/api/tickets/escalate`, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                        body: JSON.stringify({
-                                          ticketId: selectedTicket.id,
-                                          subject: selectedTicket.subject,
-                                          customerName: selectedTicket.customerName,
-                                          customerEmail: selectedTicket.email,
-                                          content: selectedTicket.content,
-                                          threadId: selectedTicket.threadId,
-                                          reason: aiDrafts[selectedTicket.id]?.reason || 'Manually escalated by agent',
-                                        })
-                                      });
-                                    } catch (e) { console.error('Failed to persist escalation:', e); }
-                                    navigate("/escalations");
-                                  }}>Take Over Ticket</Button>
+                                <Button size="sm" variant="ghost" className="text-danger hover:bg-danger/10" onClick={async () => {
+                                  setTickets((prev: any[]) => prev.map((t: any) =>
+                                    t.id === selectedTicket.id ? { ...t, status: "escalated" } : t
+                                  ));
+                                  try {
+                                    const apiUrl = (import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app").replace(/\/+$/, "");
+                                    await fetch(`${apiUrl}/api/tickets/escalate`, {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                                      body: JSON.stringify({
+                                        ticketId: selectedTicket.id,
+                                        subject: selectedTicket.subject,
+                                        customerName: selectedTicket.customerName,
+                                        customerEmail: selectedTicket.email,
+                                        content: selectedTicket.content,
+                                        threadId: selectedTicket.threadId,
+                                        reason: aiDrafts[selectedTicket.id]?.reason || "Manually escalated by agent",
+                                      }),
+                                    });
+                                  } catch (e) { console.error("Failed to persist escalation:", e); }
+                                  navigate("/escalations");
+                                }}>Take Over Ticket</Button>
                               </div>
                             </div>
                           </div>
@@ -426,14 +503,13 @@ OR
                               <span className="text-[10px] font-bold text-brand uppercase tracking-wider">AI Generated Draft</span>
                               <Badge variant="brand" size="xs" className="font-mono bg-brand/5 border-brand/10">98% CONFIDENCE</Badge>
                             </div>
-                            
                             <div className="w-full bg-gradient-to-br from-brand-faint to-surface border border-brand/20 rounded-2xl rounded-br-sm overflow-hidden shadow-glow">
                               <div className="p-5">
                                 {isEditing ? (
-                                  <textarea 
+                                  <textarea
                                     className="w-full bg-bg/50 border border-brand/20 rounded-lg p-3 text-[13px] text-text-primary h-48 focus:ring-1 focus:ring-brand outline-none"
                                     value={aiDrafts[selectedTicket.id].draft}
-                                    onChange={(e) => setAiDrafts({ ...aiDrafts, [selectedTicket.id]: { ...aiDrafts[selectedTicket.id], draft: e.target.value } })}
+                                    onChange={e => setAiDrafts({ ...aiDrafts, [selectedTicket.id]: { ...aiDrafts[selectedTicket.id], draft: e.target.value } })}
                                   />
                                 ) : (
                                   <p className="text-[13px] text-text-primary leading-relaxed whitespace-pre-wrap">
@@ -441,36 +517,26 @@ OR
                                   </p>
                                 )}
                               </div>
-
-                              {/* Action Bar */}
                               <div className="bg-brand-faint/50 p-3 border-t border-brand/10 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                   {isEditing ? (
-                                     <Button size="sm" variant="primary" onClick={() => setIsEditing(false)}>Done Editing</Button>
-                                   ) : (
-                                     <>
-                                       <Button 
-                                        size="sm" 
-                                        variant="primary" 
+                                  {isEditing ? (
+                                    <Button size="sm" variant="primary" onClick={() => setIsEditing(false)}>Done Editing</Button>
+                                  ) : (
+                                    <>
+                                      <Button
+                                        size="sm" variant="primary"
                                         icon={isSending ? <Spinner size={14} className="border-white/20 border-t-white" /> : <Send size={14} />}
                                         onClick={handleApprove}
                                         disabled={isSending}
                                       >
                                         {isSending ? "Sending..." : "Approve & Send"}
                                       </Button>
-                                      <Button 
-                                        size="sm" 
-                                        variant="ghost" 
-                                        className="bg-surface/50 border-border-mid" 
-                                        icon={<Edit3 size={14} />}
-                                        onClick={() => setIsEditing(true)}
-                                      >
+                                      <Button size="sm" variant="ghost" className="bg-surface/50 border-border-mid" icon={<Edit3 size={14} />} onClick={() => setIsEditing(true)}>
                                         Edit
                                       </Button>
-                                     </>
-                                   )}
+                                    </>
+                                  )}
                                 </div>
-                                
                                 <div className="flex items-center gap-2">
                                   <IconButton className="bg-surface/50 border-border-mid" onClick={handleRegenerate}>
                                     <RotateCw size={14} />
@@ -481,7 +547,6 @@ OR
                                 </div>
                               </div>
                             </div>
-                            
                             <div className="mt-3 flex items-center gap-4 text-[10px] text-text-muted font-mono">
                               <span className="flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-text-muted" /> PRESS A TO APPROVE</span>
                               <span className="flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-text-muted" /> PRESS E TO EDIT</span>
@@ -499,12 +564,12 @@ OR
                 <div className="relative group">
                   <div className="absolute inset-0 bg-brand/5 blur-xl group-focus-within:bg-brand/10 transition-all rounded-full" />
                   <div className="relative flex items-center bg-bg border border-border-mid group-focus-within:border-brand/40 rounded-2xl h-14 pl-4 pr-2 transition-all">
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="Type a manual response..."
                       value={manualReply}
-                      onChange={(e) => setManualReply(e.target.value)}
-                      onKeyDown={(e) => {
+                      onChange={e => setManualReply(e.target.value)}
+                      onKeyDown={e => {
                         if (e.key === "Enter" && !e.shiftKey && manualReply.trim()) {
                           e.preventDefault();
                           handleManualSend();
@@ -513,13 +578,11 @@ OR
                       className="flex-1 bg-transparent text-[13px] text-text-primary placeholder:text-text-muted outline-none h-full"
                     />
                     <div className="flex items-center gap-1 pr-2">
-                       <IconButton><Paperclip size={16} /></IconButton>
-                       <IconButton><Smile size={16} /></IconButton>
+                      <IconButton><Paperclip size={16} /></IconButton>
+                      <IconButton><Smile size={16} /></IconButton>
                     </div>
-                    <Button 
-                      size="sm" 
-                      variant="primary" 
-                      className="h-10 px-6 font-bold shadow-lg"
+                    <Button
+                      size="sm" variant="primary" className="h-10 px-6 font-bold shadow-lg"
                       onClick={handleManualSend}
                       disabled={isSending || !manualReply.trim()}
                     >
