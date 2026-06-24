@@ -11,7 +11,7 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { TrendingUp, AlertCircle, Plus, Sparkles, Filter, Calendar, MessageCircle, Globe, Clock } from "lucide-react";
+import { TrendingUp, AlertCircle, Plus, Sparkles, Filter, Calendar, MessageCircle, Globe, Clock, Mail } from "lucide-react";
 import { useAppStore } from "../store";
 import { useNavigate } from "react-router-dom";
 import { mockStats } from "../mockData";
@@ -47,6 +47,14 @@ const CHANNEL_CFG = [
     borderClass: "border-teal/20",
     textClass: "text-teal",
     icon: <Globe size={14} />,
+  },
+  {
+    id: "Gmail",
+    color: "#EA4335",
+    bgClass: "bg-[#EA4335]/10",
+    borderClass: "border-[#EA4335]/20",
+    textClass: "text-[#EA4335]",
+    icon: <Mail size={14} />,
   },
 ];
 
@@ -138,7 +146,7 @@ export const Analytics = () => {
       </div>
 
       {/* ── Channel Reply Rate Cards ───────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-4 gap-6 mb-8">
         {mockStats.channelReplyRates.map(ch => {
           const cfg = CHANNEL_CFG.find(c => c.id === ch.channel)!;
           const escPct = ch.totalTickets > 0 ? Math.round((ch.escalated / ch.totalTickets) * 100) : 0;
