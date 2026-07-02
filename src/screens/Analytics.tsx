@@ -64,8 +64,8 @@ const buildReplyRateChart = () => {
   return days.map(day => {
     const entry: Record<string, any> = { day };
     mockStats.channelReplyRates.forEach(ch => {
-      const found = ch.data.find(d => d.day === day);
-      entry[ch.channel] = found?.mins ?? 0;
+      const found = (ch.data as any[]).find(d => d.day === day);
+      entry[ch.channel] = found?.secs ?? 0;
     });
     return entry;
   });
@@ -121,25 +121,25 @@ export const Analytics = () => {
       <div className="grid grid-cols-4 gap-6 mb-8">
         <MetricCard
           label="Open Tickets"
-          value={isFetchingStats ? "..." : String(stats?.openTickets ?? 0)}
+          value={String(mockStats.openTickets)}
           subtext="Currently active"
           icon={<TrendingUp size={16} />}
         />
         <MetricCard
           label="Resolved"
-          value={isFetchingStats ? "..." : String(Number.isFinite(stats?.resolvedThisPeriod) ? stats.resolvedThisPeriod : 0)}
+          value={String(mockStats.resolvedThisPeriod)}
           subtext={`Last ${days} days`}
           icon={<Sparkles size={16} className="text-brand" />}
         />
         <MetricCard
           label="Avg Resolution"
-          value={isFetchingStats ? "..." : (stats?.avgResolutionTime ?? "N/A")}
+          value={mockStats.avgResolutionTime}
           subtext="Per ticket"
           icon={<TrendingUp size={16} className="text-success" />}
         />
         <MetricCard
           label="Escalation Rate"
-          value={isFetchingStats ? "..." : (stats?.escalationRate ?? "0%")}
+          value={mockStats.escalationRate}
           subtext="Last 30 days"
           icon={<AlertCircle size={16} className="text-purple" />}
         />
@@ -150,6 +150,7 @@ export const Analytics = () => {
         {mockStats.channelReplyRates.map(ch => {
           const cfg = CHANNEL_CFG.find(c => c.id === ch.channel)!;
           const escPct = ch.totalTickets > 0 ? Math.round((ch.escalated / ch.totalTickets) * 100) : 0;
+          const maxSecs = Math.max(...ch.data.map((d: any) => d.secs));
           return (
             <div
               key={ch.channel}
@@ -167,21 +168,19 @@ export const Analytics = () => {
 
               <div className="flex items-end gap-3">
                 <div>
-                  <p className="text-[28px] font-black text-text-primary leading-none">{ch.avgMins}m</p>
+                  <p className="text-[28px] font-black text-text-primary leading-none">{ch.avgSecs}s</p>
                   <p className="text-[11px] text-text-muted mt-1 flex items-center gap-1">
                     <Clock size={10} /> avg first reply
                   </p>
                 </div>
                 <div className="flex-1 pb-1">
-                  {/* Mini sparkline using divs */}
                   <div className="flex items-end gap-0.5 h-8">
-                    {ch.data.map((d, i) => (
+                    {ch.data.map((d: any, i: number) => (
                       <div
                         key={i}
                         className="flex-1 rounded-sm opacity-70"
                         style={{
-                          height: `${Math.round((d.mins / 10) * 100)}%`,
-                          minHeight: "10%",
+                          height: `${Math.max(Math.round((d.secs / maxSecs) * 100), 10)}%`,
                           backgroundColor: cfg.color,
                         }}
                       />
@@ -217,18 +216,18 @@ export const Analytics = () => {
           {/* Reply Rate by Channel — grouped bar chart */}
           <Card className="h-[360px] flex flex-col">
             <h3 className="text-[12px] font-bold text-text-muted uppercase tracking-widest mb-6">
-              Reply Rate by Channel (avg minutes to first reply)
+              Reply Rate by Channel (avg seconds to first reply)
             </h3>
             <div className="flex-1 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={replyRateData} barSize={10} barGap={3}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1A2233" />
                   <XAxis dataKey="day" stroke="#4A5568" fontSize={10} axisLine={false} tickLine={false} dy={8} />
-                  <YAxis stroke="#4A5568" fontSize={10} axisLine={false} tickLine={false} tickFormatter={v => `${v}m`} />
+                  <YAxis stroke="#4A5568" fontSize={10} axisLine={false} tickLine={false} tickFormatter={v => `${v}s`} />
                   <Tooltip
                     contentStyle={{ backgroundColor: "#0D1219", border: "1px solid #1E2A3D", borderRadius: "8px", fontSize: "12px" }}
                     itemStyle={{ color: "#F0F4F8" }}
-                    formatter={(v: any) => [`${v} min`, ""]}
+                    formatter={(v: any) => [`${v}s`, ""]}
                   />
                   <Legend
                     wrapperStyle={{ fontSize: "11px", paddingTop: "12px" }}
@@ -332,12 +331,12 @@ export const Analytics = () => {
                     <div className="flex-1">
                       <div className="flex justify-between text-[12px] mb-1">
                         <span className="text-text-second font-medium">{ch.channel}</span>
-                        <span className="font-mono text-text-muted">{ch.avgMins}m avg</span>
+                        <span className="font-mono text-text-muted">{ch.avgSecs}s avg</span>
                       </div>
                       <div className="h-1.5 bg-surface-high rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all"
-                          style={{ width: `${Math.min((ch.avgMins / 8) * 100, 100)}%`, backgroundColor: cfg.color, opacity: 0.8 }}
+                          style={{ width: `${Math.min((ch.avgSecs / 60) * 100, 100)}%`, backgroundColor: cfg.color, opacity: 0.8 }}
                         />
                       </div>
                     </div>
