@@ -43,7 +43,6 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
   const ticketIdParam = searchParams.get("ticketId");
 
   const {
-    documents, businessIdentity, brandVoice,
     tickets, setTickets, isFetchingTickets,
     aiDrafts, setAiDrafts,
     token, takeOverTicket,
@@ -84,44 +83,6 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     if (!ticket) return;
     setIsDrafting(true);
     try {
-      let contextDocs = "";
-      documents.forEach(doc => {
-        if (doc.status === "Active" && doc.textContent) {
-          contextDocs += `Document [${doc.name}]:\n${doc.textContent}\n\n`;
-        }
-      });
-
-      const systemPrompt = `You are a customer support AI. Your ONLY job is to reply to real customer support emails using the knowledge base below.
-
-KNOWLEDGE BASE (your only allowed source of information):
-${contextDocs || "EMPTY — escalate everything until documents are added."}
-
-BUSINESS: ${businessIdentity}
-VOICE: ${brandVoice}
-${customInstructions ? "AGENT NOTE: " + customInstructions + "\n" : ""}
-
-STEP 1 — IS THIS A REAL CUSTOMER SUPPORT EMAIL?
-Ask yourself: "Is a real human asking for help with a product or service?"
-If NO → output escalated immediately. Do not draft anything.
-
-Signs it is NOT a real customer email:
-- Sender contains: noreply, no-reply, no_reply, donotreply, notifications, alert, mailer-daemon, testflight, appstoreconnect, accounts.google, email.apple.com, apple.com, googleplay, mail.apple, support.apple, developer.apple
-- Content is a system notification, app review update, security alert, account activity, TestFlight build notification, App Store submission update, promotional email, newsletter
-- There is no question or request for help from a customer
-
-STEP 2 — CAN THE KNOWLEDGE BASE ANSWER THIS?
-Read the knowledge base carefully. If the customer's question is NOT covered by the knowledge base → escalate. Never use outside knowledge. Never guess or make up information.
-
-STEP 3 — IS THE CUSTOMER HIGH RISK?
-If the customer is threatening, abusive, claiming fraud, or requesting something not covered → escalate.
-
-STEP 4 — ONLY IF ALL ABOVE PASS: write a reply using ONLY facts from the knowledge base. Sign off as CareAgent Support. No placeholders.
-
-RESPOND ONLY AS JSON — no other text:
-{"status":"draft","reason":"","draft":"full reply here"}
-OR
-{"status":"escalated","reason":"one sentence why","draft":""}`;
-
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const response = await fetch(`${apiUrl}/api/ai/draft`, {
         method: "POST",
@@ -130,10 +91,9 @@ OR
           "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `Customer Name: ${ticket.customerName}\nMessage: ${ticket.content}` },
-          ],
+          customerName:       ticket.customerName,
+          customerMessage:    ticket.content,
+          customInstructions: customInstructions || null,
         }),
       });
 
@@ -147,7 +107,7 @@ OR
       setIsDrafting(false);
       setIsEditing(false);
     }
-  }, [tickets, documents, businessIdentity, brandVoice, toast, token]);
+  }, [tickets, toast, token, setAiDrafts]);
 
   // Auto-generate draft when a ticket is selected
   React.useEffect(() => {
