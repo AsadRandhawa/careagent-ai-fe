@@ -12,6 +12,7 @@ import { RefreshCw, Download, Inbox, Sparkles, Clock, Star, Zap, Activity, Credi
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../components/ToastProvider";
 import { useAppStore } from "../store";
+import { mockStats } from "../mockData";
 
 const todayLabel = () =>
   new Date().toLocaleDateString("en-US", {
@@ -135,31 +136,27 @@ export const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <MetricCard
           label="Open Tickets"
-          value={stats?.openTickets ?? tickets.length}
-          subtext={stats ? (stats.escalated > 0 ? `${stats.escalated} escalated` : "All clear") : ""}
-          loading={isFetchingStats || isFetchingTickets}
+          value={mockStats.openTickets}
+          subtext={stats?.escalated ? `${stats.escalated} escalated` : "All clear"}
           delta={{ value: "live", type: "increase" }}
           icon={<Inbox size={16} />}
         />
         <MetricCard
           label="AI Drafts Ready"
-          value={stats?.aiDraftsReady ?? tickets.length}
-          loading={isFetchingStats || isFetchingTickets}
+          value={mockStats.resolvedThisPeriod}
           subtext="Awaiting review"
           icon={<Sparkles size={16} className="text-brand" />}
           className="ring-1 ring-brand/20"
         />
         <MetricCard
           label="Avg Resolution Time"
-          value={stats?.avgResolutionTime ?? "N/A"}
-          loading={isFetchingStats}
+          value={mockStats.avgResolutionTime}
           subtext="This month"
           icon={<Clock size={16} />}
         />
         <MetricCard
           label="Escalation Rate"
-          value={stats?.escalationRate ?? "0%"}
-          loading={isFetchingStats}
+          value={mockStats.escalationRate}
           subtext="Last 30 days"
           icon={<Star size={16} className="text-warn" />}
         />
@@ -208,10 +205,10 @@ export const Dashboard = () => {
                 <ProgressBar value={tickets.length > 0 ? 100 : 0} color="bg-success" />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <StatRow label="Open Tickets"     value={String(stats?.openTickets ?? tickets.length)} />
-                <StatRow label="Resolved (30d)"   value={String(stats?.resolvedThisPeriod ?? 0)} />
+                <StatRow label="Open Tickets"     value={String(mockStats.openTickets)} />
+                <StatRow label="Resolved (30d)"   value={String(mockStats.resolvedThisPeriod)} />
                 <StatRow label="Escalated"         value={String(stats?.escalated ?? 0)} />
-                <StatRow label="Escalation Rate"   value={stats?.escalationRate ?? "0%"} valueColor="text-warn" />
+                <StatRow label="Escalation Rate"   value={mockStats.escalationRate} valueColor="text-warn" />
               </div>
             </div>
           </Card>
