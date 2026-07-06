@@ -53,6 +53,8 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
   const [activeChannel, setActiveChannel] = React.useState("All");
   const [isDrafting,   setIsDrafting]   = React.useState(false);
   const [isEditing,    setIsEditing]    = React.useState(false);
+  const [chatMessages, setChatMessages] = React.useState<any[]>([]);
+  const [isChatLoading, setIsChatLoading] = React.useState(false);
   const [manualReply,  setManualReply]  = React.useState("");
   const [isSending,    setIsSending]    = React.useState(false);
   const { toast } = useToast();
@@ -114,6 +116,25 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     if (selectedId && !aiDrafts[selectedId]) generateDraft(selectedId);
   }, [selectedId, aiDrafts, generateDraft]);
 
+  // Load full conversation for livechat tickets
+  React.useEffect(() => {
+    const ticket = tickets.find(t => t.id === selectedId);
+    if (!ticket || (ticket as any).channel !== 'website') {
+      setChatMessages([]);
+      return;
+    }
+    const sessionId = (ticket as any).sessionId || selectedId;
+    setIsChatLoading(true);
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    fetch(`${apiUrl}/api/livechat/messages/${sessionId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : { messages: [] })
+      .then(d => setChatMessages(d.messages || []))
+      .catch(() => setChatMessages([]))
+      .finally(() => setIsChatLoading(false));
+  }, [selectedId, token, tickets]);
+
   React.useEffect(() => {
     if (tickets.length === 0) setSelectedId(null);
   }, [tickets]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -151,24 +172,30 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     setIsSending(true);
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${apiUrl}/api/gmail/reply`, {
+      const isLivechat = (selectedTicket as any).channel === 'website';
+      const endpoint = isLivechat ? `${apiUrl}/api/livechat/reply` : `${apiUrl}/api/gmail/reply`;
+      const body = isLivechat
+        ? JSON.stringify({ sessionId: (selectedTicket as any).sessionId || selectedId, content: draft.draft })
+        : JSON.stringify({ to: selectedTicket.email, subject: selectedTicket.subject || "Re: Your message", body: draft.draft, threadId: selectedTicket.threadId });
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({
-          to: selectedTicket.email,
-          subject: selectedTicket.subject || "Re: Your message",
-          body: draft.draft,
-          threadId: selectedTicket.threadId,
-        }),
+        body,
       });
       if (!res.ok) throw new Error("Failed to send");
       toast("Reply sent successfully ✓", "success");
-      const nextTickets = tickets.filter(t => t.id !== selectedId);
-      setTickets(nextTickets);
-      setAiDrafts(prev => { const d = { ...prev }; delete d[selectedId]; return d; });
-      setIsEditing(false);
-      setManualReply("");
-      setSelectedId(nextTickets.length > 0 ? nextTickets[0].id : null);
+      if (isLivechat) {
+        setChatMessages(prev => [...prev, { role: 'agent', content: draft.draft, createdAt: new Date().toISOString() }]);
+        setAiDrafts(prev => { const d = { ...prev }; delete d[selectedId]; return d; });
+        setIsEditing(false);
+      } else {
+        const nextTickets = tickets.filter(t => t.id !== selectedId);
+        setTickets(nextTickets);
+        setAiDrafts(prev => { const d = { ...prev }; delete d[selectedId]; return d; });
+        setIsEditing(false);
+        setManualReply("");
+        setSelectedId(nextTickets.length > 0 ? nextTickets[0].id : null);
+      }
     } catch (err) {
       console.error(err);
       toast("Failed to send reply. Please try again.", "error");
@@ -183,22 +210,26 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     setIsSending(true);
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${apiUrl}/api/gmail/reply`, {
+      const isLivechat = (selectedTicket as any).channel === 'website';
+      const endpoint = isLivechat ? `${apiUrl}/api/livechat/reply` : `${apiUrl}/api/gmail/reply`;
+      const body = isLivechat
+        ? JSON.stringify({ sessionId: (selectedTicket as any).sessionId || selectedId, content: manualReply })
+        : JSON.stringify({ to: selectedTicket.email, subject: selectedTicket.subject || "Re: Your message", body: manualReply, threadId: selectedTicket.threadId });
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({
-          to: selectedTicket.email,
-          subject: selectedTicket.subject || "Re: Your message",
-          body: manualReply,
-          threadId: selectedTicket.threadId,
-        }),
+        body,
       });
       if (!res.ok) throw new Error("Failed to send");
-      toast("Manual reply sent successfully ✓", "success");
+      toast("Reply sent successfully ✓", "success");
       setManualReply("");
-      const nextTickets2 = tickets.filter(t => t.id !== selectedId);
-      setTickets(nextTickets2);
-      setSelectedId(nextTickets2.length > 0 ? nextTickets2[0].id : null);
+      if (isLivechat) {
+        setChatMessages(prev => [...prev, { role: 'agent', content: manualReply, createdAt: new Date().toISOString() }]);
+      } else {
+        const nextTickets2 = tickets.filter(t => t.id !== selectedId);
+        setTickets(nextTickets2);
+        setSelectedId(nextTickets2.length > 0 ? nextTickets2[0].id : null);
+      }
     } catch (err) {
       console.error(err);
       toast("Failed to send reply. Please try again.", "error");
@@ -403,16 +434,55 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
                   <Badge variant="default" size="xs" className="mb-4">Today, May 14</Badge>
                 </div>
 
-                {/* Customer Message */}
-                <div className="flex flex-col items-start max-w-[80%]">
-                  <div className="flex items-center gap-2 mb-1.5 px-1">
-                    <span className="text-[10px] font-bold text-text-second">{selectedTicket.customerName}</span>
-                    <span className="text-[10px] font-mono text-text-muted">{selectedTicket.time}</span>
+                {/* Message thread: full livechat or single email */}
+                {(selectedTicket as any).channel === 'website' ? (
+                  isChatLoading ? (
+                    <div className="text-center text-[12px] text-text-muted py-4">Loading conversation…</div>
+                  ) : chatMessages.length > 0 ? (
+                    chatMessages.map((msg: any, i: number) => (
+                      <div
+                        key={i}
+                        className={`flex flex-col max-w-[80%] ${msg.role === 'agent' ? 'ml-auto items-end' : 'items-start'}`}
+                      >
+                        <div className="flex items-center gap-2 mb-1 px-1">
+                          <span className="text-[10px] font-bold text-text-second">
+                            {msg.role === 'agent' ? 'You' : selectedTicket.customerName}
+                          </span>
+                          <span className="text-[10px] font-mono text-text-muted">
+                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <div className={`rounded-2xl p-4 text-[13px] leading-relaxed shadow-sm ${
+                          msg.role === 'agent'
+                            ? 'bg-brand-faint border border-brand/20 rounded-br-sm text-text-primary'
+                            : 'bg-surface border border-border-mid rounded-bl-sm text-text-primary'
+                        }`}>
+                          {msg.content}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-start max-w-[80%]">
+                      <div className="flex items-center gap-2 mb-1.5 px-1">
+                        <span className="text-[10px] font-bold text-text-second">{selectedTicket.customerName}</span>
+                        <span className="text-[10px] font-mono text-text-muted">{selectedTicket.time}</span>
+                      </div>
+                      <div className="bg-surface border border-border-mid rounded-2xl rounded-bl-sm p-4 text-[13px] text-text-primary leading-relaxed shadow-sm">
+                        {selectedTicket.content}
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  <div className="flex flex-col items-start max-w-[80%]">
+                    <div className="flex items-center gap-2 mb-1.5 px-1">
+                      <span className="text-[10px] font-bold text-text-second">{selectedTicket.customerName}</span>
+                      <span className="text-[10px] font-mono text-text-muted">{selectedTicket.time}</span>
+                    </div>
+                    <div className="bg-surface border border-border-mid rounded-2xl rounded-bl-sm p-4 text-[13px] text-text-primary leading-relaxed shadow-sm">
+                      {selectedTicket.content}
+                    </div>
                   </div>
-                  <div className="bg-surface border border-border-mid rounded-2xl rounded-bl-sm p-4 text-[13px] text-text-primary leading-relaxed shadow-sm">
-                    {selectedTicket.content}
-                  </div>
-                </div>
+                )}
 
                 {/* AI Draft / Action Section */}
                 <AnimatePresence mode="wait">

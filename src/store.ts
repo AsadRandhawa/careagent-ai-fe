@@ -134,21 +134,33 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     set({ isFetchingTickets: true });
     try {
-      const res = await fetch(`${getApiUrl()}/api/gmail/emails`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
+      // Fetch Gmail + live chat tickets in parallel
+      const [gmailRes, livechatRes] = await Promise.allSettled([
+        fetch(`${getApiUrl()}/api/gmail/emails`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${getApiUrl()}/api/livechat/tickets`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      const gmailTickets: any[] = [];
+      if (gmailRes.status === 'fulfilled' && gmailRes.value.ok) {
+        const data = await gmailRes.value.json();
         if (Array.isArray(data)) {
-          // Tag real Gmail tickets with channel, then merge with mock channel tickets
-          const gmailTickets = data.map((t: any) => ({ ...t, channel: 'gmail' }));
-          set({ tickets: [...gmailTickets, ...mockChannelTickets] });
+          gmailTickets.push(...data.map((t: any) => ({ ...t, channel: 'gmail' })));
         }
-      } else {
-        set({ tickets: mockChannelTickets });
       }
+
+      const livechatTickets: any[] = [];
+      if (livechatRes.status === 'fulfilled' && livechatRes.value.ok) {
+        const data = await livechatRes.value.json();
+        if (Array.isArray(data)) livechatTickets.push(...data);
+      }
+
+      set({ tickets: [...gmailTickets, ...livechatTickets, ...mockChannelTickets] });
     } catch (err) {
-      console.error('Could not fetch live emails:', err);
+      console.error('Could not fetch tickets:', err);
       set({ tickets: mockChannelTickets });
     } finally {
       set({ isFetchingTickets: false });
