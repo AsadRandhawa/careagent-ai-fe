@@ -172,10 +172,17 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     setIsSending(true);
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const isLivechat = (selectedTicket as any).channel === 'website';
-      const endpoint = isLivechat ? `${apiUrl}/api/livechat/reply` : `${apiUrl}/api/gmail/reply`;
+      const channel = (selectedTicket as any).channel;
+      const isLivechat = channel === 'website';
+      const isFacebook = channel === 'facebook';
+      const endpoint =
+        isLivechat ? `${apiUrl}/api/livechat/reply` :
+        isFacebook ? `${apiUrl}/api/facebook/reply` :
+        `${apiUrl}/api/gmail/reply`;
       const body = isLivechat
         ? JSON.stringify({ sessionId: (selectedTicket as any).sessionId || selectedId, content: draft.draft })
+        : isFacebook
+        ? JSON.stringify({ ticketId: selectedId, threadId: selectedTicket.threadId, body: draft.draft })
         : JSON.stringify({ to: selectedTicket.email, subject: selectedTicket.subject || "Re: Your message", body: draft.draft, threadId: selectedTicket.threadId });
       const res = await fetch(endpoint, {
         method: "POST",
@@ -210,10 +217,17 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     setIsSending(true);
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const isLivechat = (selectedTicket as any).channel === 'website';
-      const endpoint = isLivechat ? `${apiUrl}/api/livechat/reply` : `${apiUrl}/api/gmail/reply`;
+      const channel = (selectedTicket as any).channel;
+      const isLivechat = channel === 'website';
+      const isFacebook = channel === 'facebook';
+      const endpoint =
+        isLivechat ? `${apiUrl}/api/livechat/reply` :
+        isFacebook ? `${apiUrl}/api/facebook/reply` :
+        `${apiUrl}/api/gmail/reply`;
       const body = isLivechat
         ? JSON.stringify({ sessionId: (selectedTicket as any).sessionId || selectedId, content: manualReply })
+        : isFacebook
+        ? JSON.stringify({ ticketId: selectedId, threadId: selectedTicket.threadId, body: manualReply })
         : JSON.stringify({ to: selectedTicket.email, subject: selectedTicket.subject || "Re: Your message", body: manualReply, threadId: selectedTicket.threadId });
       const res = await fetch(endpoint, {
         method: "POST",

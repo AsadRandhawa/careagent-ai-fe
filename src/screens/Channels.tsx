@@ -21,6 +21,7 @@ export const Channels = () => {
 
   const gmailConnected    = !!user?.googleConnected;
   const whatsappConnected = !!user?.whatsappConnected;
+  const facebookConnected = !!user?.facebookConnected;
 
   // ── Live Chat state ─────────────────────────────────────
   const [livechatToken,   setLivechatToken]   = React.useState<string | null>(null);
@@ -40,6 +41,14 @@ export const Channels = () => {
       toast("Gmail connection was cancelled.", "error");
       window.history.replaceState({}, "", "/channels");
     }
+    if (searchParams.get("connected") === "facebook") {
+      toast("Facebook Messenger connected successfully! ✓", "success");
+      window.history.replaceState({}, "", "/channels");
+    }
+    if (searchParams.get("error") === "auth_failed") {
+      toast("Facebook connection failed. Please try again.", "error");
+      window.history.replaceState({}, "", "/channels");
+    }
   }, [searchParams, toast]);
 
   const connectGmail = () => {
@@ -49,6 +58,25 @@ export const Channels = () => {
 
   const connectWhatsApp = () => {
     toast("WhatsApp integration coming soon. Meta Business Verification is in progress.", "info");
+  };
+
+  const connectFacebook = () => {
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    window.location.href = `${apiUrl}/api/auth/facebook?token=${token || ""}`;
+  };
+
+  const disconnectFacebook = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      await fetch(`${apiUrl}/api/user/disconnect/facebook`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast("Facebook disconnected.", "success");
+      window.location.reload();
+    } catch {
+      toast("Failed to disconnect Facebook.", "error");
+    }
   };
 
   const connectInstagram = () => {
@@ -123,6 +151,17 @@ export const Channels = () => {
       onToggle:    () => {},
       onConnect:   connectWhatsApp,
       onDisconnect: () => toast("WhatsApp disconnect coming soon.", "info"),
+    },
+    {
+      id:          "facebook",
+      name:        "Facebook Messenger",
+      description: facebookConnected ? `Connected — replying via ${user?.facebookPageName || "your Page"}` : "Respond to Messenger conversations from your Page",
+      icon:        <MessageSquare size={18} />,
+      connected:   facebookConnected,
+      enabled:     facebookConnected,
+      onToggle:    () => {},
+      onConnect:   connectFacebook,
+      onDisconnect: disconnectFacebook,
     },
     {
       id:          "instagram",

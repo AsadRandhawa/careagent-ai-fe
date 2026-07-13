@@ -134,12 +134,15 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     set({ isFetchingTickets: true });
     try {
-      // Fetch Gmail + live chat tickets in parallel
-      const [gmailRes, livechatRes] = await Promise.allSettled([
+      // Fetch Gmail + live chat + Facebook tickets in parallel
+      const [gmailRes, livechatRes, facebookRes] = await Promise.allSettled([
         fetch(`${getApiUrl()}/api/gmail/emails`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`${getApiUrl()}/api/livechat/tickets`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${getApiUrl()}/api/facebook/tickets`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -158,7 +161,19 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (Array.isArray(data)) livechatTickets.push(...data);
       }
 
-      set({ tickets: [...gmailTickets, ...livechatTickets, ...mockChannelTickets] });
+      const facebookTickets: any[] = [];
+      if (facebookRes.status === 'fulfilled' && facebookRes.value.ok) {
+        const data = await facebookRes.value.json();
+        if (Array.isArray(data)) facebookTickets.push(...data);
+      }
+
+      // Drop mock Facebook tickets once real ones are flowing in, so the
+      // inbox doesn't show duplicate/fake entries alongside live ones.
+      const mockTicketsFiltered = facebookTickets.length > 0
+        ? mockChannelTickets.filter((t: any) => t.channel !== 'facebook')
+        : mockChannelTickets;
+
+      set({ tickets: [...gmailTickets, ...livechatTickets, ...facebookTickets, ...mockTicketsFiltered] });
     } catch (err) {
       console.error('Could not fetch tickets:', err);
       set({ tickets: mockChannelTickets });
