@@ -12,11 +12,12 @@ export interface ChannelRowProps extends React.HTMLAttributes<HTMLDivElement> {
   enabled?: boolean;
   onToggle: (val: boolean) => void;
   onConnect?: () => void;
+  onDisconnect?: () => void;
   className?: string;
   key?: string | number;
 }
 
-export const ChannelRow = ({ name, description, icon, connected, enabled, onToggle, onConnect, className, ...props }: ChannelRowProps) => {
+export const ChannelRow = ({ name, description, icon, connected, enabled, onToggle, onConnect, onDisconnect, className, ...props }: ChannelRowProps) => {
   // `enabled` controls the toggle state when connected; defaults to `connected`
   const toggleChecked = enabled !== undefined ? enabled : connected;
 
@@ -35,9 +36,19 @@ export const ChannelRow = ({ name, description, icon, connected, enabled, onTogg
           <p className="text-[12px] text-text-muted mt-0.5">{description}</p>
         </div>
       </div>
-      
+
       {connected ? (
-        <Toggle checked={toggleChecked} onChange={onToggle} />
+        <div className="flex items-center gap-4">
+          {onDisconnect && (
+            <button
+              onClick={onDisconnect}
+              className="text-[11px] font-semibold text-danger/70 hover:text-danger hover:underline"
+            >
+              Disconnect
+            </button>
+          )}
+          <Toggle checked={toggleChecked} onChange={onToggle} />
+        </div>
       ) : (
         <Button size="sm" variant="surface" onClick={onConnect}>Connect</Button>
       )}
