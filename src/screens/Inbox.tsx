@@ -96,6 +96,9 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
           customerName:       ticket.customerName,
           customerMessage:    ticket.content,
           customInstructions: customInstructions || null,
+          ticketId:           ticket.id,
+          ticketContent:      ticket.content,
+          ticketSubject:      ticket.subject,
         }),
       });
 
