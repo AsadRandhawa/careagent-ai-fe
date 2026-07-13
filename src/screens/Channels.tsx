@@ -14,6 +14,7 @@ export const Channels = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { token, user, gmailEnabled, setGmailEnabled, fetchTickets,
+    facebookEnabled, setFacebookEnabled,
     aiAutoDrafting, setAiAutoDrafting,
     autoClassification, setAutoClassification,
     sentimentTracking, setSentimentTracking,
@@ -66,6 +67,7 @@ export const Channels = () => {
   };
 
   const disconnectFacebook = async () => {
+    if (!window.confirm("Disconnect Facebook Messenger? You'll need to reconnect and re-approve access to reply to Messenger conversations again.")) return;
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       await fetch(`${apiUrl}/api/user/disconnect/facebook`, {
@@ -155,11 +157,17 @@ export const Channels = () => {
     {
       id:          "facebook",
       name:        "Facebook Messenger",
-      description: facebookConnected ? `Connected — replying via ${user?.facebookPageName || "your Page"}` : "Respond to Messenger conversations from your Page",
+      description: facebookConnected
+        ? (facebookEnabled ? `Connected — replying via ${user?.facebookPageName || "your Page"}` : `Paused — ${user?.facebookPageName || "your Page"} won't receive AI replies`)
+        : "Respond to Messenger conversations from your Page",
       icon:        <MessageSquare size={18} />,
       connected:   facebookConnected,
-      enabled:     facebookConnected,
-      onToggle:    () => {},
+      enabled:     facebookEnabled,
+      onToggle:    (val: boolean) => {
+        setFacebookEnabled(val).then(() => {
+          toast(val ? "Facebook Messenger enabled." : "Facebook Messenger paused.", val ? "success" : "info");
+        });
+      },
       onConnect:   connectFacebook,
       onDisconnect: disconnectFacebook,
     },
@@ -256,7 +264,8 @@ export const Channels = () => {
                     connected={ch.connected}
                     enabled={ch.enabled}
                     onToggle={ch.onToggle}
-                    onConnect={ch.connected ? ch.onDisconnect : ch.id === "livechat" ? () => { connectLivechat(); } : ch.onConnect}
+                    onConnect={ch.id === "livechat" && ch.connected ? connectLivechat : ch.onConnect}
+                    onDisconnect={ch.onDisconnect}
                   />
                   {ch.id === "livechat" && ch.connected && (
                     <button
