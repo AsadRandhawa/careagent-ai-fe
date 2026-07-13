@@ -66,6 +66,10 @@ interface AppState {
   gmailEnabled: boolean;
   setGmailEnabled: (enabled: boolean) => Promise<void>;
 
+  // Facebook channel toggle — stored in DB
+  facebookEnabled: boolean;
+  setFacebookEnabled: (enabled: boolean) => Promise<void>;
+
   // Automation settings — stored in DB
   aiAutoDrafting: boolean;
   setAiAutoDrafting: (val: boolean) => Promise<void>;
@@ -251,6 +255,25 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  // ── Facebook Toggle (DB) ───────────────────────────────
+  facebookEnabled: true, // will be overwritten by user profile load in App.tsx
+  setFacebookEnabled: async (enabled: boolean) => {
+    const { token } = get();
+    set({ facebookEnabled: enabled });
+    if (!token) return;
+    try {
+      await fetch(`${getApiUrl()}/api/user/preferences`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ facebookEnabled: enabled }),
+      });
+      // Re-pull tickets so a paused/resumed Facebook channel reflects immediately
+      get().fetchTickets();
+    } catch (err) {
+      console.error('setFacebookEnabled failed:', err);
+    }
+  },
+
   // ── Automation Settings (DB) ──────────────────────────
   aiAutoDrafting: true,
   setAiAutoDrafting: async (val: boolean) => {
@@ -344,6 +367,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         aiDrafts: {},
         pendingPlan: null,
         gmailEnabled: true,
+        facebookEnabled: true,
         aiAutoDrafting: true,
         autoClassification: true,
         sentimentTracking: false,
@@ -364,6 +388,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({
         user,
         gmailEnabled:       user.gmailEnabled       ?? true,
+        facebookEnabled:    user.facebookEnabled    ?? true,
         aiAutoDrafting:     user.aiAutoDrafting     ?? true,
         autoClassification: user.autoClassification ?? true,
         sentimentTracking:  user.sentimentTracking  ?? false,
