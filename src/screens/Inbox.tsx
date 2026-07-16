@@ -214,42 +214,6 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     }
   }, [selectedId, selectedTicket, aiDrafts, token, toast, setTickets, setAiDrafts]);
 
-  // ── Send Status Update (utility message, Facebook only) ────────────────────
-  // For non-promotional account/order updates sent to a customer whose active
-  // conversation window may have closed — e.g. "your refund has been processed."
-  // Uses Meta's pages_utility_messaging tag so delivery isn't blocked by the
-  // standard 24-hour Messenger reply window.
-  const handleSendStatusUpdate = React.useCallback(async () => {
-    if (!selectedTicket || !manualReply.trim()) return;
-    const channel = (selectedTicket as any).channel;
-    if (channel !== 'facebook') return;
-    setIsSending(true);
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${apiUrl}/api/facebook/reply`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({
-          ticketId: selectedId,
-          threadId: selectedTicket.threadId,
-          body: manualReply,
-          isStatusUpdate: true,
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to send");
-      toast("Status update sent ✓", "success");
-      setManualReply("");
-      const nextTickets3 = tickets.filter(t => t.id !== selectedId);
-      setTickets(nextTickets3);
-      setSelectedId(nextTickets3.length > 0 ? nextTickets3[0].id : null);
-    } catch (err) {
-      console.error(err);
-      toast("Failed to send status update. Please try again.", "error");
-    } finally {
-      setIsSending(false);
-    }
-  }, [selectedTicket, manualReply, token, toast, setTickets, selectedId, tickets]);
-
 
   // ── Send Manual Reply ─────────────────────────────────────────────────────
   const handleManualSend = React.useCallback(async () => {
@@ -671,16 +635,6 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
                     >
                       {isSending ? <Spinner size={14} className="border-white/20 border-t-white" /> : "Send"}
                     </Button>
-                    {(selectedTicket as any)?.channel === 'facebook' && (
-                      <Button
-                        size="sm" variant="ghost" className="h-10 px-4 font-semibold"
-                        onClick={handleSendStatusUpdate}
-                        disabled={isSending || !manualReply.trim()}
-                        title="Send as a non-promotional status update (e.g. order/refund status), delivered even outside the normal 24-hour reply window."
-                      >
-                        Send as Status Update
-                      </Button>
-                    )}
                   </div>
                 </div>
               </div>
