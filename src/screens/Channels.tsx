@@ -15,6 +15,7 @@ export const Channels = () => {
   const { toast } = useToast();
   const { token, user, gmailEnabled, setGmailEnabled, fetchTickets,
     facebookEnabled, setFacebookEnabled,
+    instagramEnabled, setInstagramEnabled,
     aiAutoDrafting, setAiAutoDrafting,
     autoClassification, setAutoClassification,
     sentimentTracking, setSentimentTracking,
@@ -23,6 +24,7 @@ export const Channels = () => {
   const gmailConnected    = !!user?.googleConnected;
   const whatsappConnected = !!user?.whatsappConnected;
   const facebookConnected = !!user?.facebookConnected;
+  const instagramConnected = !!user?.instagramConnected;
 
   // ── Live Chat state ─────────────────────────────────────
   const [livechatToken,   setLivechatToken]   = React.useState<string | null>(null);
@@ -82,7 +84,26 @@ export const Channels = () => {
   };
 
   const connectInstagram = () => {
-    toast("Instagram integration coming soon.", "info");
+    if (!facebookConnected) {
+      toast("Connect Facebook Messenger first — Instagram DMs connect automatically through your linked Page.", "info");
+    }
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    window.location.href = `${apiUrl}/api/auth/facebook?token=${token || ""}`;
+  };
+
+  const disconnectInstagram = async () => {
+    if (!window.confirm("Disconnect Instagram DMs? You'll need to reconnect to reply to Instagram conversations again.")) return;
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      await fetch(`${apiUrl}/api/user/disconnect/instagram`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast("Instagram disconnected.", "success");
+      window.location.reload();
+    } catch {
+      toast("Failed to disconnect Instagram.", "error");
+    }
   };
 
   const disconnectGmail = async () => {
@@ -174,13 +195,19 @@ export const Channels = () => {
     {
       id:          "instagram",
       name:        "Instagram DMs",
-      description: "Direct message management — coming soon",
+      description: instagramConnected
+        ? (instagramEnabled ? `Connected — replying via @${user?.instagramUsername || "your account"}` : `Paused — @${user?.instagramUsername || "your account"} won't receive AI replies`)
+        : (facebookConnected ? "No Instagram account linked to your Page yet — click Connect to check again" : "Respond to Instagram DMs — connects automatically via your Facebook Page"),
       icon:        <Instagram size={18} />,
-      connected:   false,
-      enabled:     false,
-      onToggle:    () => {},
+      connected:   instagramConnected,
+      enabled:     instagramEnabled,
+      onToggle:    (val: boolean) => {
+        setInstagramEnabled(val).then(() => {
+          toast(val ? "Instagram DMs enabled." : "Instagram DMs paused.", val ? "success" : "info");
+        });
+      },
       onConnect:   connectInstagram,
-      onDisconnect: () => {},
+      onDisconnect: disconnectInstagram,
     },
     {
       id:          "livechat",

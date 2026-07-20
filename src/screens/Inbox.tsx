@@ -178,13 +178,15 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
       const channel = (selectedTicket as any).channel;
       const isLivechat = channel === 'website';
       const isFacebook = channel === 'facebook';
+      const isInstagram = channel === 'instagram';
       const endpoint =
         isLivechat ? `${apiUrl}/api/livechat/reply` :
         isFacebook ? `${apiUrl}/api/facebook/reply` :
+        isInstagram ? `${apiUrl}/api/instagram/reply` :
         `${apiUrl}/api/gmail/reply`;
       const body = isLivechat
         ? JSON.stringify({ sessionId: (selectedTicket as any).sessionId || selectedId, content: draft.draft })
-        : isFacebook
+        : (isFacebook || isInstagram)
         ? JSON.stringify({ ticketId: selectedId, threadId: selectedTicket.threadId, body: draft.draft })
         : JSON.stringify({ to: selectedTicket.email, subject: selectedTicket.subject || "Re: Your message", body: draft.draft, threadId: selectedTicket.threadId });
       const res = await fetch(endpoint, {
@@ -224,13 +226,15 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
       const channel = (selectedTicket as any).channel;
       const isLivechat = channel === 'website';
       const isFacebook = channel === 'facebook';
+      const isInstagram = channel === 'instagram';
       const endpoint =
         isLivechat ? `${apiUrl}/api/livechat/reply` :
         isFacebook ? `${apiUrl}/api/facebook/reply` :
+        isInstagram ? `${apiUrl}/api/instagram/reply` :
         `${apiUrl}/api/gmail/reply`;
       const body = isLivechat
         ? JSON.stringify({ sessionId: (selectedTicket as any).sessionId || selectedId, content: manualReply })
-        : isFacebook
+        : (isFacebook || isInstagram)
         ? JSON.stringify({ ticketId: selectedId, threadId: selectedTicket.threadId, body: manualReply })
         : JSON.stringify({ to: selectedTicket.email, subject: selectedTicket.subject || "Re: Your message", body: manualReply, threadId: selectedTicket.threadId });
       const res = await fetch(endpoint, {

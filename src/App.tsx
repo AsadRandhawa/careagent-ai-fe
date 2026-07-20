@@ -22,11 +22,21 @@ import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useAppStore } from "./store";
 import { OnboardingModal } from "./components/OnboardingModal";
 
+// Routes that require an authenticated session. Everything else (landing,
+// privacy, refund policy, terms) is public. Kept as an explicit allow-list
+// rather than an inferred check, so adding a new protected screen later
+// requires a deliberate decision either way instead of accidentally
+// inheriting whatever the "isLanding" fallback happens to do.
+const PROTECTED_PATHS = [
+  "/dashboard", "/inbox", "/escalations", "/knowledge-base",
+  "/onboarding", "/channels", "/analytics", "/billing", "/payment-success",
+];
+
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(true);
   const location = useLocation();
   const fetchTickets = useAppStore(state => state.fetchTickets);
-  const { token, setUser, setDocuments, setBrandVoice, setBusinessIdentity } = useAppStore();
+  const { token, setToken, setUser, setDocuments, setBrandVoice, setBusinessIdentity } = useAppStore();
 
   React.useEffect(() => {
     // Load user profile first, then fetch tickets once we know gmail is connected
@@ -35,9 +45,21 @@ export default function App() {
       fetch(`${apiUrl}/api/user/me`, {
         headers: { "Authorization": `Bearer ${token}`, "Cache-Control": "no-store" }
       })
-      .then(res => res.json())
+      .then(res => {
+        // Token is missing, malformed, or expired — the previous version of
+        // this app never checked for this, so an expired/invalid token just
+        // sat in localStorage forever, rendering a logged-in shell around
+        // empty data with no explanation. Now that access tokens actually
+        // expire (see server.js), this path becomes reachable in normal use,
+        // not just as an edge case — so it needs a real, non-silent handler.
+        if (res.status === 401 || res.status === 403) {
+          setToken(null);
+          return null;
+        }
+        return res.json();
+      })
       .then(userData => {
-        if (!userData.error) {
+        if (userData && !userData.error) {
           setUser(userData);
           if (userData.knowledgeBase) {
             if (userData.knowledgeBase.documents) setDocuments(userData.knowledgeBase.documents);
@@ -57,6 +79,15 @@ export default function App() {
 
   const isLanding = location.pathname === "/" || location.pathname === "/privacy" || location.pathname === "/refund-policy" || location.pathname === "/terms";
 
+  // Unauthenticated visitor hitting a protected route directly (typed URL,
+  // stale bookmark, shared link, or a token that just expired above) — send
+  // them to the landing page instead of rendering the full app shell with
+  // no data behind it. Wait for isLoading to settle first so a real, valid
+  // token isn't bounced before /api/user/me has had a chance to respond.
+  if (!isLoading && !token && PROTECTED_PATHS.includes(location.pathname)) {
+    return <Navigate to="/" replace />;
+  }
+
   if (isLanding) {
     return (
       <AnimatePresence mode="wait">
@@ -67,7 +98,10 @@ export default function App() {
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.5 }}
         >
-          {location.pathname === "/privacy" ? <Privacy /> : location.pathname === "/refund-policy" || location.pathname === "/terms" ? <RefundPolicy /> : <Landing />}
+          {location.pathname === "/privacy" ? <Privacy />
+            : location.pathname === "/refund-policy" ? <RefundPolicy />
+            : location.pathname === "/terms" ? <TermsOfService />
+            : <Landing />}
         </motion.div>
       </AnimatePresence>
     );
