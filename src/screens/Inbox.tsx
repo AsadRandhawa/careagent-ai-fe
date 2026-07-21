@@ -57,6 +57,24 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
   const [isChatLoading, setIsChatLoading] = React.useState(false);
   const [manualReply,  setManualReply]  = React.useState("");
   const [isSending,    setIsSending]    = React.useState(false);
+
+  // Idempotency keys for reply-send requests, keyed by ticket id. Generated
+  // lazily on first send attempt for a given ticket and reused for any
+  // retry of that same attempt (e.g. the network dropped the response but
+  // the message actually went out) — the backend uses this to make sure a
+  // retry never sends the same message to the customer twice. Cleared once
+  // a send actually succeeds, so a later, genuinely new reply to that
+  // ticket id gets its own fresh key.
+  const sendIdempotencyKeys = React.useRef<Record<string, string>>({});
+  const getIdempotencyKey = React.useCallback((ticketId: string) => {
+    if (!sendIdempotencyKeys.current[ticketId]) {
+      sendIdempotencyKeys.current[ticketId] = crypto.randomUUID();
+    }
+    return sendIdempotencyKeys.current[ticketId];
+  }, []);
+  const clearIdempotencyKey = React.useCallback((ticketId: string) => {
+    delete sendIdempotencyKeys.current[ticketId];
+  }, []);
   const { toast } = useToast();
 
   const selectedTicket = tickets.find(t => t.id === selectedId);
@@ -191,10 +209,15 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
         : JSON.stringify({ to: selectedTicket.email, subject: selectedTicket.subject || "Re: Your message", body: draft.draft, threadId: selectedTicket.threadId });
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "Idempotency-Key": getIdempotencyKey(selectedId),
+        },
         body,
       });
       if (!res.ok) throw new Error("Failed to send");
+      clearIdempotencyKey(selectedId);
       toast("Reply sent successfully ✓", "success");
       if (isLivechat) {
         setChatMessages(prev => [...prev, { role: 'agent', content: draft.draft, createdAt: new Date().toISOString() }]);
@@ -214,7 +237,7 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     } finally {
       setIsSending(false);
     }
-  }, [selectedId, selectedTicket, aiDrafts, token, toast, setTickets, setAiDrafts]);
+  }, [selectedId, selectedTicket, aiDrafts, token, toast, setTickets, setAiDrafts, getIdempotencyKey, clearIdempotencyKey]);
 
 
   // ── Send Manual Reply ─────────────────────────────────────────────────────
@@ -239,10 +262,15 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
         : JSON.stringify({ to: selectedTicket.email, subject: selectedTicket.subject || "Re: Your message", body: manualReply, threadId: selectedTicket.threadId });
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "Idempotency-Key": getIdempotencyKey(selectedId as string),
+        },
         body,
       });
       if (!res.ok) throw new Error("Failed to send");
+      clearIdempotencyKey(selectedId as string);
       toast("Reply sent successfully ✓", "success");
       setManualReply("");
       if (isLivechat) {
@@ -258,7 +286,7 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     } finally {
       setIsSending(false);
     }
-  }, [selectedTicket, manualReply, token, toast, setTickets, selectedId]);
+  }, [selectedTicket, manualReply, token, toast, setTickets, selectedId, getIdempotencyKey, clearIdempotencyKey]);
 
   const handleRegenerate = () => {
     if (selectedId) generateDraft(selectedId, "Make it shorter and more polite.");

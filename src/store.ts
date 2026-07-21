@@ -70,6 +70,9 @@ interface AppState {
   facebookEnabled: boolean;
   setFacebookEnabled: (enabled: boolean) => Promise<void>;
 
+  instagramEnabled: boolean;
+  setInstagramEnabled: (enabled: boolean) => Promise<void>;
+
   // Automation settings — stored in DB
   aiAutoDrafting: boolean;
   setAiAutoDrafting: (val: boolean) => Promise<void>;
@@ -138,8 +141,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     set({ isFetchingTickets: true });
     try {
-      // Fetch Gmail + live chat + Facebook tickets in parallel
-      const [gmailRes, livechatRes, facebookRes] = await Promise.allSettled([
+      // Fetch Gmail + live chat + Facebook + Instagram tickets in parallel
+      const [gmailRes, livechatRes, facebookRes, instagramRes] = await Promise.allSettled([
         fetch(`${getApiUrl()}/api/gmail/emails`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -147,6 +150,9 @@ export const useAppStore = create<AppState>((set, get) => ({
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`${getApiUrl()}/api/facebook/tickets`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${getApiUrl()}/api/instagram/tickets`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -171,13 +177,19 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (Array.isArray(data)) facebookTickets.push(...data);
       }
 
+      const instagramTickets: any[] = [];
+      if (instagramRes.status === 'fulfilled' && instagramRes.value.ok) {
+        const data = await instagramRes.value.json();
+        if (Array.isArray(data)) instagramTickets.push(...data);
+      }
+
       // Drop mock Facebook tickets once real ones are flowing in, so the
       // inbox doesn't show duplicate/fake entries alongside live ones.
       const mockTicketsFiltered = facebookTickets.length > 0
         ? mockChannelTickets.filter((t: any) => t.channel !== 'facebook')
         : mockChannelTickets;
 
-      set({ tickets: [...gmailTickets, ...livechatTickets, ...facebookTickets, ...mockTicketsFiltered] });
+      set({ tickets: [...gmailTickets, ...livechatTickets, ...facebookTickets, ...instagramTickets, ...mockTicketsFiltered] });
     } catch (err) {
       console.error('Could not fetch tickets:', err);
       set({ tickets: mockChannelTickets });
@@ -271,6 +283,24 @@ export const useAppStore = create<AppState>((set, get) => ({
       get().fetchTickets();
     } catch (err) {
       console.error('setFacebookEnabled failed:', err);
+    }
+  },
+
+  // ── Instagram Toggle (DB) ──────────────────────────────
+  instagramEnabled: true, // will be overwritten by user profile load in App.tsx
+  setInstagramEnabled: async (enabled: boolean) => {
+    const { token } = get();
+    set({ instagramEnabled: enabled });
+    if (!token) return;
+    try {
+      await fetch(`${getApiUrl()}/api/user/preferences`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ instagramEnabled: enabled }),
+      });
+      get().fetchTickets();
+    } catch (err) {
+      console.error('setInstagramEnabled failed:', err);
     }
   },
 
@@ -368,6 +398,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         pendingPlan: null,
         gmailEnabled: true,
         facebookEnabled: true,
+        instagramEnabled: true,
         aiAutoDrafting: true,
         autoClassification: true,
         sentimentTracking: false,
@@ -389,6 +420,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         user,
         gmailEnabled:       user.gmailEnabled       ?? true,
         facebookEnabled:    user.facebookEnabled    ?? true,
+        instagramEnabled:   user.instagramEnabled    ?? true,
         aiAutoDrafting:     user.aiAutoDrafting     ?? true,
         autoClassification: user.autoClassification ?? true,
         sentimentTracking:  user.sentimentTracking  ?? false,
