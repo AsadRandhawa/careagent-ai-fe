@@ -60,7 +60,7 @@ export const Channels = () => {
   };
 
   const connectWhatsApp = () => {
-    toast("WhatsApp integration coming soon. Meta Business Verification is in progress.", "info");
+    toast("WhatsApp isn't self-serve yet — it's configured per-account by an admin. Contact support to get connected.", "info");
   };
 
   const connectFacebook = () => {
@@ -167,13 +167,15 @@ export const Channels = () => {
     {
       id:          "whatsapp",
       name:        "WhatsApp Business",
-      description: "Customer chat integration — verification in progress",
+      description: whatsappConnected
+        ? "Connected — messages to your WhatsApp Business number appear in your inbox."
+        : "Configured by your workspace admin, not self-serve yet — contact support to enable this for your account.",
       icon:        <MessageSquare size={18} />,
       connected:   whatsappConnected,
       enabled:     whatsappConnected,
       onToggle:    () => {},
       onConnect:   connectWhatsApp,
-      onDisconnect: () => toast("WhatsApp disconnect coming soon.", "info"),
+      onDisconnect: () => toast("WhatsApp disconnect isn't self-serve yet — contact support.", "info"),
     },
     {
       id:          "facebook",
