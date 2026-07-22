@@ -13,7 +13,7 @@ export const AuthModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   const [showPassword, setShowPassword] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   
-  const { setToken, setUser, setDocuments, setBrandVoice, setBusinessIdentity, setShowOnboarding, pendingPlan, setPendingPlan } = useAppStore();
+  const { setToken, setUser, hydrateDocuments, setBrandVoice, setBusinessIdentity, setShowOnboarding, pendingPlan, setPendingPlan } = useAppStore();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -41,7 +41,7 @@ export const AuthModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         const userData = await userRes.json();
         setUser(userData);
         if (userData.knowledgeBase) {
-          if (userData.knowledgeBase.documents) setDocuments(userData.knowledgeBase.documents);
+          if (userData.knowledgeBase.documents) hydrateDocuments(userData.knowledgeBase.documents);
           if (userData.knowledgeBase.brandVoice) setBrandVoice(userData.knowledgeBase.brandVoice);
           if (userData.knowledgeBase.businessIdentity) setBusinessIdentity(userData.knowledgeBase.businessIdentity);
         }

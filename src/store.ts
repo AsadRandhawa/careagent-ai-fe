@@ -33,6 +33,7 @@ export interface AIInsights {
 interface AppState {
   documents: Document[];
   setDocuments: (docs: Document[] | ((prev: Document[]) => Document[])) => void;
+  hydrateDocuments: (docs: Document[]) => void;
   brandVoice: string;
   setBrandVoice: (voice: string) => void;
   businessIdentity: string;
@@ -106,9 +107,20 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((state) => ({
       documents: typeof updater === 'function' ? updater(state.documents) : updater,
     }));
-    // Documents save is triggered explicitly by the KB page
+    // Real edits (add/remove a document) save immediately, which also
+    // triggers a full RAG re-embed on the backend — that's intentional
+    // and correct for an actual change.
     get().saveKnowledgeBase();
   },
+  // Loads documents into local state WITHOUT saving/re-embedding — for
+  // hydrating from a fresh /api/user/me response (page load, login),
+  // where the documents already exist on the server exactly as given and
+  // writing them straight back is pure waste. This was previously done
+  // by calling setDocuments() itself, which meant every page load or
+  // login silently re-saved the knowledge base and re-ran the full
+  // OpenAI embedding pipeline for every document, on every visit — a
+  // real, ongoing cost with zero purpose, since nothing had changed.
+  hydrateDocuments: (docs) => { set({ documents: docs }); },
 
   // ── Brand / Identity ───────────────────────────────────
   brandVoice: 'Professional, concise, but friendly. Use emojis occasionally.',

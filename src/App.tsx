@@ -36,7 +36,7 @@ export default function App() {
   const [isLoading, setIsLoading] = React.useState(true);
   const location = useLocation();
   const fetchTickets = useAppStore(state => state.fetchTickets);
-  const { token, setToken, setUser, setDocuments, setBrandVoice, setBusinessIdentity } = useAppStore();
+  const { token, setToken, setUser, hydrateDocuments, setBrandVoice, setBusinessIdentity } = useAppStore();
 
   React.useEffect(() => {
     // Load user profile first, then fetch tickets once we know gmail is connected
@@ -62,7 +62,7 @@ export default function App() {
         if (userData && !userData.error) {
           setUser(userData);
           if (userData.knowledgeBase) {
-            if (userData.knowledgeBase.documents) setDocuments(userData.knowledgeBase.documents);
+            if (userData.knowledgeBase.documents) hydrateDocuments(userData.knowledgeBase.documents);
             if (userData.knowledgeBase.brandVoice) setBrandVoice(userData.knowledgeBase.brandVoice);
             if (userData.knowledgeBase.businessIdentity) setBusinessIdentity(userData.knowledgeBase.businessIdentity);
           }
