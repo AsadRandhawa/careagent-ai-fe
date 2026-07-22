@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   Search, Filter, Sparkles, Send, Edit3, RotateCw,
   AlertTriangle, User, Hash, MoreVertical, Paperclip,
-  Smile, Plus, MessageCircle, Globe, Mail,
+  Smile, Plus, MessageCircle, Globe, Mail, Instagram,
 } from "lucide-react";
 import { SectionHeader } from "../components/SectionHeader";
 import { TicketRow } from "../components/TicketRow";
@@ -33,6 +33,11 @@ const CHANNELS = [
       </svg>
     ),
     accent: "border-[#1877F2]/50", bg: "bg-[#1877F2]/8", text: "text-[#1877F2]", dot: "bg-[#1877F2]",
+  },
+  {
+    id: "instagram", label: "Instagram",
+    icon: <Instagram size={14} />,
+    accent: "border-[#E1306C]/50", bg: "bg-[#E1306C]/8", text: "text-[#E1306C]", dot: "bg-[#E1306C]",
   },
   { id: "website",  label: "Website",  icon: <Globe size={14} />,   accent: "border-teal/50",        bg: "bg-teal/8",        text: "text-teal",        dot: "bg-teal"        },
 ];
@@ -82,10 +87,11 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
   // ── Per-channel escalation counts ────────────────────────────────────────────
   const channelEscCounts = React.useMemo(() => {
     const counts: Record<string, { total: number; escalated: number }> = {
-      gmail:    { total: 0, escalated: 0 },
-      whatsapp: { total: 0, escalated: 0 },
-      facebook: { total: 0, escalated: 0 },
-      website:  { total: 0, escalated: 0 },
+      gmail:     { total: 0, escalated: 0 },
+      whatsapp:  { total: 0, escalated: 0 },
+      facebook:  { total: 0, escalated: 0 },
+      instagram: { total: 0, escalated: 0 },
+      website:   { total: 0, escalated: 0 },
     };
     tickets.forEach(t => {
       const ch = ((t as any).channel as string | undefined) ?? "gmail";
@@ -197,13 +203,17 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
       const isLivechat = channel === 'website';
       const isFacebook = channel === 'facebook';
       const isInstagram = channel === 'instagram';
+      const isWhatsapp = channel === 'whatsapp';
       const endpoint =
         isLivechat ? `${apiUrl}/api/livechat/reply` :
         isFacebook ? `${apiUrl}/api/facebook/reply` :
         isInstagram ? `${apiUrl}/api/instagram/reply` :
+        isWhatsapp ? `${apiUrl}/api/whatsapp/reply` :
         `${apiUrl}/api/gmail/reply`;
       const body = isLivechat
         ? JSON.stringify({ sessionId: (selectedTicket as any).sessionId || selectedId, content: draft.draft })
+        : isWhatsapp
+        ? JSON.stringify({ ticketId: selectedId, message: draft.draft })
         : (isFacebook || isInstagram)
         ? JSON.stringify({ ticketId: selectedId, threadId: selectedTicket.threadId, body: draft.draft })
         : JSON.stringify({ to: selectedTicket.email, subject: selectedTicket.subject || "Re: Your message", body: draft.draft, threadId: selectedTicket.threadId });
@@ -250,13 +260,17 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
       const isLivechat = channel === 'website';
       const isFacebook = channel === 'facebook';
       const isInstagram = channel === 'instagram';
+      const isWhatsapp = channel === 'whatsapp';
       const endpoint =
         isLivechat ? `${apiUrl}/api/livechat/reply` :
         isFacebook ? `${apiUrl}/api/facebook/reply` :
         isInstagram ? `${apiUrl}/api/instagram/reply` :
+        isWhatsapp ? `${apiUrl}/api/whatsapp/reply` :
         `${apiUrl}/api/gmail/reply`;
       const body = isLivechat
         ? JSON.stringify({ sessionId: (selectedTicket as any).sessionId || selectedId, content: manualReply })
+        : isWhatsapp
+        ? JSON.stringify({ ticketId: selectedId, message: manualReply })
         : (isFacebook || isInstagram)
         ? JSON.stringify({ ticketId: selectedId, threadId: selectedTicket.threadId, body: manualReply })
         : JSON.stringify({ to: selectedTicket.email, subject: selectedTicket.subject || "Re: Your message", body: manualReply, threadId: selectedTicket.threadId });

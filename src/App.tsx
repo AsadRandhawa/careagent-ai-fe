@@ -67,7 +67,14 @@ export default function App() {
             if (userData.knowledgeBase.businessIdentity) setBusinessIdentity(userData.knowledgeBase.businessIdentity);
           }
           // Only fetch tickets if this account has Gmail connected
-          if (userData.googleConnected) fetchTickets();
+          // Fetch tickets regardless of which channels are connected —
+          // fetchTickets() itself handles each channel independently and
+          // falls back to demo data only if literally nothing real comes
+          // back. Previously this was gated behind `userData.googleConnected`
+          // specifically, which meant an account with only Facebook/
+          // Instagram/WhatsApp connected (no Gmail) never triggered a
+          // ticket fetch on load at all.
+          fetchTickets();
         }
       })
       .catch(console.error)

@@ -125,7 +125,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     })),
   isFetchingTickets: false,
   fetchTickets: async () => {
-    const { token, gmailEnabled } = get();
+    const { token } = get();
     if (!token) return;
 
     // Always pre-populate AI drafts for mock channel tickets
@@ -133,16 +133,18 @@ export const useAppStore = create<AppState>((set, get) => ({
       aiDrafts: { ...mockAiDrafts, ...state.aiDrafts },
     }));
 
-    if (!gmailEnabled) {
-      // No Gmail — show only mock channel tickets
-      set({ tickets: mockChannelTickets });
-      return;
-    }
-
     set({ isFetchingTickets: true });
     try {
-      // Fetch Gmail + live chat + Facebook + Instagram tickets in parallel
-      const [gmailRes, livechatRes, facebookRes, instagramRes] = await Promise.allSettled([
+      // Fetch every channel in parallel. Previously this bailed out early
+      // with `if (!gmailEnabled) return mock data`, which made the
+      // Facebook/Instagram/WhatsApp fetches below completely unreachable
+      // for any account without Gmail connected — meaning non-Gmail
+      // accounts only ever saw hardcoded mock tickets, never their real
+      // ones, regardless of how many other channels were actually
+      // connected. Each fetch below already fails independently and
+      // gracefully (Promise.allSettled + a per-response .ok check), so
+      // there's no need to gate the whole function on one channel.
+      const [gmailRes, livechatRes, facebookRes, instagramRes, whatsappRes] = await Promise.allSettled([
         fetch(`${getApiUrl()}/api/gmail/emails`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -153,6 +155,9 @@ export const useAppStore = create<AppState>((set, get) => ({
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`${getApiUrl()}/api/instagram/tickets`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${getApiUrl()}/api/whatsapp/tickets`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -183,13 +188,19 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (Array.isArray(data)) instagramTickets.push(...data);
       }
 
-      // Drop mock Facebook tickets once real ones are flowing in, so the
-      // inbox doesn't show duplicate/fake entries alongside live ones.
-      const mockTicketsFiltered = facebookTickets.length > 0
-        ? mockChannelTickets.filter((t: any) => t.channel !== 'facebook')
-        : mockChannelTickets;
+      const whatsappTickets: any[] = [];
+      if (whatsappRes.status === 'fulfilled' && whatsappRes.value.ok) {
+        const data = await whatsappRes.value.json();
+        if (Array.isArray(data)) whatsappTickets.push(...data.map((t: any) => ({ ...t, channel: 'whatsapp' })));
+      }
 
-      set({ tickets: [...gmailTickets, ...livechatTickets, ...facebookTickets, ...instagramTickets, ...mockTicketsFiltered] });
+      const realTickets = [...gmailTickets, ...livechatTickets, ...facebookTickets, ...instagramTickets, ...whatsappTickets];
+
+      // Only show mock/demo tickets when there's genuinely nothing real to
+      // show yet (e.g. a brand-new account with no channels connected) —
+      // never as a silent substitute for real data that just didn't load
+      // because of an unrelated gate.
+      set({ tickets: realTickets.length > 0 ? realTickets : mockChannelTickets });
     } catch (err) {
       console.error('Could not fetch tickets:', err);
       set({ tickets: mockChannelTickets });
