@@ -33,7 +33,7 @@ export const Avatar = ({ initials, size = 32, variant = "blue", isEscalated }: A
         )}
         style={{ width: size, height: size, fontSize: size * 0.4 }}
       >
-        {initials.slice(0, 2)}
+        {(initials || "?").slice(0, 2)}
       </div>
     </div>
   );
