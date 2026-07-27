@@ -33,7 +33,33 @@ export const Channels = () => {
   const [copied,          setCopied]          = React.useState(false);
   const [connectingChat,  setConnectingChat]  = React.useState(false);
 
+  // ── WhatsApp Embedded Signup state ──────────────────────
+  const [connectingWhatsApp, setConnectingWhatsApp] = React.useState(false);
+  const [fbSdkReady, setFbSdkReady] = React.useState(false);
+
   const livechatConnected = !!livechatToken;
+
+  // Load Meta's JS SDK once. Embedded Signup runs through FB.login(), not
+  // a backend redirect like Facebook/Gmail — it needs this script present
+  // on the page. If VITE_META_APP_ID isn't set, this silently no-ops and
+  // the connect button falls back to an explanatory message instead of
+  // throwing, since a misconfigured env var shouldn't break the page.
+  React.useEffect(() => {
+    const appId = import.meta.env.VITE_META_APP_ID;
+    if (!appId || (window as any).FB) {
+      if ((window as any).FB) setFbSdkReady(true);
+      return;
+    }
+    (window as any).fbAsyncInit = function () {
+      (window as any).FB.init({ appId, autoLogAppEvents: true, xfbml: false, version: "v19.0" });
+      setFbSdkReady(true);
+    };
+    const script = document.createElement("script");
+    script.src = "https://connect.facebook.net/en_US/sdk.js";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+  }, []);
 
   React.useEffect(() => {
     if (searchParams.get("connected") === "gmail") {
@@ -60,7 +86,96 @@ export const Channels = () => {
   };
 
   const connectWhatsApp = () => {
-    toast("WhatsApp isn't self-serve yet — it's configured per-account by an admin. Contact support to get connected.", "info");
+    const appId = import.meta.env.VITE_META_APP_ID;
+    const configId = import.meta.env.VITE_WHATSAPP_CONFIG_ID;
+    if (!appId || !configId) {
+      toast("WhatsApp connect isn't configured yet — missing app config. Contact support.", "error");
+      return;
+    }
+    if (!fbSdkReady || !(window as any).FB) {
+      toast("Still loading Facebook's connect tool — try again in a moment.", "info");
+      return;
+    }
+
+    // Meta posts a separate window message with the WABA ID and phone
+    // number ID during the signup flow — these aren't included in the
+    // FB.login() callback itself, so we have to listen for them
+    // independently and match them up with the auth code once both
+    // arrive.
+    let capturedWabaId: string | null = null;
+    let capturedPhoneNumberId: string | null = null;
+
+    const messageListener = (event: MessageEvent) => {
+      if (!event.origin.endsWith("facebook.com")) return;
+      try {
+        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        if (data?.type === "WA_EMBEDDED_SIGNUP" && data?.event === "FINISH") {
+          capturedWabaId = data.data?.waba_id || null;
+          capturedPhoneNumberId = data.data?.phone_number_id || null;
+        }
+      } catch {
+        // Not a JSON message we care about — Meta's SDK posts other
+        // unrelated messages on this same channel too.
+      }
+    };
+    window.addEventListener("message", messageListener);
+
+    setConnectingWhatsApp(true);
+    (window as any).FB.login(
+      async (response: any) => {
+        window.removeEventListener("message", messageListener);
+
+        const code = response?.authResponse?.code;
+        if (!code) {
+          setConnectingWhatsApp(false);
+          toast("WhatsApp connection was cancelled.", "info");
+          return;
+        }
+        if (!capturedWabaId || !capturedPhoneNumberId) {
+          setConnectingWhatsApp(false);
+          toast("Didn't receive the WhatsApp account details from Meta — please try again.", "error");
+          return;
+        }
+
+        try {
+          const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+          const res = await fetch(`${apiUrl}/api/whatsapp/connect`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify({ code, wabaId: capturedWabaId, phoneNumberId: capturedPhoneNumberId }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data?.error || "Failed to connect WhatsApp");
+          toast("WhatsApp connected successfully! ✓", "success");
+          fetchTickets();
+        } catch (err: any) {
+          toast(err?.message || "Failed to connect WhatsApp. Please try again.", "error");
+        } finally {
+          setConnectingWhatsApp(false);
+        }
+      },
+      {
+        config_id: configId,
+        response_type: "code",
+        override_default_response_type: true,
+        extras: { feature: "whatsapp_embedded_signup", sessionInfoVersion: "3" },
+      }
+    );
+  };
+
+  const disconnectWhatsApp = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiUrl}/api/whatsapp/disconnect`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to disconnect");
+      toast("WhatsApp disconnected.", "info");
+      fetchTickets();
+    } catch {
+      toast("Failed to disconnect WhatsApp. Please try again.", "error");
+    }
   };
 
   const connectFacebook = () => {
@@ -169,13 +284,13 @@ export const Channels = () => {
       name:        "WhatsApp Business",
       description: whatsappConnected
         ? "Connected — messages to your WhatsApp Business number appear in your inbox."
-        : "Configured by your workspace admin, not self-serve yet — contact support to enable this for your account.",
+        : "Connect your own WhatsApp Business account via Meta.",
       icon:        <MessageSquare size={18} />,
       connected:   whatsappConnected,
       enabled:     whatsappConnected,
       onToggle:    () => {},
       onConnect:   connectWhatsApp,
-      onDisconnect: () => toast("WhatsApp disconnect isn't self-serve yet — contact support.", "info"),
+      onDisconnect: disconnectWhatsApp,
     },
     {
       id:          "facebook",
