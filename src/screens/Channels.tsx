@@ -147,7 +147,7 @@ export const Channels = () => {
           const data = await res.json();
           if (!res.ok) throw new Error(data?.error || "Failed to connect WhatsApp");
           toast("WhatsApp connected successfully! ✓", "success");
-          fetchTickets();
+          window.location.reload();
         } catch (err: any) {
           toast(err?.message || "Failed to connect WhatsApp. Please try again.", "error");
         } finally {
@@ -172,7 +172,7 @@ export const Channels = () => {
       });
       if (!res.ok) throw new Error("Failed to disconnect");
       toast("WhatsApp disconnected.", "info");
-      fetchTickets();
+      window.location.reload();
     } catch {
       toast("Failed to disconnect WhatsApp. Please try again.", "error");
     }
