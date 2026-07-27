@@ -288,9 +288,15 @@ export const Channels = () => {
       icon:        <MessageSquare size={18} />,
       connected:   whatsappConnected,
       enabled:     whatsappConnected,
-      onToggle:    () => {},
+      // No separate "paused" state exists for WhatsApp on the backend
+      // (unlike Gmail/Facebook, which have a real enabled/disabled flag
+      // independent of the connection itself) — so the toggle here IS
+      // the connect/disconnect control, not a second, different thing.
+      // Previously this was a no-op (`() => {}`), meaning the toggle sat
+      // there looking interactive but did nothing at all.
+      onToggle:    (val: boolean) => { if (!val) disconnectWhatsApp(); },
       onConnect:   connectWhatsApp,
-      onDisconnect: disconnectWhatsApp,
+      onDisconnect: undefined, // folded into the toggle above — no separate control needed
     },
     {
       id:          "facebook",
