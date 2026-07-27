@@ -3,6 +3,7 @@ import { cn } from "@/src/lib/utils";
 import { Badge } from "./ui/Badge";
 import { Toggle } from "./ui/Toggle";
 import { Button } from "./ui/Button";
+import { Unlink } from "lucide-react";
 
 export interface ChannelRowProps extends React.HTMLAttributes<HTMLDivElement> {
   name: string;
@@ -21,6 +22,12 @@ export const ChannelRow = ({ name, description, icon, connected, enabled, onTogg
   // `enabled` controls the toggle state when connected; defaults to `connected`
   const toggleChecked = enabled !== undefined ? enabled : connected;
 
+  const handleDisconnect = () => {
+    if (window.confirm(`Disconnect ${name}? You'll need to reconnect it to receive messages again.`)) {
+      onDisconnect?.();
+    }
+  };
+
   return (
     <div className={cn("flex items-center justify-between p-3 bg-bg-elevated border border-border-mid rounded-xl mb-3", className)} {...props}>
       <div className="flex items-center gap-4">
@@ -38,16 +45,17 @@ export const ChannelRow = ({ name, description, icon, connected, enabled, onTogg
       </div>
 
       {connected ? (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <Toggle checked={toggleChecked} onChange={onToggle} />
           {onDisconnect && (
             <button
-              onClick={onDisconnect}
-              className="text-[11px] font-semibold text-danger/70 hover:text-danger hover:underline"
+              onClick={handleDisconnect}
+              title={`Disconnect ${name}`}
+              className="w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-colors"
             >
-              Disconnect
+              <Unlink size={14} />
             </button>
           )}
-          <Toggle checked={toggleChecked} onChange={onToggle} />
         </div>
       ) : (
         <Button size="sm" variant="surface" onClick={onConnect}>Connect</Button>
