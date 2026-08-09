@@ -42,6 +42,27 @@ const CHANNELS = [
   { id: "website",  label: "Website",  icon: <Globe size={14} />,   accent: "border-teal/50",        bg: "bg-teal/8",        text: "text-teal",        dot: "bg-teal"        },
 ];
 
+// Formats a ticket's received timestamp for the conversation-header date
+// separator. Previously this was a hardcoded literal string ("Today, May
+// 14") that never changed regardless of when a message actually arrived —
+// every single conversation showed the exact same fake date. This derives
+// a real label from the ticket's actual createdAt/time field instead:
+// "Today" for the current calendar day, "Yesterday" for the day before,
+// and a real date otherwise.
+function formatDateSeparator(dateInput: string | undefined): string {
+  if (!dateInput) return "";
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const diffDays = Math.round((startOfDay(now) - startOfDay(date)) / (24 * 60 * 60 * 1000));
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  return date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+}
+
 export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -234,12 +255,14 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
         setAiDrafts(prev => { const d = { ...prev }; delete d[selectedId]; return d; });
         setIsEditing(false);
       } else {
-        const nextTickets = tickets.filter(t => t.id !== selectedId);
-        setTickets(nextTickets);
+        setTickets((prevTickets: any[]) => {
+          const nextTickets = prevTickets.filter(t => t.id !== selectedId);
+          setSelectedId(nextTickets.length > 0 ? nextTickets[0].id : null);
+          return nextTickets;
+        });
         setAiDrafts(prev => { const d = { ...prev }; delete d[selectedId]; return d; });
         setIsEditing(false);
         setManualReply("");
-        setSelectedId(nextTickets.length > 0 ? nextTickets[0].id : null);
       }
     } catch (err) {
       console.error(err);
@@ -290,9 +313,11 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
       if (isLivechat) {
         setChatMessages(prev => [...prev, { role: 'agent', content: manualReply, createdAt: new Date().toISOString() }]);
       } else {
-        const nextTickets2 = tickets.filter(t => t.id !== selectedId);
-        setTickets(nextTickets2);
-        setSelectedId(nextTickets2.length > 0 ? nextTickets2[0].id : null);
+        setTickets((prevTickets: any[]) => {
+          const nextTickets = prevTickets.filter(t => t.id !== selectedId);
+          setSelectedId(nextTickets.length > 0 ? nextTickets[0].id : null);
+          return nextTickets;
+        });
       }
     } catch (err) {
       console.error(err);
@@ -495,7 +520,9 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
               {/* Conversation Thread */}
               <div className="flex-1 overflow-y-auto p-8 space-y-8">
                 <div className="flex flex-col items-center">
-                  <Badge variant="default" size="xs" className="mb-4">Today, May 14</Badge>
+                  <Badge variant="default" size="xs" className="mb-4">
+                    {formatDateSeparator((selectedTicket as any).createdAt || (selectedTicket as any).receivedAt)}
+                  </Badge>
                 </div>
 
                 {/* Message thread: full livechat or single email */}
