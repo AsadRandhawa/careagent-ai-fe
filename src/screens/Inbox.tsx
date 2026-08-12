@@ -164,21 +164,51 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     if (selectedId && !aiDrafts[selectedId]) generateDraft(selectedId);
   }, [selectedId, aiDrafts, generateDraft]);
 
-  // Load full conversation for livechat tickets
+  // Load full conversation history for channels backed by a persisted
+  // message thread: website (ChatMessage table, always was full-history)
+  // and WhatsApp/Facebook/Instagram (Message table, added alongside the
+  // conversation-threading migration — each of those channels now groups
+  // every message from the same customer into one Ticket instead of a new
+  // one per message, so this is what actually shows that history).
+  // Gmail is intentionally excluded — it's pull-based off the Gmail API,
+  // which already holds full thread history natively, so there's no local
+  // Message data to fetch for it.
   React.useEffect(() => {
     const ticket = tickets.find(t => t.id === selectedId);
-    if (!ticket || (ticket as any).channel !== 'website') {
+    const channel = (ticket as any)?.channel;
+    const isThreaded = channel === 'website' || channel === 'facebook' || channel === 'instagram' || channel === 'whatsapp';
+    if (!ticket || !isThreaded) {
       setChatMessages([]);
       return;
     }
-    const sessionId = (ticket as any).sessionId || selectedId;
     setIsChatLoading(true);
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-    fetch(`${apiUrl}/api/livechat/messages/${sessionId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(r => r.ok ? r.json() : { messages: [] })
-      .then(d => setChatMessages(d.messages || []))
+
+    const request = channel === 'website'
+      ? fetch(`${apiUrl}/api/livechat/messages/${(ticket as any).sessionId || selectedId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then(r => r.ok ? r.json() : { messages: [] })
+          .then(d => d.messages || [])
+      // Normalized to the same { role, content, createdAt } shape the
+      // livechat branch above already produces, so both can share one
+      // renderer — 'outbound' (sent by an agent/AI) maps to 'agent',
+      // everything else (customer-sent) maps to 'visitor'.
+      : fetch(`${apiUrl}/api/tickets/${selectedId}/messages`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then(r => r.ok ? r.json() : [])
+          .then((msgs: any[]) => msgs.map(m => ({
+            role: m.direction === 'outbound' ? 'agent' : 'visitor',
+            content: m.content,
+            createdAt: m.createdAt,
+          })));
+
+    request
+      .then(setChatMessages)
+      // A fetch failure (or a ticket that predates the backfill and has no
+      // Message rows yet) falls back to the single-message view below via
+      // the empty-array branch — never a broken/blank pane.
       .catch(() => setChatMessages([]))
       .finally(() => setIsChatLoading(false));
   }, [selectedId, token, tickets]);
@@ -525,8 +555,11 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
                   </Badge>
                 </div>
 
-                {/* Message thread: full livechat or single email */}
-                {(selectedTicket as any).channel === 'website' ? (
+                {/* Message thread: full history for website/WhatsApp/Facebook/
+                    Instagram (all backed by a real message table now); Gmail
+                    still shows just the single synced message (see effect
+                    above for why). */}
+                {(selectedTicket as any).channel !== 'gmail' ? (
                   isChatLoading ? (
                     <div className="text-center text-[12px] text-text-muted py-4">Loading conversation…</div>
                   ) : chatMessages.length > 0 ? (
@@ -553,6 +586,9 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
                       </div>
                     ))
                   ) : (
+                    // No Message rows yet — either a fetch hiccup, or (for
+                    // WhatsApp/Facebook/Instagram) a ticket that predates the
+                    // backfill migration. Same single-bubble fallback either way.
                     <div className="flex flex-col items-start max-w-[80%]">
                       <div className="flex items-center gap-2 mb-1.5 px-1">
                         <span className="text-[10px] font-bold text-text-second">{selectedTicket.customerName}</span>
