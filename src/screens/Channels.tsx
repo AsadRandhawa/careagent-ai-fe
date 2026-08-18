@@ -121,38 +121,17 @@ export const Channels = () => {
     window.addEventListener("message", messageListener);
 
     setConnectingWhatsApp(true);
+    // NOTE: the callback passed to FB.login() must be a plain (non-async)
+    // function — Meta's JS SDK does an internal type check on this
+    // parameter and specifically rejects async functions (throws
+    // "Expression is of type asyncfunction, not function"), even though
+    // `typeof asyncFn === 'function'` is technically true in JS. The SDK's
+    // check looks at the function's exact type tag instead. Fix: keep the
+    // callback itself synchronous, and hand off to an async inner
+    // function for the actual work.
     (window as any).FB.login(
-      async (response: any) => {
-        window.removeEventListener("message", messageListener);
-
-        const code = response?.authResponse?.code;
-        if (!code) {
-          setConnectingWhatsApp(false);
-          toast("WhatsApp connection was cancelled.", "info");
-          return;
-        }
-        if (!capturedWabaId || !capturedPhoneNumberId) {
-          setConnectingWhatsApp(false);
-          toast("Didn't receive the WhatsApp account details from Meta — please try again.", "error");
-          return;
-        }
-
-        try {
-          const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-          const res = await fetch(`${apiUrl}/api/whatsapp/connect`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify({ code, wabaId: capturedWabaId, phoneNumberId: capturedPhoneNumberId }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data?.error || "Failed to connect WhatsApp");
-          toast("WhatsApp connected successfully! ✓", "success");
-          window.location.reload();
-        } catch (err: any) {
-          toast(err?.message || "Failed to connect WhatsApp. Please try again.", "error");
-        } finally {
-          setConnectingWhatsApp(false);
-        }
+      (response: any) => {
+        handleWhatsAppLoginResponse(response);
       },
       {
         config_id: configId,
@@ -161,6 +140,39 @@ export const Channels = () => {
         extras: { feature: "whatsapp_embedded_signup", sessionInfoVersion: "3" },
       }
     );
+
+    async function handleWhatsAppLoginResponse(response: any) {
+      window.removeEventListener("message", messageListener);
+
+      const code = response?.authResponse?.code;
+      if (!code) {
+        setConnectingWhatsApp(false);
+        toast("WhatsApp connection was cancelled.", "info");
+        return;
+      }
+      if (!capturedWabaId || !capturedPhoneNumberId) {
+        setConnectingWhatsApp(false);
+        toast("Didn't receive the WhatsApp account details from Meta — please try again.", "error");
+        return;
+      }
+
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${apiUrl}/api/whatsapp/connect`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+          body: JSON.stringify({ code, wabaId: capturedWabaId, phoneNumberId: capturedPhoneNumberId }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || "Failed to connect WhatsApp");
+        toast("WhatsApp connected successfully! ✓", "success");
+        window.location.reload();
+      } catch (err: any) {
+        toast(err?.message || "Failed to connect WhatsApp. Please try again.", "error");
+      } finally {
+        setConnectingWhatsApp(false);
+      }
+    }
   };
 
   const disconnectWhatsApp = async () => {
