@@ -6,12 +6,29 @@ import { useAppStore } from "../store";
 import { useNavigate } from "react-router-dom";
 
 export const Topbar = () => {
-  const { tickets, aiDrafts } = useAppStore();
+  const { tickets, ticketStats, fetchTicketStats, token } = useAppStore();
   const navigate = useNavigate();
   const [query, setQuery] = React.useState("");
   const [focused, setFocused] = React.useState(false);
 
-  const escalated = tickets.filter(t => t.status === "escalated" || aiDrafts[t.id]?.status === "escalated").length;
+  // Escalated count comes from the same server-side ticketStats every
+  // metric card on the Dashboard already uses — previously this was
+  // computed independently, client-side, by filtering whatever tickets
+  // happened to already be loaded in this page's fetch. That meant this
+  // badge and the Dashboard's own escalation numbers could show two
+  // different counts on the same page load, since they came from two
+  // separate, uncoordinated fetches. One source of truth now.
+  //
+  // Topbar renders on every page, but only Dashboard's own mount effect
+  // previously called fetchTicketStats() — so on any other page (Inbox,
+  // Escalations, etc.) ticketStats could still be null this session. Fetch
+  // it here too if it hasn't loaded yet, so the badge is accurate
+  // regardless of which page someone lands on first.
+  React.useEffect(() => {
+    if (token && !ticketStats) fetchTicketStats();
+  }, [token, ticketStats, fetchTicketStats]);
+
+  const escalated = ticketStats?.escalated ?? 0;
 
   // Simple search — filter tickets by subject/customer
   const results = query.trim().length > 1
