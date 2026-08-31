@@ -12,7 +12,6 @@ import { RefreshCw, Download, Inbox, Sparkles, Clock, Star, Zap, Activity, Credi
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../components/ToastProvider";
 import { useAppStore } from "../store";
-import { mockStats } from "../mockData";
 
 const todayLabel = () =>
   new Date().toLocaleDateString("en-US", {
@@ -136,29 +135,33 @@ export const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <MetricCard
           label="Open Tickets"
-          value={mockStats.openTickets}
+          value={stats?.openTickets ?? 0}
           subtext={stats?.escalated ? `${stats.escalated} escalated` : "All clear"}
           delta={{ value: "live", type: "increase" }}
           icon={<Inbox size={16} />}
+          loading={isFetchingStats && !stats}
         />
         <MetricCard
           label="AI Drafts Ready"
-          value={mockStats.resolvedThisPeriod}
+          value={stats?.aiDraftsReady ?? 0}
           subtext="Awaiting review"
           icon={<Sparkles size={16} className="text-brand" />}
           className="ring-1 ring-brand/20"
+          loading={isFetchingStats && !stats}
         />
         <MetricCard
           label="Avg Resolution Time"
-          value={mockStats.avgResolutionTime}
+          value={stats?.avgResolutionTime ?? "N/A"}
           subtext="This month"
           icon={<Clock size={16} />}
+          loading={isFetchingStats && !stats}
         />
         <MetricCard
           label="Escalation Rate"
-          value={mockStats.escalationRate}
+          value={stats?.escalationRate ?? "0.0%"}
           subtext="Last 30 days"
           icon={<Star size={16} className="text-warn" />}
+          loading={isFetchingStats && !stats}
         />
       </div>
 
@@ -205,10 +208,10 @@ export const Dashboard = () => {
                 <ProgressBar value={tickets.length > 0 ? 100 : 0} color="bg-success" />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <StatRow label="Open Tickets"     value={String(mockStats.openTickets)} />
-                <StatRow label="Resolved (30d)"   value={String(mockStats.resolvedThisPeriod)} />
+                <StatRow label="Open Tickets"     value={String(stats?.openTickets ?? 0)} />
+                <StatRow label="Resolved (30d)"   value={String(stats?.resolvedThisPeriod ?? 0)} />
                 <StatRow label="Escalated"         value={String(stats?.escalated ?? 0)} />
-                <StatRow label="Escalation Rate"   value={mockStats.escalationRate} valueColor="text-warn" />
+                <StatRow label="Escalation Rate"   value={stats?.escalationRate ?? "0.0%"} valueColor="text-warn" />
               </div>
             </div>
           </Card>
