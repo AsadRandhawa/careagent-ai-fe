@@ -14,7 +14,6 @@ import {
 import { TrendingUp, AlertCircle, Plus, Sparkles, Filter, Calendar, MessageCircle, Globe, Clock, Mail } from "lucide-react";
 import { useAppStore } from "../store";
 import { useNavigate } from "react-router-dom";
-import { mockStats } from "../mockData";
 
 const CATEGORY_COLORS = ["bg-brand", "bg-danger", "bg-purple", "bg-teal", "bg-warn"];
 
@@ -58,21 +57,6 @@ const CHANNEL_CFG = [
   },
 ];
 
-// Combine per-day data for grouped bar chart
-const buildReplyRateChart = () => {
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  return days.map(day => {
-    const entry: Record<string, any> = { day };
-    mockStats.channelReplyRates.forEach(ch => {
-      const found = (ch.data as any[]).find(d => d.day === day);
-      entry[ch.channel] = found?.secs ?? 0;
-    });
-    return entry;
-  });
-};
-
-const replyRateData = buildReplyRateChart();
-
 export const Analytics = () => {
   const navigate = useNavigate();
   const {
@@ -95,6 +79,23 @@ export const Analytics = () => {
 
   const stats    = ticketStats;
   const insights = aiInsights;
+  const channelReplyRates = stats?.channelReplyRates ?? [];
+
+  // Combine per-day data for the grouped bar chart. Previously this was a
+  // module-level constant computed once from mockStats at import time;
+  // now it depends on fetched data, so it has to live inside the
+  // component and recompute whenever real stats change.
+  const replyRateData = React.useMemo(() => {
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    return days.map(day => {
+      const entry: Record<string, any> = { day };
+      channelReplyRates.forEach(ch => {
+        const found = (ch.data as any[]).find(d => d.day === day);
+        entry[ch.channel] = found?.secs ?? 0;
+      });
+      return entry;
+    });
+  }, [channelReplyRates]);
 
   return (
     <motion.div
@@ -121,37 +122,43 @@ export const Analytics = () => {
       <div className="grid grid-cols-4 gap-6 mb-8">
         <MetricCard
           label="Open Tickets"
-          value={String(mockStats.openTickets)}
+          value={String(stats?.openTickets ?? 0)}
           subtext="Currently active"
           icon={<TrendingUp size={16} />}
         />
         <MetricCard
           label="Resolved"
-          value={String(mockStats.resolvedThisPeriod)}
+          value={String(stats?.resolvedThisPeriod ?? 0)}
           subtext={`Last ${days} days`}
           icon={<Sparkles size={16} className="text-brand" />}
         />
         <MetricCard
           label="Avg Resolution"
-          value={mockStats.avgResolutionTime}
+          value={stats?.avgResolutionTime ?? "N/A"}
           subtext="Per ticket"
           icon={<TrendingUp size={16} className="text-success" />}
         />
         <MetricCard
           label="Escalation Rate"
-          value={mockStats.escalationRate}
+          value={stats?.escalationRate ?? "0.0%"}
           subtext="Last 30 days"
           icon={<AlertCircle size={16} className="text-purple" />}
         />
       </div>
 
       {/* ── Channel Reply Rate Cards ───────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-6 mb-8">
-        {mockStats.channelReplyRates.map(ch => {
-          const cfg = CHANNEL_CFG.find(c => c.id === ch.channel)!;
-          const escPct = ch.totalTickets > 0 ? Math.round((ch.escalated / ch.totalTickets) * 100) : 0;
-          const maxSecs = Math.max(...ch.data.map((d: any) => d.secs));
-          return (
+      {channelReplyRates.length > 0 ? (
+        <div className="grid grid-cols-4 gap-6 mb-8">
+          {channelReplyRates.map(ch => {
+            const cfg = CHANNEL_CFG.find(c => c.id === ch.channel)!;
+            const escPct = ch.totalTickets > 0 ? Math.round((ch.escalated / ch.totalTickets) * 100) : 0;
+            const rawMax = Math.max(...ch.data.map((d: any) => d.secs));
+            // A channel can have real tickets but zero measured replies yet
+            // (e.g. everything's still unanswered) — rawMax would be 0 in
+            // that case, and dividing by it produces NaN bar heights rather
+            // than empty bars.
+            const maxSecs = rawMax > 0 ? rawMax : 1;
+            return (
             <div
               key={ch.channel}
               className={`rounded-2xl border p-5 ${cfg.bgClass} ${cfg.borderClass} flex flex-col gap-3`}
@@ -205,9 +212,16 @@ export const Analytics = () => {
                 </div>
               </div>
             </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      ) : (
+        <Card className="mb-8">
+          <div className="text-center text-text-muted text-sm py-4">
+            No channel activity yet. Reply-rate data will appear here once messages start coming in.
+          </div>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* ── Left Column ─────────────────────────────────────────────────── */}
@@ -234,7 +248,7 @@ export const Analytics = () => {
                     iconType="circle"
                     iconSize={8}
                   />
-                  {mockStats.channelReplyRates.map(ch => (
+                  {channelReplyRates.map(ch => (
                     <Bar key={ch.channel} dataKey={ch.channel} fill={ch.color} radius={[3, 3, 0, 0]} opacity={0.85} />
                   ))}
                 </BarChart>
@@ -321,7 +335,7 @@ export const Analytics = () => {
               Channel Summary
             </h3>
             <div className="space-y-4">
-              {mockStats.channelReplyRates.map(ch => {
+              {channelReplyRates.length > 0 ? channelReplyRates.map(ch => {
                 const cfg = CHANNEL_CFG.find(c => c.id === ch.channel)!;
                 return (
                   <div key={ch.channel} className="flex items-center gap-3">
@@ -342,7 +356,9 @@ export const Analytics = () => {
                     </div>
                   </div>
                 );
-              })}
+              }) : (
+                <div className="text-center text-text-muted text-sm py-4">No channel activity yet.</div>
+              )}
             </div>
           </Card>
 
