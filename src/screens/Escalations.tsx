@@ -28,7 +28,19 @@ const getRiskScore = (ticket: any, reason: string): number => {
 
 export const Escalations = () => {
   const navigate = useNavigate();
-  const { tickets, aiDrafts, isFetchingTickets, takeOverTicket, setTickets, setAiDrafts, token } = useAppStore();
+  const { tickets, aiDrafts, isFetchingTickets, takeOverTicket, setTickets, setAiDrafts, token, fetchTickets } = useAppStore();
+
+  // Previously this page relied entirely on whatever was already sitting
+  // in the shared `tickets` store array — populated by whichever OTHER
+  // page (Inbox, Dashboard) last fetched it. If new tickets were escalated
+  // since that last fetch (easy to happen with live WhatsApp traffic
+  // auto-escalating in real time), this page would silently undercount
+  // against the server's own numbers shown elsewhere (Topbar badge,
+  // Dashboard's Escalation Rate) — same class of bug already fixed on
+  // Topbar. Fetching fresh on mount here closes the same gap.
+  React.useEffect(() => {
+    if (token) fetchTickets();
+  }, [token, fetchTickets]);
 
   const escalatedTickets = tickets.filter(
     ticket => ticket.status === "escalated" || (aiDrafts && aiDrafts[ticket.id]?.status === "escalated")
