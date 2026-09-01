@@ -132,21 +132,13 @@ export const Dashboard = () => {
       />
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <MetricCard
           label="Open Tickets"
           value={stats?.openTickets ?? 0}
           subtext={stats?.escalated ? `${stats.escalated} escalated` : "All clear"}
           delta={{ value: "live", type: "increase" }}
           icon={<Inbox size={16} />}
-          loading={isFetchingStats && !stats}
-        />
-        <MetricCard
-          label="AI Drafts Ready"
-          value={stats?.aiDraftsReady ?? 0}
-          subtext="Awaiting review"
-          icon={<Sparkles size={16} className="text-brand" />}
-          className="ring-1 ring-brand/20"
           loading={isFetchingStats && !stats}
         />
         <MetricCard
