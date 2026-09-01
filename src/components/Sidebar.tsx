@@ -1,6 +1,6 @@
 import { cn } from "@/src/lib/utils";
 import { 
-  LayoutDashboard, Inbox, Sparkles, AlertTriangle,
+  LayoutDashboard, Inbox, Sparkles, AlertTriangle, FileText,
   Database, Rocket, Plug, ChartBar, LogOut, ChevronRight, CreditCard
 } from "lucide-react";
 import { Badge } from "./ui/Badge";
@@ -14,6 +14,7 @@ export type SectionType = "Operations" | "Admin" | "Analytics";
 const navItems = {
   Operations: [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+    { id: "report", label: "Report", icon: FileText, path: "/report" },
     { id: "inbox", label: "Inbox", icon: Inbox, path: "/inbox" },
     { id: "escalations", label: "Escalations", icon: AlertTriangle, path: "/escalations" },
   ],

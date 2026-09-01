@@ -5,6 +5,7 @@ import { Topbar } from "./components/Topbar";
 import { Dashboard } from "./screens/Dashboard";
 import { Inbox } from "./screens/Inbox";
 import { Escalations } from "./screens/Escalations";
+import { Report } from "./screens/Report";
 import { KnowledgeBase } from "./screens/KnowledgeBase";
 import { Onboarding } from "./screens/Onboarding";
 import { Channels } from "./screens/Channels";
@@ -28,7 +29,7 @@ import { OnboardingModal } from "./components/OnboardingModal";
 // requires a deliberate decision either way instead of accidentally
 // inheriting whatever the "isLanding" fallback happens to do.
 const PROTECTED_PATHS = [
-  "/dashboard", "/inbox", "/escalations", "/knowledge-base",
+  "/dashboard", "/report", "/inbox", "/escalations", "/knowledge-base",
   "/onboarding", "/channels", "/analytics", "/billing", "/payment-success",
 ];
 
@@ -141,6 +142,7 @@ export default function App() {
                 {isLoading ? <LoadingSkeleton /> : (
                   <Routes location={location}>
                     <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/report" element={<Report />} />
                     <Route path="/inbox" element={<Inbox />} />
                     <Route path="/escalations" element={<Escalations />} />
                     <Route path="/knowledge-base" element={<KnowledgeBase />} />
