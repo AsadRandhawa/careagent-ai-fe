@@ -3,7 +3,8 @@ import { SectionHeader } from "../components/SectionHeader";
 import { MetricCard } from "../components/MetricCard";
 import { Card } from "../components/Card";
 import { Badge } from "../components/ui/Badge";
-import { Users, Flame, Mail, TrendingUp } from "lucide-react";
+import { Button } from "../components/ui/Button";
+import { Users, Flame, Mail, TrendingUp, Calendar, Filter } from "lucide-react";
 import { useAppStore } from "../store";
 
 type Lead = {
@@ -39,6 +40,7 @@ export const Report = () => {
   const [leads, setLeads] = React.useState<Lead[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [savingId, setSavingId] = React.useState<string | null>(null);
+  const [days, setDays] = React.useState(30);
 
   const apiUrl = (import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app").replace(/\/+$/, "");
 
@@ -46,7 +48,7 @@ export const Report = () => {
     if (!token) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/api/leads`, {
+      const res = await fetch(`${apiUrl}/api/leads?days=${days}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) setLeads(await res.json());
@@ -55,7 +57,7 @@ export const Report = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [token, apiUrl]);
+  }, [token, apiUrl, days]);
 
   React.useEffect(() => {
     fetchLeads();
@@ -91,10 +93,20 @@ export const Report = () => {
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto">
-      <SectionHeader
-        title="Lead Report"
-        subtitle="Qualified WhatsApp leads, auto-extracted from real conversations."
-      />
+      <div className="flex items-center justify-between">
+        <SectionHeader
+          title="Lead Report"
+          subtitle={`Qualified WhatsApp leads from the last ${days} days, auto-extracted from real conversations.`}
+        />
+        <div className="flex gap-2">
+          <Button size="sm" variant={days === 30 ? "primary" : "ghost"} icon={<Calendar size={14} />} onClick={() => setDays(30)}>
+            30 Days
+          </Button>
+          <Button size="sm" variant={days === 7 ? "primary" : "ghost"} icon={<Filter size={14} />} onClick={() => setDays(7)}>
+            7 Days
+          </Button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-4 gap-6 mb-8 mt-6">
         <MetricCard label="Total Leads" value={String(leads.length)} subtext="Qualifying conversations" icon={<Users size={16} />} loading={isLoading && leads.length === 0} />
