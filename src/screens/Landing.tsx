@@ -1,6 +1,6 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowRight, Bot, Zap, Shield, Sparkles, MessageSquare, Database, Layout, Menu, X, Check, ArrowDown, ExternalLink } from "lucide-react";
+import { ArrowRight, Bot, Zap, Shield, MessageSquare, Database, Menu, X, Check } from "lucide-react";
 import { Button } from "../components/ui/Button";
 
 const fadeInUp = {
@@ -8,47 +8,6 @@ const fadeInUp = {
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true },
   transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
-};
-
-const TypewriterText = ({ text, delay = 0 }: { text: string; delay?: number }) => {
-  const characters = text.split("");
-  
-  return (
-    <motion.span
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-      variants={{
-        visible: {
-          transition: {
-            staggerChildren: 0.03,
-            delayChildren: delay,
-          },
-        },
-      }}
-    >
-      {characters.map((char, index) => (
-        <motion.span
-          key={index}
-          variants={{
-            hidden: { opacity: 0, x: -5 },
-            visible: { opacity: 1, x: 0 },
-          }}
-          transition={{ duration: 0.1 }}
-        >
-          {char}
-        </motion.span>
-      ))}
-    </motion.span>
-  );
-};
-
-const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
 };
 
 import { useNavigate } from "react-router-dom";
@@ -96,12 +55,6 @@ export const Landing = () => {
 
   return (
     <div className="min-h-screen bg-bg overflow-x-hidden selection:bg-brand selection:text-white font-sans scroll-smooth">
-      {/* Dynamic Background Blurs */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand/5 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-brand/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: "2s" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-blue-500/5 blur-[150px] rounded-full" />
-      </div>
 
       {/* Navigation */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "bg-bg/80 backdrop-blur-xl border-b border-border-faint py-3 shadow-sm" : "py-8"}`}>
@@ -126,7 +79,7 @@ export const Landing = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 + 0.2 }}
                 href={`#${item.toLowerCase().replace(/\s+/g, "-")}`} 
-                className="text-[13px] font-bold text-text-muted hover:text-brand uppercase tracking-[0.2em] transition-colors relative group"
+                className="text-[14px] font-semibold text-text-muted hover:text-brand transition-colors relative group"
               >
                 {item}
                 <span className="absolute -bottom-1.5 left-0 w-0 h-0.5 bg-brand transition-all duration-300 group-hover:w-full" />
@@ -137,7 +90,7 @@ export const Landing = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.6 }}
             >
-              <Button variant="brand" onClick={onEnterApp} className="px-8 py-4 text-sm rounded-full font-bold shadow-glow border-2 border-brand/20 hover:translate-y-[-2px] active:translate-y-[0] transition-all flex items-center gap-2">
+              <Button variant="brand" onClick={onEnterApp} className="px-7 py-3.5 text-sm rounded-xl font-bold">
                 Sign In / Sign Up
               </Button>
             </motion.div>
@@ -168,196 +121,107 @@ export const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-28 pb-12 px-6 z-10">
-        <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
+      <section className="relative pt-32 pb-20 px-6 z-10">
+        <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 mb-10 text-brand text-[11px] font-black uppercase tracking-[0.3em]"
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="text-5xl md:text-[4.25rem] font-black text-text-primary tracking-tighter leading-[1.05] mb-8"
           >
-            <span className="w-12 h-0.5 bg-brand/30 rounded-full" />
-            <span>Next Generation Support Platform</span>
-            <span className="w-12 h-0.5 bg-brand/30 rounded-full" />
-          </motion.div>
-          
-          <div className="max-w-5xl overflow-visible mb-12 relative">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ delay: 1.5, duration: 0.8 }}
-              className="absolute -top-12 -left-12 bg-white border-2 border-border-faint p-4 rounded-3xl shadow-2xl rotate-[-12deg] z-20 hidden md:flex items-center gap-2"
-            >
-              <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white"><Check size={16} strokeWidth={4} /></div>
-              <span className="font-black tracking-tighter">99% CSAT</span>
-            </motion.div>
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ delay: 1.7, duration: 0.8 }}
-              className="absolute -bottom-6 -right-12 bg-text-primary text-white p-4 rounded-3xl shadow-2xl rotate-[8deg] z-20 hidden md:block"
-            >
-              <span className="font-black tracking-tighter">24/7 Autopilot</span>
-            </motion.div>
+            Customer support that <br className="hidden md:block" />
+            <span className="relative inline-block">
+              answers itself.
+              <span className="absolute left-0 right-0 bottom-1 h-4 md:h-5 bg-brand/15 -z-10" />
+            </span>
+          </motion.h1>
 
-            <motion.h1 
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="text-5xl md:text-[4.5rem] font-black text-text-primary tracking-tighter leading-[1]"
-            >
-              <TypewriterText text="Customer support" /> <br />
-              <TypewriterText text="that " delay={0.6} /> 
-              <span className="italic text-brand relative inline-block">
-                <TypewriterText text="thinks." delay={0.8} />
-                <motion.span 
-                  initial={{ width: 0 }} 
-                  animate={{ width: "100%" }} 
-                  transition={{ delay: 1.2, duration: 1 }} 
-                  className="absolute bottom-2 left-0 h-4 md:h-6 bg-brand/20 -z-10" 
-                />
-              </span>
-            </motion.h1>
-          </div>
-
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.4, duration: 0.8 }}
-            className="text-lg md:text-xl text-text-muted max-w-2xl mb-12 leading-relaxed font-medium"
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="text-lg md:text-xl text-text-muted max-w-xl mb-10 leading-relaxed"
           >
-            Connect your knowledge, sync your channels, and deploy AI agents that resolve 80% of customer inquiries instantly. Zero training required.
+            Gmail, WhatsApp, Instagram, and live chat, in one inbox. AI drafts every
+            reply — approve it yourself, or let confident answers send on their own.
           </motion.p>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.6, duration: 0.8 }}
-            className="flex flex-col sm:flex-row items-center gap-6"
+            transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <Button variant="brand" size="lg" onClick={onEnterApp} className="group px-10 py-6 text-xl h-auto rounded-2xl shadow-glow hover:scale-105 active:scale-95 transition-all duration-300">
-              Transform Support Now
-              <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform duration-300" />
+            <Button variant="brand" size="lg" onClick={onEnterApp} className="px-9 py-5 text-lg h-auto rounded-xl">
+              Start for free
             </Button>
-            <div className="flex flex-col items-center sm:items-start gap-1">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="w-10 h-10 rounded-full border-2 border-bg bg-surface-high ring-2 ring-brand/5 shadow-md overflow-hidden">
-                     <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=user${i}`} alt="user" />
-                  </div>
-                ))}
-              </div>
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Trusted by 2,000+ teams</p>
-            </div>
-          </motion.div>
-
-          {/* Mouse Scroll Indicator */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1, y: [0, 15, 0] }}
-            transition={{ duration: 2.5, repeat: Infinity, delay: 1.5 }}
-            className="mt-10 w-8 h-12 rounded-full border-2 border-text-disabled flex justify-center p-2"
-          >
-            <motion.div className="w-1.5 h-1.5 rounded-full bg-text-disabled" />
           </motion.div>
         </div>
       </section>
 
-      {/* Dynamic Marquee */}
-      <div className="w-full overflow-hidden bg-text-primary text-white py-6 border-y border-border-faint flex items-center relative z-20">
-        <div className="flex whitespace-nowrap animate-marquee">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex items-center gap-10 mx-6">
-              <span className="text-2xl font-black uppercase tracking-tighter">Autonomous Intelligence</span>
-              <Sparkles className="text-brand w-6 h-6" />
-              <span className="text-2xl font-black uppercase tracking-tighter">Zero Training Required</span>
-              <Sparkles className="text-brand w-6 h-6" />
-              <span className="text-2xl font-black uppercase tracking-tighter">Omnichannel Brain</span>
-              <Sparkles className="text-brand w-6 h-6" />
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Feature Showcase (Bento Grid) */}
-      <section id="features" className="py-20 px-6 bg-surface/30 backdrop-blur-sm border-t border-border-faint relative overflow-hidden">
+      <section id="features" className="py-20 px-6 border-t border-border-faint relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="mb-20 flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div className="max-w-xl">
-              <h2 className="text-3xl md:text-5xl font-black text-text-primary tracking-tighter mb-6 leading-[1]">Experience the <br /><span className="text-brand">CareAgent</span> difference.</h2>
-              <p className="text-lg text-text-muted font-medium">Standard chatbots guess. CareAgent understands context, history, and intent.</p>
-            </div>
-
+          <div className="mb-16 max-w-xl">
+            <h2 className="text-3xl md:text-5xl font-black text-text-primary tracking-tighter mb-6 leading-[1]">Experience the <span className="text-brand">CareAgent</span> difference.</h2>
+            <p className="text-lg text-text-muted">Standard chatbots guess. CareAgent understands context, history, and intent.</p>
           </div>
 
           <div className="grid lg:grid-cols-12 gap-6">
             {/* Bento Card 1 */}
             <motion.div 
               {...fadeInUp}
-              className="lg:col-span-7 bg-bg rounded-3xl border-2 border-border-faint p-10 overflow-hidden relative group hover:-translate-y-2 hover:-rotate-1 hover:shadow-2xl transition-all duration-300"
+              className="lg:col-span-7 bg-bg rounded-2xl border border-border-faint p-10 overflow-hidden relative"
             >
-              <div className="relative z-10">
-                <div className="w-14 h-14 rounded-2xl bg-brand/10 flex items-center justify-center text-brand mb-8 group-hover:bg-brand group-hover:text-white transition-all duration-500">
-                  <Database size={28} />
-                </div>
-                <h3 className="text-3xl font-black text-text-primary mb-4 tracking-tight">The Knowledge Brain</h3>
-                <p className="text-text-second text-base font-medium leading-relaxed max-w-sm">Sync your help center, docs, and manuals. Our AI builds a deep understanding of your business in minutes.</p>
+              <div className="w-14 h-14 rounded-xl bg-brand/10 flex items-center justify-center text-brand mb-8">
+                <Database size={28} />
               </div>
-              <div className="absolute right-0 bottom-0 w-1/2 h-full bg-gradient-to-l from-brand/5 to-transparent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                 <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="w-48 h-48 border border-brand/20 rounded-full border-dashed" />
-              </div>
+              <h3 className="text-3xl font-black text-text-primary mb-4 tracking-tight">The Knowledge Brain</h3>
+              <p className="text-text-second text-base leading-relaxed max-w-sm">Sync your help center, docs, and manuals. CareAgent builds a working understanding of your business in minutes.</p>
             </motion.div>
 
             {/* Bento Card 2 */}
             <motion.div 
               {...fadeInUp}
-              className="lg:col-span-5 bg-brand text-white rounded-3xl p-10 flex flex-col justify-between shadow-glow group overflow-hidden relative hover:-translate-y-2 hover:rotate-1 hover:shadow-2xl transition-all duration-300"
+              className="lg:col-span-5 bg-brand text-white rounded-2xl p-10 flex flex-col justify-between overflow-hidden relative"
             >
-              <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2" />
-              <div className="relative z-10">
-                <div className="w-14 h-14 rounded-2xl bg-white text-brand flex items-center justify-center mb-8">
+              <div>
+                <div className="w-14 h-14 rounded-xl bg-white text-brand flex items-center justify-center mb-8">
                   <Zap size={28} />
                 </div>
-                <h3 className="text-3xl font-black mb-4 tracking-tight italic">Instant Resolution.</h3>
-                <p className="text-white/80 text-base font-medium leading-relaxed">Cut ticket times from hours to seconds. Our agents respond with accurate information <span className="font-black underline decoration-2 underline-offset-4">every single time.</span></p>
-              </div>
-              <div className="mt-8 flex items-center gap-2.5 bg-white/10 p-3.5 rounded-xl border border-white/20">
-                <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
-                <span className="text-[11px] font-bold uppercase tracking-widest">Resolution Engine Active</span>
+                <h3 className="text-3xl font-black mb-4 tracking-tight">Instant resolution</h3>
+                <p className="text-white/85 text-base leading-relaxed">Ticket times drop from hours to seconds — with accurate answers, not just fast ones.</p>
               </div>
             </motion.div>
 
             {/* Bento Card 3 */}
             <motion.div 
               {...fadeInUp}
-              className="lg:col-span-4 bg-bg-elevated rounded-3xl border-2 border-border-faint p-10 flex flex-col items-center text-center group hover:-translate-y-2 hover:-rotate-1 hover:shadow-2xl transition-all duration-300"
+              className="lg:col-span-4 bg-bg-elevated rounded-2xl border border-border-faint p-10 flex flex-col items-center text-center"
             >
-              <div className="w-16 h-16 rounded-2xl bg-white border border-border-faint flex items-center justify-center text-brand mb-8 shadow-sm group-hover:scale-110 transition-transform">
+              <div className="w-16 h-16 rounded-xl bg-white border border-border-faint flex items-center justify-center text-brand mb-8">
                 <MessageSquare size={30} />
               </div>
-              <h3 className="text-2xl font-black text-text-primary mb-3 tracking-tight">Omnichannel Brain</h3>
-              <p className="text-text-muted text-sm font-medium">Sync Email, Slack, and WhatsApp. One source of truth for all noise.</p>
+              <h3 className="text-2xl font-black text-text-primary mb-3 tracking-tight">One inbox, every channel</h3>
+              <p className="text-text-muted text-sm">Gmail, WhatsApp, Instagram, and live chat — one place to see and answer everything.</p>
             </motion.div>
 
             {/* Bento Card 4 */}
             <motion.div 
               {...fadeInUp}
-              className="lg:col-span-8 bg-surface-high border-2 border-border-strong rounded-3xl p-10 flex flex-col md:flex-row items-center gap-10 group hover:-translate-y-2 hover:rotate-1 hover:shadow-2xl transition-all duration-300"
+              className="lg:col-span-8 bg-surface-high border border-border-mid rounded-2xl p-10 flex flex-col md:flex-row items-center gap-10"
             >
               <div className="flex-1">
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-widest mb-5">Security First</div>
-                <h3 className="text-3xl font-black text-text-primary mb-4 tracking-tight leading-[1.1]">Enterprise-Grade Safety & Trust.</h3>
+                <h3 className="text-3xl font-black text-text-primary mb-4 tracking-tight leading-[1.1]">Built with real safeguards.</h3>
                 <ul className="space-y-3">
-                  {[ "PII Masking built-in", "Bank-grade encryption", "Human-in-the-loop audit logs" ].map(t => (
-                    <li key={t} className="flex items-center gap-2.5 font-bold text-text-second text-sm">
-                      <div className="w-1.5 h-1.5 rounded-full bg-brand" /> {t}
+                  {[ "Human review before anything sends, or full autonomy once you trust it", "Uncertain answers get flagged for a person, not guessed", "Every conversation logged, nothing sent silently" ].map(t => (
+                    <li key={t} className="flex items-start gap-2.5 font-medium text-text-second text-sm">
+                      <div className="w-1.5 h-1.5 rounded-full bg-brand mt-1.5 flex-shrink-0" /> {t}
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="flex-1 w-full bg-bg rounded-2xl border border-border-faint aspect-video flex items-center justify-center relative overflow-hidden">
-                <Shield size={60} className="text-brand opacity-10" />
-                <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity }} className="absolute inset-0 bg-brand/5 pointer-events-none" />
+              <div className="flex-1 w-full bg-bg rounded-xl border border-border-faint aspect-video flex items-center justify-center">
+                <Shield size={56} className="text-brand opacity-20" />
               </div>
             </motion.div>
           </div>
@@ -368,8 +232,7 @@ export const Landing = () => {
       {/* Integrations Section */}
       <section id="integrations" className="py-20 px-6 relative overflow-hidden">
         <div className="max-w-5xl mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-20">
-            <div className="inline-block px-4 py-1.5 rounded-full bg-brand/10 text-brand text-[11px] font-black uppercase tracking-widest mb-4">Integrations</div>
+          <motion.div {...fadeInUp} className="text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-text-primary mb-4 leading-none">Meet your customers <br/><span className="text-brand">where they are.</span></h2>
             <p className="text-lg text-text-muted max-w-xl mx-auto">Connect your support channels in minutes. One inbox. Every conversation.</p>
           </motion.div>
@@ -382,19 +245,19 @@ export const Landing = () => {
                 )
               },
               {
-                name: "WhatsApp", status: "Live", desc: "Business messaging at scale",
+                name: "WhatsApp", status: "Coming Soon", desc: "Business messaging at scale",
                 icon: (
                   <svg viewBox="0 0 48 48" className="w-12 h-12"><circle cx="24" cy="24" r="24" fill="#25D366"/><path fill="#fff" d="M34.5 13.5C32 11 28.6 9.5 25 9.5c-7.4 0-13.4 6-13.4 13.4 0 2.4.6 4.7 1.8 6.7L11 38l8.6-2.3c2 1.1 4.2 1.6 6.4 1.6 7.4 0 13.4-6 13.4-13.4 0-3.6-1.4-7-3.9-9.4zM25 35.2c-2 0-4-.5-5.7-1.5l-.4-.2-4.2 1.1 1.1-4.1-.3-.4c-1.1-1.8-1.7-3.8-1.7-5.9C13.8 18 18.8 13 25 13c3 0 5.8 1.2 7.9 3.3 2.1 2.1 3.3 4.9 3.3 7.9-.1 6.1-5.1 11-11.2 11zm6.1-8.2c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.6c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5s-.7-1.7-.9-2.3c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.2.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.6-.7 1.9-1.3.2-.6.2-1.2.1-1.3-.2-.1-.4-.2-.7-.3z"/></svg>
                 )
               },
               {
-                name: "Instagram DMs", status: "Live", desc: "Direct message management",
+                name: "Instagram DMs", status: "Coming Soon", desc: "Direct message management",
                 icon: (
                   <svg viewBox="0 0 48 48" className="w-12 h-12"><radialGradient id="ig1" cx="19%" cy="99%" r="128%"><stop offset="0" stopColor="#ffd879"/><stop offset=".25" stopColor="#f7a84a"/><stop offset=".5" stopColor="#f05c3c"/><stop offset="1" stopColor="#c22f86"/></radialGradient><radialGradient id="ig2" cx="99%" cy="5%" r="100%"><stop offset="0" stopColor="#3a5bce"/><stop offset=".3" stopColor="#3a5bce" stopOpacity=".5"/><stop offset="1" stopColor="#3a5bce" stopOpacity="0"/></radialGradient><rect width="48" height="48" rx="12" fill="url(#ig1)"/><rect width="48" height="48" rx="12" fill="url(#ig2)"/><path fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" d="M24 17.5c-3.6 0-6.5 2.9-6.5 6.5s2.9 6.5 6.5 6.5 6.5-2.9 6.5-6.5-2.9-6.5-6.5-6.5z"/><rect fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" x="12" y="12" width="24" height="24" rx="7"/><circle cx="32" cy="16" r="1.5" fill="#fff"/></svg>
                 )
               },
               {
-                name: "Web Chat", status: "Live", desc: "In-app support widget",
+                name: "Web Chat", status: "Coming Soon", desc: "In-app support widget",
                 icon: (
                   <svg viewBox="0 0 48 48" className="w-12 h-12"><rect width="48" height="48" rx="12" fill="#0ea5e9"/><path fill="#fff" d="M10 14a4 4 0 0 1 4-4h20a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H28l-6 4v-4h-8a4 4 0 0 1-4-4V14z"/><circle cx="17" cy="22" r="2" fill="#0ea5e9"/><circle cx="24" cy="22" r="2" fill="#0ea5e9"/><circle cx="31" cy="22" r="2" fill="#0ea5e9"/></svg>
                 )
@@ -428,34 +291,30 @@ export const Landing = () => {
 
       <section id="how-it-works" className="py-32 px-6 relative bg-bg">
         <div className="max-w-5xl mx-auto">
-          <div className="mb-24 text-center">
-            <h4 className="text-brand font-black uppercase tracking-[0.3em] mb-3 text-[10px]">The Workflow</h4>
-            <h2 className="text-4xl md:text-[5rem] font-black text-text-primary tracking-tighter leading-[0.9]">From Noise to Clarity.</h2>
+          <div className="mb-20 text-center">
+            <h2 className="text-4xl md:text-[5rem] font-black text-text-primary tracking-tighter leading-[0.9]">From noise to clarity.</h2>
           </div>
 
-          <div className="flex flex-col gap-12 relative pb-32">
+          <div className="flex flex-col gap-6 relative pb-16">
             {[
               { icon: <Database />, title: "1. Connect", desc: "Sync your data sources and communication channels instantly." },
-              { icon: <Bot />, title: "2. Train", desc: "Our AI analyzes your tone, history, and logic to build your agent." },
-              { icon: <Zap />, title: "3. Automate", desc: "Watch as 80% of your tickets resolve on autopilot. Forever." }
+              { icon: <Bot />, title: "2. Train", desc: "CareAgent learns your tone, history, and knowledge base." },
+              { icon: <Zap />, title: "3. Automate", desc: "Routine tickets get resolved automatically. Anything uncertain goes to a person." }
             ].map((step, i) => (
               <motion.div 
                 key={i}
-                initial={{ opacity: 0, y: 50 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.5 }}
-                className="sticky flex flex-col md:flex-row items-center gap-8 p-6 md:p-10 bg-bg rounded-[1.5rem] border-2 border-brand shadow-2xl"
-                style={{ top: `calc(120px + ${i * 24}px)`, zIndex: 10 + i }}
+                className="flex flex-col md:flex-row items-center gap-8 p-6 md:p-10 bg-bg rounded-2xl border border-border-mid"
               >
-                <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl bg-bg border-2 border-border-faint flex items-center justify-center text-brand shrink-0 shadow-glow">
-                   <div className="scale-110">
-                     {step.icon}
-                   </div>
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-brand/10 flex items-center justify-center text-brand shrink-0">
+                   {step.icon}
                 </div>
                 <div>
                   <h3 className="text-2xl md:text-3xl font-black text-text-primary mb-2 tracking-tight">{step.title}</h3>
-                  <p className="text-text-muted text-base md:text-lg font-medium leading-relaxed max-w-xl">{step.desc}</p>
+                  <p className="text-text-muted text-base md:text-lg leading-relaxed max-w-xl">{step.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -463,13 +322,12 @@ export const Landing = () => {
         </div>
       </section>
 
-      {/* Pricing - Upwork Green Vibe */}
+      {/* Pricing */}
       <section id="pricing" className="py-20 px-6 bg-surface/50 border-y border-border-faint">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20 flex flex-col items-center">
-            <div className="px-5 py-2 rounded-full bg-brand/10 border border-brand/20 text-brand text-[10px] font-black uppercase tracking-[0.2em] mb-6">Simple Plans</div>
-            <h2 className="text-4xl md:text-6xl font-black text-text-primary tracking-tighter mb-6 underline decoration-brand decoration-4 underline-offset-8">Flexible like your team.</h2>
-            <p className="text-lg text-text-muted font-medium max-w-lg">Zero per-seat costs. You only pay for successful resolutions.</p>
+            <h2 className="text-4xl md:text-6xl font-black text-text-primary tracking-tighter mb-6">Flexible like your team.</h2>
+            <p className="text-lg text-text-muted max-w-lg">Zero per-seat costs. You only pay for successful resolutions.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
@@ -502,78 +360,49 @@ export const Landing = () => {
         </div>
       </section>
 
-      {/* Final CTA Immersive Section */}
+      {/* Final CTA */}
       <section
-        className="py-24 px-6 relative overflow-hidden flex items-center justify-center text-center"
-        style={{ backgroundColor: '#16a34a', isolation: 'isolate' }}
+        className="py-24 px-6 relative flex items-center justify-center text-center"
+        style={{ backgroundColor: '#16a34a' }}
       >
-        {/* Animated glow orb */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.45, 0.2] }}
-          transition={{ duration: 10, repeat: Infinity }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] rounded-full blur-[120px] pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%)', zIndex: 0 }}
-        />
-        {/* Top-left soft accent */}
-        <div
-          className="absolute top-0 left-0 w-[500px] h-[500px] rounded-full blur-[100px] pointer-events-none"
-          style={{ background: 'rgba(255,255,255,0.07)', zIndex: 0 }}
-        />
-        {/* Bottom-right dark accent */}
-        <div
-          className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full blur-[100px] pointer-events-none"
-          style={{ background: 'rgba(0,0,0,0.10)', zIndex: 0 }}
-        />
-
-        <div className="max-w-3xl relative" style={{ zIndex: 1 }}>
-          {/* Headline */}
+        <div className="max-w-2xl relative">
           <motion.h2
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.1 }}
-            className="text-5xl md:text-[4.5rem] font-black tracking-tighter leading-[1] mb-8"
+            transition={{ duration: 0.6 }}
+            className="text-4xl md:text-6xl font-black tracking-tighter leading-[1.05] mb-6"
             style={{ color: '#ffffff' }}
           >
-            Scale your support. <br /> Without scaling headcount.
+            Scale your support, not your headcount.
           </motion.h2>
 
-          {/* Subtext */}
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-lg mb-10 max-w-md mx-auto"
+            style={{ color: 'rgba(255,255,255,0.85)' }}
+          >
+            Connect your first channel and see your first AI-drafted reply today.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-xl font-bold mb-12 max-w-xl mx-auto"
-            style={{ color: 'rgba(255,255,255,0.85)' }}
-          >
-            Start your mission control today. Connect your first channel in 90 seconds.
-          </motion.p>
-
-          {/* Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-5"
           >
             <Button
               variant="default"
               size="lg"
               onClick={onEnterApp}
-              className="hover:scale-105 active:scale-95 border-none px-12 py-6 text-xl font-black rounded-2xl shadow-2xl transition-all duration-300"
+              className="px-10 py-5 text-lg font-bold rounded-xl border-none"
               style={{ backgroundColor: '#ffffff', color: '#16a34a' }}
             >
-              Enter Platform
+              Start for free
             </Button>
-            <button
-              onClick={onEnterApp}
-              className="text-base font-black uppercase tracking-[0.2em] px-8 py-4 rounded-2xl transition-all duration-300 hover:scale-105"
-              style={{ color: '#ffffff', border: '2px solid rgba(255,255,255,0.35)', backgroundColor: 'rgba(255,255,255,0.08)' }}
-            >
-              Request Info
-            </button>
           </motion.div>
         </div>
       </section>
@@ -585,10 +414,10 @@ export const Landing = () => {
             <div className="max-w-sm">
               <div className="flex items-center gap-3 mb-6">
                 <Bot className="w-8 h-8 text-brand" />
-                <span className="text-2xl font-black text-text-primary tracking-tighter uppercase">CAREAGENT</span>
+                <span className="text-2xl font-black text-text-primary tracking-tighter">CareAgent<span className="text-brand">.ai</span></span>
               </div>
               <p className="text-text-muted text-base font-medium leading-relaxed mb-8">
-                We are passionate about helping businesses leverage the power of technology to achieve their goals.
+                An AI support inbox for Gmail, WhatsApp, Instagram, and live chat — drafts every reply, sends the ones it's sure about, and hands the rest to your team.
               </p>
             </div>
             
@@ -631,33 +460,32 @@ export const Landing = () => {
 
 const PricingCard = ({ title, price, currency = "$", desc, features, popular, onClick, onEnroll, enrollLabel }: { title: string, price: string, currency?: string, desc: string, features: string[], popular?: boolean, onClick?: () => void, onEnroll?: () => void, enrollLabel?: string }) => (
   <motion.div 
-    whileHover={{ y: -10, rotate: popular ? 0 : 1 }}
-    className={`p-10 rounded-3xl border-2 flex flex-col transition-all duration-500 ${popular ? "bg-bg border-brand shadow-2xl relative ring-4 ring-brand/10 scale-105 z-10" : "bg-surface border-border-faint hover:border-brand/40 hover:shadow-2xl"}`}
+    className={`p-10 rounded-2xl border flex flex-col ${popular ? "bg-bg border-brand relative ring-1 ring-brand/20" : "bg-surface border-border-faint"}`}
   >
-    {popular && <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand text-white text-[9px] font-black uppercase tracking-[0.3em] px-5 py-2 rounded-full shadow-glow">Most Popular</div>}
+    {popular && <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-brand text-white text-[11px] font-bold px-4 py-1.5 rounded-full">Most popular</div>}
     <div className="mb-10">
       <h4 className={`text-xl font-black mb-4 ${popular ? "text-brand" : "text-text-primary"}`}>{title}</h4>
       <div className="flex items-baseline gap-1 mb-4">
         {price !== "Custom" && <span className="text-2xl font-black text-text-primary tracking-tighter">{currency}</span>}
         <span className="text-5xl font-black text-text-primary tracking-tighter">{price}</span>
-        {price !== "Custom" && <span className="text-text-disabled font-bold text-sm ml-1">/ Month</span>}
+        {price !== "Custom" && <span className="text-text-disabled font-bold text-sm ml-1">/ month</span>}
       </div>
-      <p className="text-text-muted font-bold text-base leading-tight">{desc}</p>
+      <p className="text-text-muted font-medium text-base leading-tight">{desc}</p>
     </div>
     <div className="space-y-4 mb-10 flex-grow">
       {features.map(f => (
         <div key={f} className="flex items-start gap-3">
           <div className={`p-1 rounded-full mt-0.5 ${popular ? "bg-brand text-white" : "bg-border-faint text-text-disabled"}`}><Check size={12} /></div>
-          <span className="text-xs font-black text-text-second tracking-tight">{f}</span>
+          <span className="text-sm font-medium text-text-second">{f}</span>
         </div>
       ))}
     </div>
     <Button 
       variant={popular ? "brand" : "default"} 
       onClick={onClick}
-      className={`w-full py-6 rounded-2xl text-lg font-black ${popular ? "shadow-glow" : "bg-bg-elevated text-text-primary hover:bg-surface-high border-border-faint translate-y-0"}`}
+      className={`w-full py-6 rounded-xl text-lg font-bold ${popular ? "" : "bg-bg-elevated text-text-primary hover:bg-surface-high border-border-faint"}`}
     >
-      Enroll Now
+      Get started
     </Button>
   </motion.div>
 );
@@ -679,10 +507,10 @@ CONTEXT RULES:
 - When referencing setup steps, mention they happen inside the platform after clicking Launch Platform
 
 CareAgent key facts:
-- AI-powered customer support platform that auto-drafts email replies
-- Connects to Gmail (live), WhatsApp and Instagram DMs (coming soon)
+- AI-powered customer support platform that auto-drafts and can auto-send replies
+- Connects to Gmail, WhatsApp, Instagram DMs, and website live chat — all live
 - Pricing: Startup Rs 0/mo (100 AI resolutions), Growth Rs 45,000/mo (2,500 resolutions), Enterprise custom pricing
-- 5-minute setup inside the platform: business identity, brand voice, upload a knowledge doc, connect Gmail
+- 5-minute setup inside the platform: business identity, brand voice, upload a knowledge doc, connect your channels
 - AI escalates complex tickets to human agents automatically
 - Dashboard shows open tickets, resolved count, sentiment analysis, escalation rate
 - Zero per-seat costs — you only pay for successful resolutions`;
@@ -741,7 +569,7 @@ const CareAgentBot = () => {
             ? <motion.div key="x" initial={{rotate:-90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:90,opacity:0}} transition={{duration:0.15}}><X size={24}/></motion.div>
             : <motion.div key="bot" className="flex items-center gap-2.5" initial={{rotate:90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:-90,opacity:0}} transition={{duration:0.15}}>
                 <Bot size={24}/>
-                <span className="font-black tracking-widest uppercase text-[11px]">Ask CareAgent</span>
+                <span className="font-bold text-[13px]">Ask CareAgent</span>
               </motion.div>
           }
         </AnimatePresence>
