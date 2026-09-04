@@ -62,28 +62,22 @@ export const Sidebar = () => {
   const handleLogout = () => { setToken(null); navigate("/"); };
 
   return (
-    <aside className="w-[220px] h-full bg-bg-elevated border-r border-border-faint flex flex-col z-20 select-none">
+    <aside className="w-[240px] h-full bg-surface border-r border-border-faint flex flex-col z-20 select-none">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-border-faint">
+      <div className="px-6 py-6 border-b border-border-faint">
         <button onClick={() => navigate("/")} className="flex items-center gap-3 group w-full text-left">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand to-brand-dim flex items-center justify-center shadow-glow flex-shrink-0 group-hover:scale-105 transition-transform">
-            <Sparkles size={15} className="text-white fill-white" />
-          </div>
-          <div className="min-w-0">
-            <div className="text-[14px] font-black text-text-primary tracking-tight leading-none">CareAgent</div>
-            <div className="text-[9px] font-mono text-brand/60 mt-0.5">v1.2.0 · beta</div>
-          </div>
+          <img src="/Logo-CareAgent.png" alt="CareAgent" className="h-16 object-contain" />
         </button>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+      <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-8">
         {(Object.keys(navItems) as SectionType[]).map((section) => (
           <div key={section}>
-            <div className="px-2 mb-2 text-[10px] font-black text-text-disabled uppercase tracking-[0.15em]">
+            <div className="px-2 mb-3 text-[11px] font-bold text-text-disabled uppercase tracking-[0.15em]">
               {section}
             </div>
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {navItems[section as keyof typeof navItems].map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
@@ -95,13 +89,13 @@ export const Sidebar = () => {
                     className={cn(
                       "w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-150 group relative text-left",
                       isActive
-                        ? "bg-brand text-white shadow-glow/30"
+                        ? "bg-brand/10 text-brand"
                         : "text-text-muted hover:bg-surface-high hover:text-text-primary"
                     )}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <Icon size={15} className={cn("flex-shrink-0", isActive ? "text-white" : "text-text-muted group-hover:text-text-primary")} />
-                      <span className={cn("text-[13px] font-semibold", isActive ? "text-white" : "")}>{item.label}</span>
+                    <div className="flex items-center gap-3">
+                      <Icon size={18} className={cn("flex-shrink-0", isActive ? "text-brand" : "text-text-muted group-hover:text-text-primary")} />
+                      <span className={cn("text-[13px] font-bold", isActive ? "text-brand" : "font-semibold")}>{item.label}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       {badge && (

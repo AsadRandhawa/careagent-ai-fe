@@ -43,10 +43,15 @@
   --radius-badge: 6px;
   --radius-input: 10px;
 
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-card: 0 2px 16px rgba(15, 23, 42, 0.03), 0 1px 4px rgba(15, 23, 42, 0.02);
+  --shadow-hover: 0 20px 40px rgba(15, 23, 42, 0.06), 0 8px 16px rgba(15, 23, 42, 0.04);
   --shadow-modal: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-glow: 0 0 20px rgba(20, 168, 0, 0.1), 0 0 40px rgba(20, 168, 0, 0.05);
   --shadow-glow-sm: 0 0 10px rgba(20, 168, 0, 0.1);
+
+  --color-glass-strong: rgba(255, 255, 255, 0.75);
+  --color-glass-subtle: rgba(255, 255, 255, 0.6);
+  --color-glass-border: rgba(255, 255, 255, 0.4);
 }
 
 @layer base {
@@ -99,4 +104,24 @@
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-text-muted;
+}
+
+@layer utilities {
+  .bg-glass {
+    background-color: var(--color-glass-strong);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--color-glass-border);
+  }
+  .bg-glass-subtle {
+    background-color: var(--color-glass-subtle);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--color-glass-border);
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .bg-glass, .bg-glass-subtle {
+      backdrop-filter: none;
+      background-color: var(--color-surface);
+    }
+  }
 }

@@ -15,17 +15,17 @@ export interface MetricCardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export const MetricCard = ({ label, value, subtext, delta, icon, loading, className, ...props }: MetricCardProps) => {
   return (
-    <Card className={cn("flex flex-col justify-between relative overflow-hidden min-h-[88px]", className)} {...props}>
+    <Card className={cn("flex flex-col justify-between relative overflow-hidden min-h-[96px]", className)} {...props}>
       <div className="flex justify-between items-start">
-        <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.12em]">{label}</span>
+        <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">{label}</span>
         {icon && <div className="text-text-muted opacity-50">{icon}</div>}
       </div>
 
-      <div className="flex items-end justify-between mt-2">
+      <div className="flex items-end justify-between mt-3">
         <div>
           {loading ? (
             <div className="flex flex-col gap-1.5">
-              <div className="h-6 w-16 bg-surface-high rounded-lg animate-pulse" />
+              <div className="h-8 w-20 bg-surface-high rounded-lg animate-pulse" />
               <div className="h-3 w-20 bg-surface-high rounded animate-pulse opacity-60" />
             </div>
           ) : (
@@ -35,18 +35,18 @@ export const MetricCard = ({ label, value, subtext, delta, icon, loading, classN
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25 }}
-                className="text-2xl font-black text-text-primary leading-none tracking-tight"
+                className="text-3xl font-extrabold text-text-primary leading-none tracking-tight"
               >
                 {value}
               </motion.div>
-              {subtext && <div className="text-[11px] text-text-muted mt-1 leading-none">{subtext}</div>}
+              {subtext && <div className="text-xs font-medium text-text-muted mt-1.5 leading-none">{subtext}</div>}
             </>
           )}
         </div>
         {delta && !loading && (
           <div className={cn(
-            "text-[11px] font-black flex items-center gap-0.5 mb-0.5 px-1.5 py-0.5 rounded-full",
-            delta.type === "increase" ? "bg-success/10 text-success" : "bg-danger/10 text-danger"
+            "text-[11px] font-bold flex items-center gap-1 mb-0.5 px-2 py-1 rounded-md",
+            delta.type === "increase" ? "bg-success-faint text-success" : "bg-danger-faint text-danger"
           )}>
             {delta.type === "increase" ? "↑" : "↓"} {delta.value}
           </div>

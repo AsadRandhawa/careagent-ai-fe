@@ -12,7 +12,7 @@ export const Card = ({ variant = "default", className, children, ...props }: Car
   return (
     <div
       className={cn(
-        "rounded-card bg-surface border border-border-mid shadow-card overflow-hidden",
+        "rounded-card bg-surface border border-border-faint shadow-card overflow-hidden",
         variant === "glow" && "shadow-glow ring-1 ring-brand/20",
         variant !== "noPad" && "p-[20px]",
         className

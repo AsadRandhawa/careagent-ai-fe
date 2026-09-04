@@ -22,7 +22,7 @@ export const MiniBarChart = ({ data, className }: MiniBarChartProps) => {
           <div key={i} className="flex-1 flex flex-col items-center group">
             <div 
               className={cn(
-                "w-full rounded-t-sm transition-all duration-300",
+                "w-full rounded-t-md transition-all duration-300",
                 item.highlight ? "bg-brand" : "bg-brand-faint group-hover:bg-brand/30"
               )}
               style={{ height: `${height}%` }}

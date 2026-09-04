@@ -112,7 +112,7 @@ export const Escalations = () => {
             const score = getRiskScore(ticket, reason);
 
             return (
-              <Card key={ticket.id} className="relative ring-1 ring-danger/10">
+              <Card key={ticket.id} className="relative ring-1 ring-danger/10 bg-glass">
                 <div className="flex items-start gap-6">
                   <Avatar initials={ticket.initials} size={38} variant="danger" isEscalated />
                   <div className="flex-1">
@@ -154,13 +154,13 @@ export const Escalations = () => {
                         // Navigate to inbox to reply
                         navigate(`/inbox?ticket=${ticket.id}`);
                       }}>
-                        <UserCheck size={13} className="mr-1" /> Take Over
+                        <UserCheck size={13} className="mr-1" /> Take over
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleDismiss(ticket.id)}>
-                        <X size={13} className="mr-1" /> Dismiss Flag
+                        <X size={13} className="mr-1" /> Dismiss flag
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleReviewLogs(ticket.id)}>
-                        <Eye size={13} className="mr-1" /> Review in Inbox
+                        <Eye size={13} className="mr-1" /> Review in inbox
                       </Button>
                     </div>
                   </div>
@@ -172,40 +172,40 @@ export const Escalations = () => {
 
         <div className="space-y-6">
           <Card>
-            <h3 className="text-[12px] font-bold text-text-muted uppercase tracking-widest mb-4">Actions Required</h3>
+            <h3 className="text-[12px] font-bold text-text-muted uppercase tracking-widest mb-4">Actions required</h3>
             <div className="space-y-4">
               {escalatedTickets.length > 0 ? (
                 <>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-danger-faint border border-danger/10">
-                    <span className="text-[12px] font-medium text-text-primary">Needs Immediate Response</span>
+                    <span className="text-[12px] font-medium text-text-primary">Needs immediate response</span>
                     <Badge variant="danger" size="xs">{escalatedTickets.filter(t => getRiskScore(t, aiDrafts[t.id]?.reason||"") >= 80).length} tickets</Badge>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-warn-faint border border-border-faint">
-                    <span className="text-[12px] font-medium text-text-primary">Review Pending</span>
+                    <span className="text-[12px] font-medium text-text-primary">Review pending</span>
                     <Badge variant="warn" size="xs">{escalatedTickets.filter(t => getRiskScore(t, aiDrafts[t.id]?.reason||"") < 80).length} tickets</Badge>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-surface border border-border-faint">
-                    <span className="text-[12px] font-medium text-text-primary">Refund Requests</span>
+                    <span className="text-[12px] font-medium text-text-primary">Refund requests</span>
                     <Badge variant="default" size="xs">{refundCount} tickets</Badge>
                   </div>
                 </>
               ) : (
-                <p className="text-[12px] text-text-muted text-center py-4">No actions needed</p>
+                <p className="text-[12px] text-text-muted text-center py-4">No actions needed.</p>
               )}
             </div>
           </Card>
 
           <Card>
-            <h3 className="text-[12px] font-bold text-text-muted uppercase tracking-widest mb-4">Detection Signals</h3>
+            <h3 className="text-[12px] font-bold text-text-muted uppercase tracking-widest mb-4">Detection signals</h3>
             {escalatedTickets.length > 0 ? (
               <div className="space-y-1">
-                <StatRow label="Sentiment Volatility" value={sentimentVolatility} valueColor={sentimentColor} />
-                <StatRow label="Active Escalations" value={String(escalatedTickets.length)} />
-                <StatRow label="High Risk Tickets" value={String(highRiskCount)} />
-                <StatRow label="Refund Likelihood" value={refundLikelihood + "%"} valueColor={refundLikelihood > 50 ? "text-warn" : "text-text-primary"} />
+                <StatRow label="Sentiment volatility" value={sentimentVolatility} valueColor={sentimentColor} />
+                <StatRow label="Active escalations" value={String(escalatedTickets.length)} />
+                <StatRow label="High risk tickets" value={String(highRiskCount)} />
+                <StatRow label="Refund likelihood" value={refundLikelihood + "%"} valueColor={refundLikelihood > 50 ? "text-warn" : "text-text-primary"} />
               </div>
             ) : (
-              <p className="text-[12px] text-text-muted text-center py-4">No signals detected</p>
+              <p className="text-[12px] text-text-muted text-center py-4">No signals detected.</p>
             )}
           </Card>
         </div>

@@ -407,7 +407,7 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
       className="flex flex-col h-full bg-bg"
     >
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="px-8 pt-6 pb-0 border-b border-border-faint bg-bg-elevated/50 backdrop-blur-md sticky top-0 z-10">
+      <div className="px-8 pt-6 pb-0 bg-glass sticky top-0 z-10">
         <div className="flex items-center justify-between mb-4">
           <SectionHeader title="Active Inbox" className="mb-0" />
           <div className="flex items-center gap-2">
@@ -490,7 +490,7 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
               <input
                 type="text"
-                placeholder="Find a conversation..."
+                placeholder="Search"
                 className="w-full bg-bg border border-border-mid rounded-lg h-9 pl-9 pr-3 text-[12px] placeholder:text-text-muted outline-none focus:border-brand/40"
               />
             </div>
@@ -498,9 +498,9 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
 
           <div className="flex-1 overflow-y-auto">
             {isFetchingTickets && tickets.length === 0 ? (
-              <div className="p-8 text-center text-[13px] text-text-muted">Loading emails...</div>
+              <div className="p-8 text-center text-[13px] text-text-muted">Loading...</div>
             ) : filteredTickets.length === 0 ? (
-              <div className="p-8 text-center text-[13px] text-text-muted">No active tickets!</div>
+              <div className="p-8 text-center text-[13px] text-text-muted">No tickets found.</div>
             ) : (
               filteredTickets.map(ticket => (
                 <TicketRow
@@ -621,10 +621,10 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
                       exit={{ opacity: 0 }}
                       key="drafting"
                     >
-                      <Card variant="glow" className="max-w-[85%] ml-auto border-brand/20 bg-brand-faint/5">
+                      <Card variant="glow" className="max-w-[85%] ml-auto bg-glass-subtle">
                         <div className="flex items-center gap-3 text-brand">
                           <Spinner size={16} className="border-brand/20 border-t-brand" />
-                          <span className="text-[12px] font-bold uppercase tracking-widest">AI is analyzing context...</span>
+                          <span className="text-[12px] font-bold uppercase tracking-widest">Drafting...</span>
                         </div>
                       </Card>
                     </motion.div>
@@ -653,14 +653,13 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
                         <div className="flex flex-col items-end max-w-[85%] ml-auto">
                           <div className="flex items-center gap-2 mb-1.5 px-1">
                             <Sparkles size={10} className="text-brand" />
-                            <span className="text-[10px] font-bold text-brand uppercase tracking-wider">AI Generated Draft</span>
-                            <Badge variant="brand" size="xs" className="font-mono bg-brand/5 border-brand/10">98% CONFIDENCE</Badge>
+                            <span className="text-[10px] font-bold text-brand uppercase tracking-wider">Draft</span>
                           </div>
-                          <div className="w-full bg-gradient-to-br from-brand-faint to-surface border border-brand/20 rounded-2xl rounded-br-sm overflow-hidden shadow-glow">
+                          <div className="w-full bg-glass rounded-2xl rounded-br-sm overflow-hidden">
                             <div className="p-5">
                               {isEditing ? (
                                 <textarea
-                                  className="w-full bg-bg/50 border border-brand/20 rounded-lg p-3 text-[13px] text-text-primary h-48 focus:ring-1 focus:ring-brand outline-none"
+                                  className="w-full bg-surface border border-border-mid rounded-lg p-3 text-[13px] text-text-primary h-48 focus:ring-1 focus:ring-brand outline-none"
                                   value={aiDrafts[selectedTicket.id].draft}
                                   onChange={e => setAiDrafts({ ...aiDrafts, [selectedTicket.id]: { ...aiDrafts[selectedTicket.id], draft: e.target.value } })}
                                 />
@@ -670,10 +669,10 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
                                 </p>
                               )}
                             </div>
-                            <div className="bg-brand-faint/50 p-3 border-t border-brand/10 flex items-center justify-between">
+                            <div className="bg-brand-faint/30 p-3 border-t border-border-faint flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 {isEditing ? (
-                                  <Button size="sm" variant="primary" onClick={() => setIsEditing(false)}>Done Editing</Button>
+                                  <Button size="sm" variant="primary" onClick={() => setIsEditing(false)}>Save</Button>
                                 ) : (
                                   <>
                                     <Button
@@ -682,9 +681,9 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
                                       onClick={handleApprove}
                                       disabled={isSending}
                                     >
-                                      {isSending ? "Sending..." : "Approve & Send"}
+                                      {isSending ? "Sending..." : "Send"}
                                     </Button>
-                                    <Button size="sm" variant="ghost" className="bg-surface/50 border-border-mid" icon={<Edit3 size={14} />} onClick={() => setIsEditing(true)}>
+                                    <Button size="sm" variant="ghost" className="bg-surface border-border-mid" icon={<Edit3 size={14} />} onClick={() => setIsEditing(true)}>
                                       Edit
                                     </Button>
                                   </>

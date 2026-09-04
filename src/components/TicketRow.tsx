@@ -4,7 +4,7 @@ import { Badge } from "./ui/Badge";
 import { cn } from "@/src/lib/utils";
 import { Sparkles } from "lucide-react";
 
-export interface TicketRowProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface TicketRowProps {
   id: string;
   customerName: string;
   initials: string;
@@ -33,30 +33,28 @@ export const TicketRow = ({
   avatarVariant,
   className,
   channel,
-  ...props
 }: TicketRowProps) => {
   return (
     <div
       onClick={onClick}
       className={cn(
-        "group flex items-center p-3 cursor-pointer border-b border-border-faint transition-all duration-120",
+        "group flex items-center py-4 px-4 cursor-pointer border-b border-border-faint transition-all duration-150",
         selected
-          ? "bg-brand-faint border-l-2 border-l-brand"
-          : "hover:bg-surface-high/50 border-l-2 border-l-transparent",
+          ? "bg-brand/5 border-l-2 border-l-brand"
+          : "hover:bg-surface-high border-l-2 border-l-transparent",
         className
       )}
-      {...props}
     >
-      <Avatar initials={initials} size={32} variant={avatarVariant} />
+      <Avatar initials={initials} size={40} variant={avatarVariant} />
 
-      <div className="flex-1 min-w-0 ml-3">
-        <div className="flex items-center justify-between mb-0.5">
-          <span className="text-[13px] font-semibold text-text-primary truncate">{customerName}</span>
-          <span className="text-[10px] font-mono text-text-muted">{time}</span>
+      <div className="flex-1 min-w-0 ml-4">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[14px] font-bold text-text-primary truncate">{customerName}</span>
+          <span className="text-[11px] font-medium text-text-muted">{time}</span>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-[12px] text-text-muted truncate mr-2">{subject}</span>
+          <span className="text-[13px] text-text-muted truncate mr-4">{subject}</span>
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {hasDraft && (
               <Badge variant="brand" size="xs" className="gap-1 bg-brand/10 border-brand/20">

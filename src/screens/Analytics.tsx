@@ -104,7 +104,7 @@ export const Analytics = () => {
       className="p-8 max-w-[1400px] mx-auto"
     >
       <SectionHeader
-        title="Predictive Insights"
+        title="Predictive insights"
         subtitle="Performance metrics and AI-driven growth opportunities."
         actions={
           <>

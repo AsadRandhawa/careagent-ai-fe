@@ -19,7 +19,7 @@ export const Topbar = () => {
     : [];
 
   return (
-    <header className="h-[52px] w-full bg-bg-elevated border-b border-border-faint flex items-center justify-between px-5 z-30 gap-4">
+    <header className="h-[52px] w-full bg-glass sticky top-0 border-b border-border-faint flex items-center justify-between px-5 z-30 gap-4">
       {/* Search */}
       <div className="relative flex-1 max-w-[280px]">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" size={13} />

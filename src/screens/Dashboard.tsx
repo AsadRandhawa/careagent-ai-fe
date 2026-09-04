@@ -111,7 +111,7 @@ export const Dashboard = () => {
       className="p-8 max-w-[1400px] mx-auto"
     >
       <SectionHeader
-        title="Operations Overview"
+        title="Operations overview"
         subtitle={todayLabel()}
         actions={
           <>
@@ -248,12 +248,12 @@ export const Dashboard = () => {
           </Card>
 
           <Card>
-            <h3 className="text-[13px] font-bold uppercase tracking-widest text-text-muted mb-6">Ticket Volume (7d)</h3>
+            <h3 className="text-[13px] font-bold uppercase tracking-widest text-text-muted mb-6">Ticket volume (7d)</h3>
             <MiniBarChart data={miniBarData} />
           </Card>
 
           <Card>
-            <h3 className="text-[13px] font-bold uppercase tracking-widest text-text-muted mb-4">Quick Actions</h3>
+            <h3 className="text-[13px] font-bold uppercase tracking-widest text-text-muted mb-4">Quick actions</h3>
             <div className="space-y-2">
               {/* Upgrade prompt for startup users */}
               {currentPlan === "startup" && (

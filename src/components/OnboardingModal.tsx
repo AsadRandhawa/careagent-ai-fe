@@ -154,10 +154,7 @@ export const OnboardingModal = () => {
         {/* Left Sidebar */}
         <div className="w-full md:w-[280px] bg-surface-high border-r border-border-faint p-6 flex flex-col">
           <div className="flex items-center gap-2 mb-10">
-            <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center shadow-glow">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-[16px] font-black text-text-primary tracking-tight">CareAgent Setup</span>
+            <img src="/Logo-CareAgent.png" alt="CareAgent" className="h-16 object-contain" />
           </div>
 
           <div className="flex-1 space-y-5">
@@ -328,8 +325,8 @@ export const OnboardingModal = () => {
                         <div className="w-1.5 h-1.5 rounded-full bg-border-strong animate-pulse delay-75" />
                         <div className="w-1.5 h-1.5 rounded-full bg-border-strong animate-pulse delay-150" />
                       </div>
-                      <div className="w-12 h-12 rounded-2xl bg-brand flex items-center justify-center shadow-glow">
-                        <Bot className="text-white" size={24} />
+                      <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center">
+                        <img src="/Logo-CareAgent.png" alt="CareAgent" className="h-6 object-contain" />
                       </div>
                     </div>
                     <Button variant="outline" size="lg" onClick={handleConnectGmail} className="w-full h-14 rounded-xl mb-4 bg-white hover:bg-neutral-50 text-neutral-800 border-neutral-200">

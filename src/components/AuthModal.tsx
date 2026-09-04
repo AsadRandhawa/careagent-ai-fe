@@ -110,9 +110,7 @@ export const AuthModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             </button>
 
             <div className="flex flex-col items-center mb-8 relative z-10">
-              <div className="w-12 h-12 rounded-xl bg-brand flex items-center justify-center shadow-glow mb-4">
-                <Bot className="w-7 h-7 text-white" />
-              </div>
+              <img src="/Logo-CareAgent.png" alt="CareAgent" className="h-24 object-contain mb-2" />
               <h2 className="text-2xl font-black text-text-primary tracking-tight">
                 {mode === "login" ? "Welcome back" : "Create your account"}
               </h2>

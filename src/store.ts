@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { mockChannelTickets, mockAiDrafts } from './mockData';
 
 export interface Document {
   name: string;
@@ -140,11 +139,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { token } = get();
     if (!token) return;
 
-    // Always pre-populate AI drafts for mock channel tickets
-    set(state => ({
-      aiDrafts: { ...mockAiDrafts, ...state.aiDrafts },
-    }));
-
     set({ isFetchingTickets: true });
     try {
       // Fetch every channel in parallel. Previously this bailed out early
@@ -208,14 +202,16 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       const realTickets = [...gmailTickets, ...livechatTickets, ...facebookTickets, ...instagramTickets, ...whatsappTickets];
 
-      // Only show mock/demo tickets when there's genuinely nothing real to
-      // show yet (e.g. a brand-new account with no channels connected) —
-      // never as a silent substitute for real data that just didn't load
-      // because of an unrelated gate.
-      set({ tickets: realTickets.length > 0 ? realTickets : mockChannelTickets });
+      // A brand-new account with no channels connected yet has zero real
+      // tickets, and that's exactly what should be shown — an empty
+      // inbox, handled by the UI's own "No active tickets!" state.
+      // Previously this substituted hardcoded mock tickets whenever
+      // realTickets was empty, which meant every new signup saw fake
+      // Facebook/WhatsApp/etc. messages indistinguishable from real ones.
+      set({ tickets: realTickets });
     } catch (err) {
       console.error('Could not fetch tickets:', err);
-      set({ tickets: mockChannelTickets });
+      set({ tickets: [] });
     } finally {
       set({ isFetchingTickets: false });
     }

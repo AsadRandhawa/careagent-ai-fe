@@ -118,8 +118,8 @@ export const Report = () => {
       <Card>
         {leads.length === 0 && !isLoading ? (
           <div className="text-center text-text-muted text-sm py-12">
-            No qualified leads yet. Leads appear here automatically once a WhatsApp conversation
-            includes real qualifying information — an academic aggregate, a program of interest,
+            No qualified leads yet. They appear once a WhatsApp conversation
+            includes an academic aggregate, a program of interest,
             or a budget preference.
           </div>
         ) : (

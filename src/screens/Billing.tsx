@@ -167,13 +167,13 @@ export const Billing = () => {
     >
       <div className="flex items-start justify-between mb-8">
         <SectionHeader
-          title="Billing & Plans"
+          title="Billing & plans"
           subtitle="Manage your subscription and usage."
         />
         {currentPlan !== "startup" && (
           <Button variant="surface" size="sm" onClick={handlePortal} disabled={portalLoading}>
             <CreditCard size={13} className="mr-2" />
-            {portalLoading ? "Opening..." : "Manage Billing"}
+            {portalLoading ? "Opening..." : "Manage billing"}
             <ExternalLink size={11} className="ml-1.5 text-text-muted" />
           </Button>
         )}
@@ -187,7 +187,7 @@ export const Billing = () => {
           </div>
           <div>
             <div className="text-[13px] font-black text-text-primary">
-              Current Plan: <span className="text-brand capitalize">{currentPlan}</span>
+              Current plan: <span className="text-brand capitalize">{currentPlan}</span>
             </div>
             <div className="text-[11px] text-text-muted mt-0.5">
               {currentPlan === "startup" ? "You're on the free plan. Upgrade to unlock more." : "Your subscription is active."}
@@ -222,7 +222,7 @@ export const Billing = () => {
               }`}
             >
               {plan.popular && (
-                <div className="text-[9px] font-black uppercase tracking-widest text-brand bg-brand/10 px-2.5 py-1 rounded-full w-fit mb-3">Most Popular</div>
+                <div className="text-[9px] font-black uppercase tracking-widest text-brand bg-brand/10 px-2.5 py-1 rounded-full w-fit mb-3">Most popular</div>
               )}
               <div className={`w-10 h-10 rounded-xl ${plan.bg} flex items-center justify-center mb-4`}>
                 <Icon size={18} className={plan.color} />
@@ -241,7 +241,7 @@ export const Billing = () => {
                 ))}
               </div>
               {isActive ? (
-                <Badge variant="success" size="sm" className="w-full justify-center py-2">Current Plan</Badge>
+                <Badge variant="success" size="sm" className="w-full justify-center py-2">Current plan</Badge>
               ) : plan.id === "growth" ? (
                 <div className="space-y-2">
                   <Button variant="brand" size="sm" className="w-full shadow-glow" onClick={handleUpgrade} disabled={loading}>
@@ -253,10 +253,10 @@ export const Billing = () => {
                 </div>
               ) : plan.id === "enterprise" ? (
                 <Button variant="surface" size="sm" className="w-full" onClick={() => navigate("/contact")}>
-                  Contact Sales
+                  Contact sales
                 </Button>
               ) : (
-                <Button variant="surface" size="sm" className="w-full" disabled>Free Forever</Button>
+                <Button variant="surface" size="sm" className="w-full" disabled>Free forever</Button>
               )}
             </motion.div>
           );

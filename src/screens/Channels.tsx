@@ -359,7 +359,7 @@ export const Channels = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 max-w-[1200px] mx-auto">
-      <SectionHeader title="Channel Integrations" subtitle="Manage where your support agent listens and responds." />
+      <SectionHeader title="Channel integrations" subtitle="Manage where your support agent listens and responds." />
 
       {/* ── Live Chat Embed Panel ────────────────────────────────────────────── */}
       {showEmbed && (
@@ -372,7 +372,7 @@ export const Channels = () => {
             <div>
               <h3 className="text-[13px] font-bold text-text-primary flex items-center gap-2">
                 <Globe size={14} className="text-teal" />
-                Web Live Chat — Ready to Deploy
+                Web live chat — ready to deploy
               </h3>
               <p className="text-[12px] text-text-muted mt-1">
                 Paste this script tag into your website's <code className="text-teal bg-teal/10 px-1 rounded text-[11px]">&lt;/body&gt;</code> — the chat widget appears instantly.
@@ -415,7 +415,7 @@ export const Channels = () => {
         {/* Left — Channel list */}
         <div className="lg:col-span-2">
           <div className="mb-6">
-            <h3 className="text-[11px] font-bold text-text-muted uppercase tracking-widest mb-4">Available Channels</h3>
+            <h3 className="text-[11px] font-bold text-text-muted uppercase tracking-widest mb-4">Available channels</h3>
             <div className="space-y-3">
               {channels.map((ch) => (
                 <div key={ch.id} className="relative">
@@ -447,7 +447,7 @@ export const Channels = () => {
             </div>
           </div>
           <Button variant="ghost" className="w-full border-dashed py-6 border-2">
-            + Request Custom Webhook
+            + Request custom webhook
           </Button>
         </div>
 
@@ -456,13 +456,13 @@ export const Channels = () => {
           <Card>
             <div className="flex items-center gap-3 mb-6">
               <Zap size={16} className="text-brand" />
-              <h3 className="text-[13px] font-bold text-text-primary">Automation Settings</h3>
+              <h3 className="text-[13px] font-bold text-text-primary">Automation settings</h3>
             </div>
             <div className="space-y-5">
               {[
-                { label: "AI Auto-Drafting", sub: "Draft replies instantly", val: aiAutoDrafting, set: setAiAutoDrafting },
-                { label: "Auto-Classification", sub: "Apply tags automatically", val: autoClassification, set: setAutoClassification },
-                { label: "Sentiment Tracking", sub: "Real-time tone analysis", val: sentimentTracking, set: setSentimentTracking },
+                { label: "AI auto-drafting", sub: "Draft replies instantly", val: aiAutoDrafting, set: setAiAutoDrafting },
+                { label: "Auto-classification", sub: "Apply tags automatically", val: autoClassification, set: setAutoClassification },
+                { label: "Sentiment tracking", sub: "Real-time tone analysis", val: sentimentTracking, set: setSentimentTracking },
               ].map(s => (
                 <div key={s.label} className="flex items-center justify-between">
                   <div>

@@ -2,6 +2,7 @@ import * as React from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight, Bot, Zap, Shield, MessageSquare, Database, Menu, X, Check } from "lucide-react";
 import { Button } from "../components/ui/Button";
+import { Typewriter } from "../components/Typewriter";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -65,10 +66,7 @@ export const Landing = () => {
             className="flex items-center gap-2 cursor-pointer group"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           >
-            <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform duration-300">
-              <Bot className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-[24px] font-black text-text-primary tracking-tighter">CareAgent<span className="text-brand">.ai</span></span>
+            <img src="/Logo-CareAgent.png" alt="CareAgent" className="h-16 md:h-20 object-contain group-hover:scale-105 transition-transform duration-300" />
           </motion.div>
 
           <div className="hidden md:flex items-center gap-12">
@@ -90,7 +88,7 @@ export const Landing = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.6 }}
             >
-              <Button variant="brand" onClick={onEnterApp} className="px-7 py-3.5 text-sm rounded-xl font-bold">
+              <Button variant="primary" onClick={onEnterApp} className="px-8 py-4 text-sm rounded-full font-bold">
                 Sign In / Sign Up
               </Button>
             </motion.div>
@@ -111,9 +109,9 @@ export const Landing = () => {
             >
               <div className="p-8 flex flex-col gap-8 bg-bg/95 backdrop-blur-xl">
                 {["Features", "Integrations", "Pricing"].map((item) => (
-                  <a key={item} href={`#${item.toLowerCase().replace(/\s+/g, "-")}`} className="text-2xl font-black text-text-primary tracking-tight" onClick={() => setIsMenuOpen(false)}>{item}</a>
+                  <a key={item} href={`#${item.toLowerCase().replace(/\s+/g, "-")}`} className="text-2xl font-extrabold text-text-primary tracking-tight" onClick={() => setIsMenuOpen(false)}>{item}</a>
                 ))}
-                <Button variant="brand" onClick={onEnterApp} className="w-full py-5 text-xl font-bold rounded-2xl">Launch App</Button>
+                <Button variant="primary" onClick={onEnterApp} className="w-full py-5 text-xl font-bold rounded-full">Launch App</Button>
               </div>
             </motion.div>
           )}
@@ -121,29 +119,25 @@ export const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-6 z-10">
+      <section className="relative pt-32 pb-32 px-6 z-10">
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="text-5xl md:text-[4.25rem] font-black text-text-primary tracking-tighter leading-[1.05] mb-8"
+          <h1
+            className="text-5xl md:text-[5rem] font-extrabold text-text-primary tracking-tighter leading-[1.05] mb-8 min-h-[120px] md:min-h-[170px]"
           >
-            Customer support that <br className="hidden md:block" />
-            <span className="relative inline-block">
-              answers itself.
-              <span className="absolute left-0 right-0 bottom-1 h-4 md:h-5 bg-brand/15 -z-10" />
+            <Typewriter text="Customer support that" speed={40} delay={200} cursor={false} /> <br className="hidden md:block" />
+            <span className="relative inline-block text-brand">
+              <Typewriter text="answers itself." speed={60} delay={1400} />
             </span>
-          </motion.h1>
+          </h1>
 
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
-            className="text-lg md:text-xl text-text-muted max-w-xl mb-10 leading-relaxed"
+            className="text-lg md:text-xl text-text-muted max-w-xl mb-12 leading-relaxed"
           >
             Gmail, WhatsApp, Instagram, and live chat, in one inbox. AI drafts every
-            reply — approve it yourself, or let confident answers send on their own.
+            reply. Approve it yourself, or let confident answers send on their own.
           </motion.p>
 
           <motion.div
@@ -151,19 +145,40 @@ export const Landing = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <Button variant="brand" size="lg" onClick={onEnterApp} className="px-9 py-5 text-lg h-auto rounded-xl">
+            <Button variant="primary" size="lg" onClick={onEnterApp} className="px-10 py-5 text-lg h-auto rounded-full font-bold shadow-xl hover:shadow-2xl transition-shadow">
               Start for free
             </Button>
           </motion.div>
         </div>
+
+        {/* Hero Video Animation */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-5xl mx-auto mt-20 relative rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-border-faint bg-surface"
+        >
+          <video 
+            src="/CareAgent_product_animation_script_202609030626.mp4" 
+            autoPlay 
+            loop 
+            muted 
+            playsInline
+            className="w-full h-auto object-cover"
+          />
+        </motion.div>
       </section>
 
       {/* Feature Showcase (Bento Grid) */}
-      <section id="features" className="py-20 px-6 border-t border-border-faint relative overflow-hidden">
+      <section id="features" className="py-32 px-6 border-t border-border-faint relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="mb-16 max-w-xl">
-            <h2 className="text-3xl md:text-5xl font-black text-text-primary tracking-tighter mb-6 leading-[1]">Experience the <span className="text-brand">CareAgent</span> difference.</h2>
-            <p className="text-lg text-text-muted">Standard chatbots guess. CareAgent understands context, history, and intent.</p>
+          <div className="mb-20 max-w-xl">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-text-primary tracking-tighter mb-6 leading-[1.1] min-h-[2.2em] md:min-h-[1.1em]">
+              <Typewriter text="Experience the " speed={40} delay={0} cursor={false} />
+              <span className="text-brand"><Typewriter text="CareAgent" speed={40} delay={600} cursor={false} /></span>
+              <Typewriter text=" difference." speed={40} delay={960} />
+            </h2>
+            <p className="text-lg text-text-muted">Standard chatbots guess. CareAgent understands context and intent.</p>
           </div>
 
           <div className="grid lg:grid-cols-12 gap-6">
@@ -175,8 +190,8 @@ export const Landing = () => {
               <div className="w-14 h-14 rounded-xl bg-brand/10 flex items-center justify-center text-brand mb-8">
                 <Database size={28} />
               </div>
-              <h3 className="text-3xl font-black text-text-primary mb-4 tracking-tight">The Knowledge Brain</h3>
-              <p className="text-text-second text-base leading-relaxed max-w-sm">Sync your help center, docs, and manuals. CareAgent builds a working understanding of your business in minutes.</p>
+              <h3 className="text-3xl font-black text-text-primary mb-4 tracking-tight">The knowledge brain</h3>
+              <p className="text-text-second text-base leading-relaxed max-w-sm">Sync your help center and docs. CareAgent builds a working understanding of your business in minutes.</p>
             </motion.div>
 
             {/* Bento Card 2 */}
@@ -189,7 +204,7 @@ export const Landing = () => {
                   <Zap size={28} />
                 </div>
                 <h3 className="text-3xl font-black mb-4 tracking-tight">Instant resolution</h3>
-                <p className="text-white/85 text-base leading-relaxed">Ticket times drop from hours to seconds — with accurate answers, not just fast ones.</p>
+                <p className="text-white/85 text-base leading-relaxed">Tickets resolve in seconds with accurate answers.</p>
               </div>
             </motion.div>
 
@@ -202,7 +217,7 @@ export const Landing = () => {
                 <MessageSquare size={30} />
               </div>
               <h3 className="text-2xl font-black text-text-primary mb-3 tracking-tight">One inbox, every channel</h3>
-              <p className="text-text-muted text-sm">Gmail, WhatsApp, Instagram, and live chat — one place to see and answer everything.</p>
+              <p className="text-text-muted text-sm">Gmail, WhatsApp, Instagram, and live chat. See and answer everything in one place.</p>
             </motion.div>
 
             {/* Bento Card 4 */}
@@ -213,7 +228,7 @@ export const Landing = () => {
               <div className="flex-1">
                 <h3 className="text-3xl font-black text-text-primary mb-4 tracking-tight leading-[1.1]">Built with real safeguards.</h3>
                 <ul className="space-y-3">
-                  {[ "Human review before anything sends, or full autonomy once you trust it", "Uncertain answers get flagged for a person, not guessed", "Every conversation logged, nothing sent silently" ].map(t => (
+                  {[ "Human review before anything sends, or full autonomy once you trust it", "Uncertain answers get flagged for a person", "Every conversation logged, nothing sent silently" ].map(t => (
                     <li key={t} className="flex items-start gap-2.5 font-medium text-text-second text-sm">
                       <div className="w-1.5 h-1.5 rounded-full bg-brand mt-1.5 flex-shrink-0" /> {t}
                     </li>
@@ -232,11 +247,15 @@ export const Landing = () => {
       {/* Integrations Section */}
       <section id="integrations" className="py-20 px-6 relative overflow-hidden">
         <div className="max-w-5xl mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-text-primary mb-4 leading-none">Meet your customers <br/><span className="text-brand">where they are.</span></h2>
+          <motion.div {...fadeInUp} className="text-center mb-20">
+            <h2 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-text-primary mb-6 leading-[1.1] min-h-[2.2em] md:min-h-[2.2em]">
+              <Typewriter text="Meet your customers " speed={40} delay={0} cursor={false} />
+              <br/>
+              <span className="text-brand"><Typewriter text="where they are." speed={40} delay={800} /></span>
+            </h2>
             <p className="text-lg text-text-muted max-w-xl mx-auto">Connect your support channels in minutes. One inbox. Every conversation.</p>
           </motion.div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
             {[
               {
                 name: "Gmail", status: "Live", desc: "Official support inbox connection",
@@ -269,20 +288,19 @@ export const Landing = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.08 }}
-                whileHover={{ y: -10, rotate: i % 2 === 0 ? 2 : -2 }}
-                className="p-8 rounded-3xl border-2 border-border-faint bg-surface hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center gap-4"
+                whileHover={{ y: -5 }}
+                className="p-8 rounded-3xl border border-border-faint bg-surface shadow-card hover:shadow-hover transition-all duration-300 flex flex-col items-center text-center gap-4 group"
               >
-                {integration.icon}
-                <div className="text-[14px] font-bold text-text-primary">{integration.name}</div>
-                <div className="text-[11px] text-text-muted leading-relaxed">{integration.desc}</div>
-                <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${integration.status === "Live" ? "bg-brand/15 text-brand" : "bg-surface-high text-text-disabled border border-border-faint"}`}>
-                  {integration.status}
-                </span>
+                <div className="w-20 h-20 bg-surface rounded-2xl shadow-[0_4px_14px_rgba(15,23,42,0.05)] border border-border-faint flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                  {integration.icon}
+                </div>
+                <div className="text-[16px] font-bold text-text-primary">{integration.name}</div>
+                <div className="text-[13px] text-text-muted leading-relaxed px-2">{integration.desc}</div>
               </motion.div>
             ))}
           </div>
-          <motion.div {...fadeInUp} className="text-center mt-8">
-            <Button variant="brand" size="lg" className="px-8 py-5 text-lg font-black shadow-2xl rounded-2xl" onClick={onEnterApp}>
+          <motion.div {...fadeInUp} className="text-center mt-12">
+            <Button variant="primary" size="lg" className="px-10 py-5 text-lg font-bold rounded-full shadow-lg hover:shadow-hover transition-shadow" onClick={onEnterApp}>
               Connect Your Channels <ArrowRight className="ml-2" size={24} />
             </Button>
           </motion.div>
@@ -292,7 +310,9 @@ export const Landing = () => {
       <section id="how-it-works" className="py-32 px-6 relative bg-bg">
         <div className="max-w-5xl mx-auto">
           <div className="mb-20 text-center">
-            <h2 className="text-4xl md:text-[5rem] font-black text-text-primary tracking-tighter leading-[0.9]">From noise to clarity.</h2>
+            <h2 className="text-4xl md:text-[5rem] font-extrabold text-text-primary tracking-tighter leading-[1] min-h-[1.2em]">
+              <Typewriter text="From noise to clarity." speed={40} delay={0} />
+            </h2>
           </div>
 
           <div className="flex flex-col gap-6 relative pb-16">
@@ -307,13 +327,13 @@ export const Landing = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.5 }}
-                className="flex flex-col md:flex-row items-center gap-8 p-6 md:p-10 bg-bg rounded-2xl border border-border-mid"
+                className="flex flex-col md:flex-row items-center gap-8 p-6 md:p-10 bg-surface rounded-2xl border border-border-faint shadow-card hover:shadow-hover transition-all"
               >
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-brand/10 flex items-center justify-center text-brand shrink-0">
                    {step.icon}
                 </div>
                 <div>
-                  <h3 className="text-2xl md:text-3xl font-black text-text-primary mb-2 tracking-tight">{step.title}</h3>
+                  <h3 className="text-2xl md:text-3xl font-bold text-text-primary mb-2 tracking-tight">{step.title}</h3>
                   <p className="text-text-muted text-base md:text-lg leading-relaxed max-w-xl">{step.desc}</p>
                 </div>
               </motion.div>
@@ -323,10 +343,12 @@ export const Landing = () => {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-20 px-6 bg-surface/50 border-y border-border-faint">
+      <section id="pricing" className="py-32 px-6 bg-surface border-y border-border-faint">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20 flex flex-col items-center">
-            <h2 className="text-4xl md:text-6xl font-black text-text-primary tracking-tighter mb-6">Flexible like your team.</h2>
+            <h2 className="text-4xl md:text-6xl font-extrabold text-text-primary tracking-tighter mb-6 min-h-[1.2em]">
+              <Typewriter text="Flexible like your team." speed={40} delay={0} />
+            </h2>
             <p className="text-lg text-text-muted max-w-lg">Zero per-seat costs. You only pay for successful resolutions.</p>
           </div>
 
@@ -362,7 +384,7 @@ export const Landing = () => {
 
       {/* Final CTA */}
       <section
-        className="py-24 px-6 relative flex items-center justify-center text-center"
+        className="py-32 px-6 relative flex items-center justify-center text-center"
         style={{ backgroundColor: '#16a34a' }}
       >
         <div className="max-w-2xl relative">
@@ -371,7 +393,7 @@ export const Landing = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-4xl md:text-6xl font-black tracking-tighter leading-[1.05] mb-6"
+            className="text-4xl md:text-6xl font-extrabold tracking-tighter leading-[1.05] mb-6"
             style={{ color: '#ffffff' }}
           >
             Scale your support, not your headcount.
@@ -382,7 +404,7 @@ export const Landing = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-lg mb-10 max-w-md mx-auto"
+            className="text-lg mb-10 max-w-md mx-auto font-medium"
             style={{ color: 'rgba(255,255,255,0.85)' }}
           >
             Connect your first channel and see your first AI-drafted reply today.
@@ -398,7 +420,7 @@ export const Landing = () => {
               variant="default"
               size="lg"
               onClick={onEnterApp}
-              className="px-10 py-5 text-lg font-bold rounded-xl border-none"
+              className="px-10 py-5 text-lg font-bold rounded-full border-none shadow-xl"
               style={{ backgroundColor: '#ffffff', color: '#16a34a' }}
             >
               Start for free
@@ -413,11 +435,10 @@ export const Landing = () => {
           <div className="flex flex-col md:flex-row items-start justify-between gap-16 mb-24">
             <div className="max-w-sm">
               <div className="flex items-center gap-3 mb-6">
-                <Bot className="w-8 h-8 text-brand" />
-                <span className="text-2xl font-black text-text-primary tracking-tighter">CareAgent<span className="text-brand">.ai</span></span>
+                <img src="/Logo-CareAgent.png" alt="CareAgent" className="h-16 object-contain" />
               </div>
               <p className="text-text-muted text-base font-medium leading-relaxed mb-8">
-                An AI support inbox for Gmail, WhatsApp, Instagram, and live chat — drafts every reply, sends the ones it's sure about, and hands the rest to your team.
+                An AI support inbox for Gmail, WhatsApp, Instagram, and live chat. It drafts replies, sends confident answers, and escalates the rest.
               </p>
             </div>
             
@@ -460,7 +481,7 @@ export const Landing = () => {
 
 const PricingCard = ({ title, price, currency = "$", desc, features, popular, onClick, onEnroll, enrollLabel }: { title: string, price: string, currency?: string, desc: string, features: string[], popular?: boolean, onClick?: () => void, onEnroll?: () => void, enrollLabel?: string }) => (
   <motion.div 
-    className={`p-10 rounded-2xl border flex flex-col ${popular ? "bg-bg border-brand relative ring-1 ring-brand/20" : "bg-surface border-border-faint"}`}
+    className={`p-10 rounded-2xl border flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-brand/50 ${popular ? "bg-bg border-brand relative ring-1 ring-brand/20" : "bg-surface border-border-faint"}`}
   >
     {popular && <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-brand text-white text-[11px] font-bold px-4 py-1.5 rounded-full">Most popular</div>}
     <div className="mb-10">
