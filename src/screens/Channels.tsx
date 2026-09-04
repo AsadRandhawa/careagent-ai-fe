@@ -26,6 +26,35 @@ export const Channels = () => {
   const facebookConnected = !!user?.facebookConnected;
   const instagramConnected = !!user?.instagramConnected;
 
+  // Instagram auto-send — opt-in, off by default. Kept as local state with
+  // its own direct save call rather than threaded through the global store
+  // like the other automation toggles, since it's specific to this one
+  // channel and this keeps the change self-contained.
+  const [instagramAutoSend, setInstagramAutoSendLocal] = React.useState(!!user?.instagramAutoSend);
+  React.useEffect(() => {
+    setInstagramAutoSendLocal(!!user?.instagramAutoSend);
+  }, [user?.instagramAutoSend]);
+
+  const saveInstagramAutoSend = async (val: boolean) => {
+    setInstagramAutoSendLocal(val); // optimistic
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiUrl}/api/user/preferences`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ instagramAutoSend: val }),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      toast(
+        val ? "Instagram will now reply automatically, without human approval." : "Instagram auto-send turned off — replies need approval again.",
+        val ? "success" : "info"
+      );
+    } catch (err) {
+      setInstagramAutoSendLocal(!val); // revert on failure
+      toast("Failed to update Instagram auto-send setting.", "error");
+    }
+  };
+
   // ── Live Chat state ─────────────────────────────────────
   const [livechatToken,   setLivechatToken]   = React.useState<string | null>(null);
   const [embedCode,       setEmbedCode]       = React.useState<string>("");
@@ -463,6 +492,9 @@ export const Channels = () => {
                 { label: "AI auto-drafting", sub: "Draft replies instantly", val: aiAutoDrafting, set: setAiAutoDrafting },
                 { label: "Auto-classification", sub: "Apply tags automatically", val: autoClassification, set: setAutoClassification },
                 { label: "Sentiment tracking", sub: "Real-time tone analysis", val: sentimentTracking, set: setSentimentTracking },
+                ...(instagramConnected ? [
+                  { label: "Instagram auto-send", sub: "Sends automatically, no approval step", val: instagramAutoSend, set: saveInstagramAutoSend },
+                ] : []),
               ].map(s => (
                 <div key={s.label} className="flex items-center justify-between">
                   <div>
