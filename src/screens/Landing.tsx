@@ -89,7 +89,7 @@ export const Landing = () => {
               transition={{ delay: 0.6 }}
             >
               <Button variant="primary" onClick={onEnterApp} className="px-8 py-4 text-sm rounded-full font-bold">
-                Sign In / Sign Up
+                {token ? "Go To Dashboard" : "Sign In / Sign Up"}
               </Button>
             </motion.div>
           </div>
@@ -111,7 +111,7 @@ export const Landing = () => {
                 {["Features", "Integrations", "Pricing"].map((item) => (
                   <a key={item} href={`#${item.toLowerCase().replace(/\s+/g, "-")}`} className="text-2xl font-extrabold text-text-primary tracking-tight" onClick={() => setIsMenuOpen(false)}>{item}</a>
                 ))}
-                <Button variant="primary" onClick={onEnterApp} className="w-full py-5 text-xl font-bold rounded-full">Launch App</Button>
+                <Button variant="primary" onClick={onEnterApp} className="w-full py-5 text-xl font-bold rounded-full">{token ? "Go To Dashboard" : "Launch App"}</Button>
               </div>
             </motion.div>
           )}
@@ -379,53 +379,6 @@ export const Landing = () => {
               onClick={onEnterApp}
             />
           </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section
-        className="py-32 px-6 relative flex items-center justify-center text-center"
-        style={{ backgroundColor: '#16a34a' }}
-      >
-        <div className="max-w-2xl relative">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-4xl md:text-6xl font-extrabold tracking-tighter leading-[1.05] mb-6"
-            style={{ color: '#ffffff' }}
-          >
-            Scale your support, not your headcount.
-          </motion.h2>
-
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-lg mb-10 max-w-md mx-auto font-medium"
-            style={{ color: 'rgba(255,255,255,0.85)' }}
-          >
-            Connect your first channel and see your first AI-drafted reply today.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <Button
-              variant="default"
-              size="lg"
-              onClick={onEnterApp}
-              className="px-10 py-5 text-lg font-bold rounded-full border-none shadow-xl"
-              style={{ backgroundColor: '#ffffff', color: '#16a34a' }}
-            >
-              Start for free
-            </Button>
-          </motion.div>
         </div>
       </section>
 
