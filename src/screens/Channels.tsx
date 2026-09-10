@@ -55,6 +55,33 @@ export const Channels = () => {
     }
   };
 
+  // Website Live Chat auto-send — same opt-in pattern as Instagram above.
+  // First time Live Chat has ever had an AI auto-reply option at all.
+  const [livechatAutoSend, setLivechatAutoSendLocal] = React.useState(!!user?.livechatAutoSend);
+  React.useEffect(() => {
+    setLivechatAutoSendLocal(!!user?.livechatAutoSend);
+  }, [user?.livechatAutoSend]);
+
+  const saveLivechatAutoSend = async (val: boolean) => {
+    setLivechatAutoSendLocal(val); // optimistic
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiUrl}/api/user/preferences`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ livechatAutoSend: val }),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      toast(
+        val ? "Live Chat will now reply automatically, without human approval." : "Live Chat auto-send turned off — replies need approval again.",
+        val ? "success" : "info"
+      );
+    } catch (err) {
+      setLivechatAutoSendLocal(!val); // revert on failure
+      toast("Failed to update Live Chat auto-send setting.", "error");
+    }
+  };
+
   // ── Live Chat state ─────────────────────────────────────
   const [livechatToken,   setLivechatToken]   = React.useState<string | null>(null);
   const [embedCode,       setEmbedCode]       = React.useState<string>("");
@@ -494,6 +521,7 @@ export const Channels = () => {
                 { label: "Sentiment tracking", sub: "Real-time tone analysis", val: sentimentTracking, set: setSentimentTracking },
                 ...(instagramConnected ? [
                   { label: "Instagram auto-send", sub: "Sends automatically, no approval step", val: instagramAutoSend, set: saveInstagramAutoSend },
+                  { label: "Live Chat auto-send", sub: "Sends automatically, no approval step", val: livechatAutoSend, set: saveLivechatAutoSend },
                 ] : []),
               ].map(s => (
                 <div key={s.label} className="flex items-center justify-between">
