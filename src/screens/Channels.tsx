@@ -82,6 +82,35 @@ export const Channels = () => {
     }
   };
 
+  // WhatsApp auto-send — same opt-in pattern as Instagram/Live Chat above.
+  // Previously implicit via a now-removed backend external-RAG routing map
+  // for Lahore Leads University specifically; now an explicit toggle like
+  // the others, available to any WhatsApp-connected account.
+  const [whatsappAutoSend, setWhatsappAutoSendLocal] = React.useState(!!user?.whatsappAutoSend);
+  React.useEffect(() => {
+    setWhatsappAutoSendLocal(!!user?.whatsappAutoSend);
+  }, [user?.whatsappAutoSend]);
+
+  const saveWhatsappAutoSend = async (val: boolean) => {
+    setWhatsappAutoSendLocal(val); // optimistic
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiUrl}/api/user/preferences`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ whatsappAutoSend: val }),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      toast(
+        val ? "WhatsApp will now reply automatically, without human approval." : "WhatsApp auto-send turned off — replies need approval again.",
+        val ? "success" : "info"
+      );
+    } catch (err) {
+      setWhatsappAutoSendLocal(!val); // revert on failure
+      toast("Failed to update WhatsApp auto-send setting.", "error");
+    }
+  };
+
   // ── Live Chat state ─────────────────────────────────────
   const [livechatToken,   setLivechatToken]   = React.useState<string | null>(null);
   const [embedCode,       setEmbedCode]       = React.useState<string>("");
@@ -519,6 +548,9 @@ export const Channels = () => {
                 { label: "AI auto-drafting", sub: "Draft replies instantly", val: aiAutoDrafting, set: setAiAutoDrafting },
                 { label: "Auto-classification", sub: "Apply tags automatically", val: autoClassification, set: setAutoClassification },
                 { label: "Sentiment tracking", sub: "Real-time tone analysis", val: sentimentTracking, set: setSentimentTracking },
+                ...(whatsappConnected ? [
+                  { label: "WhatsApp auto-send", sub: "Sends automatically, no approval step", val: whatsappAutoSend, set: saveWhatsappAutoSend },
+                ] : []),
                 ...(instagramConnected ? [
                   { label: "Instagram auto-send", sub: "Sends automatically, no approval step", val: instagramAutoSend, set: saveInstagramAutoSend },
                 ] : []),
