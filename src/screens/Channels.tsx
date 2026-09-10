@@ -521,6 +521,8 @@ export const Channels = () => {
                 { label: "Sentiment tracking", sub: "Real-time tone analysis", val: sentimentTracking, set: setSentimentTracking },
                 ...(instagramConnected ? [
                   { label: "Instagram auto-send", sub: "Sends automatically, no approval step", val: instagramAutoSend, set: saveInstagramAutoSend },
+                ] : []),
+                ...(livechatConnected ? [
                   { label: "Live Chat auto-send", sub: "Sends automatically, no approval step", val: livechatAutoSend, set: saveLivechatAutoSend },
                 ] : []),
               ].map(s => (
