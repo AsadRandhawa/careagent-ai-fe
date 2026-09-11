@@ -26,6 +26,11 @@ const getRiskScore = (ticket: any, reason: string): number => {
   return Math.min(score, 99);
 };
 
+const CHANNEL_LABELS: Record<string, string> = {
+  gmail: 'Gmail', facebook: 'Facebook', instagram: 'Instagram',
+  whatsapp: 'WhatsApp', website: 'Website Live Chat',
+};
+
 export const Escalations = () => {
   const navigate = useNavigate();
   const { tickets, aiDrafts, isFetchingTickets, takeOverTicket, setTickets, setAiDrafts, token, fetchTickets } = useAppStore();
@@ -117,7 +122,12 @@ export const Escalations = () => {
                   <Avatar initials={ticket.initials} size={38} variant="danger" isEscalated />
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-[15px] font-bold text-text-primary">{ticket.customerName}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-[15px] font-bold text-text-primary">{ticket.customerName}</h3>
+                        <Badge variant="default" size="xs">
+                          {CHANNEL_LABELS[ticket.channel] || ticket.channel || 'Unknown'}
+                        </Badge>
+                      </div>
                       <Badge variant={score >= 80 ? "danger" : "warn"} size="sm">
                         {score >= 80 ? "Critical" : "Urgent"}
                       </Badge>
