@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Sidebar } from "./components/Sidebar";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Topbar } from "./components/Topbar";
 
 import { Dashboard } from "./screens/Dashboard";
@@ -140,20 +141,22 @@ export default function App() {
                 className="h-full"
               >
                 {isLoading ? <LoadingSkeleton /> : (
-                  <Routes location={location}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/report" element={<Report />} />
-                    <Route path="/inbox" element={<Inbox />} />
-                    <Route path="/escalations" element={<Escalations />} />
-                    <Route path="/knowledge-base" element={<KnowledgeBase />} />
-                    <Route path="/onboarding" element={<Onboarding />} />
-                    <Route path="/channels" element={<Channels />} />
-                    <Route path="/analytics" element={<Analytics />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="/billing" element={<Billing />} />
-              <Route path="/contact" element={<Contact />} />
-                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                  </Routes>
+                  <ErrorBoundary>
+                    <Routes location={location}>
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/report" element={<Report />} />
+                      <Route path="/inbox" element={<Inbox />} />
+                      <Route path="/escalations" element={<Escalations />} />
+                      <Route path="/knowledge-base" element={<KnowledgeBase />} />
+                      <Route path="/onboarding" element={<Onboarding />} />
+                      <Route path="/channels" element={<Channels />} />
+                      <Route path="/analytics" element={<Analytics />} />
+                      <Route path="/payment-success" element={<PaymentSuccess />} />
+                      <Route path="/billing" element={<Billing />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    </Routes>
+                  </ErrorBoundary>
                 )}
               </motion.div>
             </AnimatePresence>
