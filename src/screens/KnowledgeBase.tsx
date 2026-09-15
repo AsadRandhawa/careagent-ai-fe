@@ -5,7 +5,7 @@ import { MetricCard } from "../components/MetricCard";
 import { Card } from "../components/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
-import { FileText, Upload, Search, Filter, Database, Zap, BookOpen, Clock, Activity, MoreVertical, Send, Loader2, Trash2, Sparkles, Plus, Pencil, X, Save } from "lucide-react";
+import { FileText, Upload, Search, Filter, Database, Zap, Clock, Activity, MoreVertical, Send, Loader2, Trash2, Sparkles, Plus, Pencil, X, Save } from "lucide-react";
 import { IconButton } from "../components/ui/IconButton";
 import { useToast } from "../components/ToastProvider";
 import * as mammoth from "mammoth";
@@ -440,18 +440,6 @@ ${contextDocs}`;
                 <Send size={14} />
               </Button>
             </div>
-          </Card>
-
-          <Card variant="glow" className="bg-gradient-to-br from-brand-faint to-surface border-brand/20">
-             <div className="flex items-start gap-4">
-               <BookOpen size={18} className="text-brand flex-shrink-0" />
-               <div>
-                  <h4 className="text-[13px] font-bold text-text-primary">V1 Pilot Note</h4>
-                  <p className="text-[12px] text-text-second mt-1 leading-relaxed">
-                    This chatbot uses OpenAI GPT-4o-mini to answer questions. It reads the text of `.txt`, `.md`, and `.docx` files.
-                  </p>
-               </div>
-             </div>
           </Card>
         </div>
       </div>
