@@ -111,6 +111,33 @@ export const Channels = () => {
     }
   };
 
+  // Facebook Messenger auto-send — same opt-in pattern. Facebook never had
+  // an auto-send option at all until this — human-review only before.
+  const [facebookAutoSend, setFacebookAutoSendLocal] = React.useState(!!user?.facebookAutoSend);
+  React.useEffect(() => {
+    setFacebookAutoSendLocal(!!user?.facebookAutoSend);
+  }, [user?.facebookAutoSend]);
+
+  const saveFacebookAutoSend = async (val: boolean) => {
+    setFacebookAutoSendLocal(val); // optimistic
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiUrl}/api/user/preferences`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ facebookAutoSend: val }),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      toast(
+        val ? "Facebook will now reply automatically, without human approval." : "Facebook auto-send turned off — replies need approval again.",
+        val ? "success" : "info"
+      );
+    } catch (err) {
+      setFacebookAutoSendLocal(!val); // revert on failure
+      toast("Failed to update Facebook auto-send setting.", "error");
+    }
+  };
+
   // ── Live Chat state ─────────────────────────────────────
   const [livechatToken,   setLivechatToken]   = React.useState<string | null>(null);
   const [embedCode,       setEmbedCode]       = React.useState<string>("");
@@ -550,6 +577,9 @@ export const Channels = () => {
                 { label: "Sentiment tracking", sub: "Real-time tone analysis", val: sentimentTracking, set: setSentimentTracking },
                 ...(whatsappConnected ? [
                   { label: "WhatsApp auto-send", sub: "Sends automatically, no approval step", val: whatsappAutoSend, set: saveWhatsappAutoSend },
+                ] : []),
+                ...(facebookConnected ? [
+                  { label: "Facebook auto-send", sub: "Sends automatically, no approval step", val: facebookAutoSend, set: saveFacebookAutoSend },
                 ] : []),
                 ...(instagramConnected ? [
                   { label: "Instagram auto-send", sub: "Sends automatically, no approval step", val: instagramAutoSend, set: saveInstagramAutoSend },
