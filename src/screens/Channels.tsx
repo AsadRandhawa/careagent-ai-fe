@@ -55,89 +55,6 @@ export const Channels = () => {
     }
   };
 
-  // Website Live Chat auto-send — same opt-in pattern as Instagram above.
-  // First time Live Chat has ever had an AI auto-reply option at all.
-  const [livechatAutoSend, setLivechatAutoSendLocal] = React.useState(!!user?.livechatAutoSend);
-  React.useEffect(() => {
-    setLivechatAutoSendLocal(!!user?.livechatAutoSend);
-  }, [user?.livechatAutoSend]);
-
-  const saveLivechatAutoSend = async (val: boolean) => {
-    setLivechatAutoSendLocal(val); // optimistic
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${apiUrl}/api/user/preferences`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ livechatAutoSend: val }),
-      });
-      if (!res.ok) throw new Error("Save failed");
-      toast(
-        val ? "Live Chat will now reply automatically, without human approval." : "Live Chat auto-send turned off — replies need approval again.",
-        val ? "success" : "info"
-      );
-    } catch (err) {
-      setLivechatAutoSendLocal(!val); // revert on failure
-      toast("Failed to update Live Chat auto-send setting.", "error");
-    }
-  };
-
-  // WhatsApp auto-send — same opt-in pattern as Instagram/Live Chat above.
-  // Previously implicit via a now-removed backend external-RAG routing map
-  // for Lahore Leads University specifically; now an explicit toggle like
-  // the others, available to any WhatsApp-connected account.
-  const [whatsappAutoSend, setWhatsappAutoSendLocal] = React.useState(!!user?.whatsappAutoSend);
-  React.useEffect(() => {
-    setWhatsappAutoSendLocal(!!user?.whatsappAutoSend);
-  }, [user?.whatsappAutoSend]);
-
-  const saveWhatsappAutoSend = async (val: boolean) => {
-    setWhatsappAutoSendLocal(val); // optimistic
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${apiUrl}/api/user/preferences`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ whatsappAutoSend: val }),
-      });
-      if (!res.ok) throw new Error("Save failed");
-      toast(
-        val ? "WhatsApp will now reply automatically, without human approval." : "WhatsApp auto-send turned off — replies need approval again.",
-        val ? "success" : "info"
-      );
-    } catch (err) {
-      setWhatsappAutoSendLocal(!val); // revert on failure
-      toast("Failed to update WhatsApp auto-send setting.", "error");
-    }
-  };
-
-  // Facebook Messenger auto-send — same opt-in pattern. Facebook never had
-  // an auto-send option at all until this — human-review only before.
-  const [facebookAutoSend, setFacebookAutoSendLocal] = React.useState(!!user?.facebookAutoSend);
-  React.useEffect(() => {
-    setFacebookAutoSendLocal(!!user?.facebookAutoSend);
-  }, [user?.facebookAutoSend]);
-
-  const saveFacebookAutoSend = async (val: boolean) => {
-    setFacebookAutoSendLocal(val); // optimistic
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${apiUrl}/api/user/preferences`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ facebookAutoSend: val }),
-      });
-      if (!res.ok) throw new Error("Save failed");
-      toast(
-        val ? "Facebook will now reply automatically, without human approval." : "Facebook auto-send turned off — replies need approval again.",
-        val ? "success" : "info"
-      );
-    } catch (err) {
-      setFacebookAutoSendLocal(!val); // revert on failure
-      toast("Failed to update Facebook auto-send setting.", "error");
-    }
-  };
-
   // ── Live Chat state ─────────────────────────────────────
   const [livechatToken,   setLivechatToken]   = React.useState<string | null>(null);
   const [embedCode,       setEmbedCode]       = React.useState<string>("");
@@ -214,6 +131,20 @@ export const Channels = () => {
     // FB.login() callback itself, so we have to listen for them
     // independently and match them up with the auth code once both
     // arrive.
+    //
+    // CONFIRMED (2026-09-27): this postMessage is only reliably emitted by
+    // the full new-number onboarding wizard. When a business instead
+    // shares an EXISTING, already-verified WABA/number through Meta's
+    // simpler "select business assets to share" consent screen, NO
+    // WA_EMBEDDED_SIGNUP event fires at all — verified with two
+    // independent browsers, ruling out a browser/extension-blocking
+    // theory. Previously this was treated as a hard failure (toast +
+    // abort, /api/whatsapp/connect never called). Now we still try to
+    // capture them for the common new-number case, but no longer BLOCK
+    // the connect attempt if they never arrive — the backend has a
+    // Graph-API-based fallback (walks the granted token's own
+    // /me/businesses -> owned WABAs -> phone numbers) that resolves this
+    // unambiguously when the frontend couldn't capture it directly.
     let capturedWabaId: string | null = null;
     let capturedPhoneNumberId: string | null = null;
 
@@ -262,10 +193,14 @@ export const Channels = () => {
         toast("WhatsApp connection was cancelled.", "info");
         return;
       }
+      // NOTE: we deliberately do NOT abort here if capturedWabaId/
+      // capturedPhoneNumberId are missing — see the comment above the
+      // listener. We always attempt the connect call; the backend either
+      // uses what we captured or discovers it independently via Graph
+      // API. This is what actually reaches Railway's logs now, instead of
+      // silently stopping in the browser before any request is sent.
       if (!capturedWabaId || !capturedPhoneNumberId) {
-        setConnectingWhatsApp(false);
-        toast("Didn't receive the WhatsApp account details from Meta — please try again.", "error");
-        return;
+        toast("Finishing connection — verifying with Meta…", "info");
       }
 
       try {
@@ -273,7 +208,11 @@ export const Channels = () => {
         const res = await fetch(`${apiUrl}/api/whatsapp/connect`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-          body: JSON.stringify({ code, wabaId: capturedWabaId, phoneNumberId: capturedPhoneNumberId }),
+          body: JSON.stringify({
+            code,
+            ...(capturedWabaId ? { wabaId: capturedWabaId } : {}),
+            ...(capturedPhoneNumberId ? { phoneNumberId: capturedPhoneNumberId } : {}),
+          }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Failed to connect WhatsApp");
@@ -575,17 +514,8 @@ export const Channels = () => {
                 { label: "AI auto-drafting", sub: "Draft replies instantly", val: aiAutoDrafting, set: setAiAutoDrafting },
                 { label: "Auto-classification", sub: "Apply tags automatically", val: autoClassification, set: setAutoClassification },
                 { label: "Sentiment tracking", sub: "Real-time tone analysis", val: sentimentTracking, set: setSentimentTracking },
-                ...(whatsappConnected ? [
-                  { label: "WhatsApp auto-send", sub: "Sends automatically, no approval step", val: whatsappAutoSend, set: saveWhatsappAutoSend },
-                ] : []),
-                ...(facebookConnected ? [
-                  { label: "Facebook auto-send", sub: "Sends automatically, no approval step", val: facebookAutoSend, set: saveFacebookAutoSend },
-                ] : []),
                 ...(instagramConnected ? [
                   { label: "Instagram auto-send", sub: "Sends automatically, no approval step", val: instagramAutoSend, set: saveInstagramAutoSend },
-                ] : []),
-                ...(livechatConnected ? [
-                  { label: "Live Chat auto-send", sub: "Sends automatically, no approval step", val: livechatAutoSend, set: saveLivechatAutoSend },
                 ] : []),
               ].map(s => (
                 <div key={s.label} className="flex items-center justify-between">
