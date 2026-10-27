@@ -19,9 +19,9 @@ const PRICING = {
   starter: { price: 49, includedReplies: 1500, extraPerReply: 0.02, channels: 2 },
   growth: { price: 149, includedReplies: 6000, extraPerReply: 0.015 },
   managed: { base: 45, perReply: 0.03, setupFee: 199 },
-  freeTrialReplies: 100,
   // WhatsApp fees are charged by Meta to the client's own WhatsApp Business
-  // account, not by CareAgent. Pakistan rates, effective 1 Oct 2026.
+  // account, not by CareAgent. perReplyAfterFree is only used inside the
+  // cost estimator as a typical rate (Pakistan, Oct 2026); it isn't shown as text.
   whatsapp: { freeRepliesPerNumber: 1000, perReplyAfterFree: 0.015 },
 };
 
@@ -115,7 +115,7 @@ export const Landing = () => {
                 {NAV_ITEMS.map((item) => (
                   <a key={item.id} href={`#${item.id}`} className="text-2xl font-extrabold text-text-primary tracking-tight" onClick={() => setIsMenuOpen(false)}>{item.label}</a>
                 ))}
-                <Button variant="primary" onClick={onEnterApp} className="w-full py-5 text-xl font-bold rounded-full">{token ? "Go To Dashboard" : "Start free"}</Button>
+                <Button variant="primary" onClick={onEnterApp} className="w-full py-5 text-xl font-bold rounded-full">{token ? "Go To Dashboard" : "Get started"}</Button>
               </div>
             </motion.div>
           )}
@@ -161,7 +161,7 @@ export const Landing = () => {
             className="flex flex-col sm:flex-row items-center gap-4"
           >
             <Button variant="primary" size="lg" onClick={onEnterApp} className="px-10 py-5 text-lg h-auto rounded-full font-bold shadow-xl hover:shadow-2xl transition-shadow">
-              Start free <ArrowRight className="ml-2" size={20} />
+              Get started <ArrowRight className="ml-2" size={20} />
             </Button>
             <button onClick={() => scrollTo("pricing")} className="px-6 py-4 text-base font-bold text-text-primary hover:text-brand transition-colors">
               See pricing
@@ -174,7 +174,7 @@ export const Landing = () => {
             transition={{ delay: 0.5 }}
             className="mt-6 text-sm text-text-muted"
           >
-            First {PRICING.freeTrialReplies} AI replies free · No card needed · Already answering admissions questions for a university in Lahore
+            Set up in an afternoon · Cancel any month · Already answering admissions questions for a university in Lahore
           </motion.p>
         </div>
 
@@ -396,7 +396,7 @@ export const Landing = () => {
               Simple plans. No per-seat fees.
             </h2>
             <p className="text-lg text-text-muted max-w-2xl">
-              Every plan starts with {PRICING.freeTrialReplies} free AI replies. Cancel any month.
+              Pick the plan that fits how many customers message you. Cancel any month.
             </p>
           </div>
 
@@ -412,9 +412,8 @@ export const Landing = () => {
                 "Knowledge base and pinned facts",
                 "Approve-first or auto-send",
                 "Human handoff for uncertain answers",
-                `Extra replies $${PRICING.starter.extraPerReply} each`,
               ]}
-              cta="Start free"
+              cta="Get started"
               onClick={onEnterApp}
             />
             <PricingCard
@@ -430,9 +429,8 @@ export const Landing = () => {
                 "Sentiment tracking and escalation",
                 "Analytics and reports",
                 "Priority support on WhatsApp",
-                `Extra replies $${PRICING.growth.extraPerReply} each`,
               ]}
-              cta="Start free"
+              cta="Get started"
               onClick={onEnterApp}
             />
             <PricingCard
@@ -456,8 +454,7 @@ export const Landing = () => {
 
           <p className="text-center text-sm text-text-muted mt-10 max-w-3xl mx-auto">
             WhatsApp charges a small fee per message, set by Meta and billed by Meta to your own WhatsApp Business
-            account on every plan. The first {PRICING.whatsapp.freeRepliesPerNumber.toLocaleString()} replies per number
-            each month are free; in Pakistan each reply after that is ${PRICING.whatsapp.perReplyAfterFree}.
+            account on every plan. The rate varies by your customers' country.
           </p>
 
           <CostEstimator onStart={onEnterApp} />
@@ -485,7 +482,7 @@ export const Landing = () => {
             onClick={onEnterApp}
             className="inline-flex items-center gap-2 bg-white text-brand font-bold text-lg rounded-full px-10 py-5 shadow-xl hover:shadow-2xl transition-shadow"
           >
-            Start free <ArrowRight size={20} />
+            Get started <ArrowRight size={20} />
           </button>
         </div>
       </section>
@@ -736,7 +733,7 @@ const CostEstimator = ({ onStart }: { onStart: () => void }) => {
           </div>
 
           <p className="text-xs text-text-muted leading-relaxed">
-            Estimate only. WhatsApp fees use Pakistan rates and depend on your customers' country; Meta bills them to
+            Estimate only. WhatsApp fees use a typical rate; the real rate depends on your customers' country, and Meta bills it to
             your WhatsApp Business account. Managed adds a one-time ${PRICING.managed.setupFee} setup fee.
           </p>
 
@@ -789,7 +786,7 @@ const FAQS = [
   },
   {
     q: "Are WhatsApp messages included in the price?",
-    a: `CareAgent's price covers the AI and the platform. WhatsApp also charges a small per-message fee, set by Meta and billed by Meta to your own WhatsApp Business account. The first ${PRICING.whatsapp.freeRepliesPerNumber.toLocaleString()} replies per number each month are free; in Pakistan each reply after that costs $${PRICING.whatsapp.perReplyAfterFree}.`,
+    a: `CareAgent's price covers the AI and the platform. WhatsApp also charges a small per-message fee, set by Meta and billed by Meta to your own WhatsApp Business account. The fee depends on the country of the customer you're replying to.`,
   },
   {
     q: "Which languages does it reply in?",
@@ -885,7 +882,7 @@ CRITICAL FORMATTING RULES:
 CONTEXT RULES:
 - The user is already ON the CareAgent website
 - Never say "visit the CareAgent website" — they are already here
-- When someone asks how to get started or sign up, tell them to click the "Start free" button on this page, or "Sign In / Sign Up" at the top right
+- When someone asks how to get started or sign up, tell them to click the "Get started" button on this page, or "Sign In / Sign Up" at the top right
 - When referencing setup steps, mention they happen inside the platform after signing up
 
 CareAgent key facts:
@@ -894,8 +891,8 @@ CareAgent key facts:
 - Answers from the business's own uploaded information; hands anything it can't answer to the business's team
 - Replies can be approved before sending, or auto-sent per channel
 - Pricing: Starter $${PRICING.starter.price}/month (${PRICING.starter.includedReplies} AI replies, ${PRICING.starter.channels} channels). Growth $${PRICING.growth.price}/month (${PRICING.growth.includedReplies} AI replies, all channels). Managed $${PRICING.managed.base}/month plus $${PRICING.managed.perReply} per AI reply and a one-time $${PRICING.managed.setupFee} setup, where the CareAgent team sets up and runs everything
-- Every plan starts with ${PRICING.freeTrialReplies} free AI replies, no card needed
-- WhatsApp per-message fees are set and billed by Meta to the business's own WhatsApp Business account; the first ${PRICING.whatsapp.freeRepliesPerNumber} replies per number each month are free
+- All plans are paid monthly plans; there is no free plan or free trial
+- WhatsApp per-message fees are set and billed by Meta to the business's own WhatsApp Business account; the rate varies by country
 - There is a cost estimator in the Pricing section of this page`;
 
 const CareAgentBot = () => {
