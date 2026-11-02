@@ -2,13 +2,20 @@ import * as React from "react";
 import { Search, Bell, HelpCircle, Command } from "lucide-react";
 import { IconButton } from "./ui/IconButton";
 import { useAppStore } from "../store";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+
+// Pages where the ticket search bar and the bell/help icons don't belong.
+// Channels is a settings page, so searching tickets there makes no sense.
+const HIDE_TOPBAR_ON = ["/channels"];
 
 export const Topbar = () => {
   const { tickets } = useAppStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const [query, setQuery] = React.useState("");
   const [focused, setFocused] = React.useState(false);
+
+  if (HIDE_TOPBAR_ON.includes(location.pathname)) return null;
 
   // Simple search — filter tickets by subject/customer
   const results = query.trim().length > 1
@@ -19,7 +26,7 @@ export const Topbar = () => {
     : [];
 
   return (
-    <header className="h-[52px] w-full bg-glass sticky top-0 border-b border-border-faint flex items-center justify-between px-5 z-30 gap-4">
+    <header className="h-[52px] w-full bg-bg-elevated border-b border-border-faint flex items-center justify-between px-5 z-30 gap-4">
       {/* Search */}
       <div className="relative flex-1 max-w-[280px]">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" size={13} />
