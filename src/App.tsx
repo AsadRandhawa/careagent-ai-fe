@@ -18,6 +18,7 @@ import { TermsOfService } from "./screens/TermsOfService";
 import { Analytics } from "./screens/Analytics";
 import { Landing } from "./screens/Landing";
 import { Privacy } from "./screens/Privacy";
+import { Admin } from "./screens/Admin";
 import { AnimatePresence, motion } from "motion/react";
 import { Skeleton } from "./components/ui/AtomsMisc";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
@@ -32,6 +33,7 @@ import { OnboardingModal } from "./components/OnboardingModal";
 const PROTECTED_PATHS = [
   "/dashboard", "/report", "/inbox", "/escalations", "/knowledge-base",
   "/onboarding", "/channels", "/analytics", "/billing", "/payment-success",
+  "/admin",
 ];
 
 export default function App() {
@@ -154,6 +156,7 @@ export default function App() {
                       <Route path="/payment-success" element={<PaymentSuccess />} />
                       <Route path="/billing" element={<Billing />} />
                       <Route path="/contact" element={<Contact />} />
+                      <Route path="/admin" element={<Admin />} />
                       <Route path="*" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
                   </ErrorBoundary>
