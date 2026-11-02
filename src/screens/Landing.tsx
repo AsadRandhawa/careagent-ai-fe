@@ -895,7 +895,7 @@ CareAgent key facts:
 const CareAgentBot = () => {
   const [open, setOpen] = React.useState(false);
   const [messages, setMessages] = React.useState<{role: 'user'|'assistant', content: string}[]>([
-    { role: 'assistant', content: "Hi! I'm the CareAgent guide 👋 Ask me anything about the platform — features, pricing, how to get started, anything!" }
+    { role: 'assistant', content: "Hi! I'm the CareAgent guide. Ask me anything about the platform — features, pricing, how to get started, anything!" }
   ]);
   const [input, setInput] = React.useState('');
   const [loading, setLoading] = React.useState(false);
