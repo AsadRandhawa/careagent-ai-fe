@@ -90,7 +90,7 @@ export const Channels = () => {
 
   React.useEffect(() => {
     if (searchParams.get("connected") === "facebook") {
-      toast("Facebook Messenger connected successfully! ✓", "success");
+      toast("Facebook Messenger connected successfully!", "success");
       window.history.replaceState({}, "", "/channels");
     }
     if (searchParams.get("error") === "auth_failed") {
@@ -201,7 +201,7 @@ export const Channels = () => {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Failed to connect WhatsApp");
-        toast("WhatsApp connected successfully! ✓", "success");
+        toast("WhatsApp connected successfully!", "success");
         window.location.reload();
       } catch (err: any) {
         toast(err?.message || "Failed to connect WhatsApp. Please try again.", "error");
