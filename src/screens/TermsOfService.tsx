@@ -23,19 +23,20 @@ export const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-bg">
       {/* Nav */}
-      <div className="border-b border-border-faint bg-bg-elevated px-6 py-4 flex items-center gap-4">
+      <div className="border-b border-border-faint bg-bg-elevated px-6 py-3 flex items-center gap-4">
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-[12px] font-semibold text-text-muted hover:text-text-primary transition-colors"
         >
           <ArrowLeft size={14} /> Back to Home
         </button>
-        <div className="flex items-center gap-2 ml-auto">
-          <div className="w-6 h-6 rounded-lg bg-brand flex items-center justify-center">
-            <span className="text-white text-[10px] font-black">C</span>
-          </div>
-          <span className="text-[13px] font-black text-text-primary">CareAgent.ai</span>
-        </div>
+        <button
+          onClick={() => navigate("/")}
+          className="ml-auto flex items-center"
+          aria-label="CareAgent home"
+        >
+          <img src="/Logo-CareAgent.png" alt="CareAgent" className="h-10 md:h-12 object-contain" />
+        </button>
       </div>
 
       <motion.div
