@@ -1,11 +1,11 @@
 import * as React from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { SectionHeader } from "../components/SectionHeader";
 import { MetricCard } from "../components/MetricCard";
 import { Card } from "../components/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
-import { FileText, Upload, Search, Database, Zap, Clock, Loader2, Trash2, Sparkles, Plus, Pencil, X, Save, RefreshCw } from "lucide-react";
+import { FileText, Upload, Search, Database, Zap, Clock, Loader2, Trash2, Sparkles, Plus, Pencil, X, Check, RefreshCw } from "lucide-react";
 import { IconButton } from "../components/ui/IconButton";
 import { useToast } from "../components/ToastProvider";
 import * as mammoth from "mammoth";
@@ -454,7 +454,7 @@ export const KnowledgeBase = () => {
           </div>
           <div className="p-4">
             <textarea
-              className="w-full min-h-[160px] bg-bg border border-border-mid rounded-lg p-3 text-[12px] outline-none text-text-primary font-mono resize-y"
+              className="w-full min-h-[160px] bg-bg border border-border-mid rounded-lg p-3 text-[12px] outline-none text-text-primary font-mono resize-y transition-colors focus:border-brand"
               placeholder="e.g. Never quote a fee without confirming the program first. If a discount applies, always show the full breakdown, not just the discounted total..."
               value={aiInstructions}
               onChange={(e) => setAiInstructions(e.target.value)}
@@ -462,9 +462,15 @@ export const KnowledgeBase = () => {
             />
             <div className="flex items-center justify-between mt-3">
               <span className="text-[11px] text-text-muted font-mono">{aiInstructions.length.toLocaleString()} / 20,000 characters</span>
-              <Button variant="primary" size="sm" onClick={handleSaveAiInstructions} disabled={aiInstructionsSaving || !aiInstructionsLoaded}>
-                {aiInstructionsSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                Save Instructions
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSaveAiInstructions}
+                disabled={aiInstructionsSaving || !aiInstructionsLoaded}
+                className="h-9 px-4 gap-2 rounded-lg font-semibold shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98] disabled:opacity-60"
+              >
+                {aiInstructionsSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                {aiInstructionsSaving ? "Saving…" : "Save instructions"}
               </Button>
             </div>
           </div>
@@ -482,20 +488,48 @@ export const KnowledgeBase = () => {
                 <p className="text-[11px] text-text-muted mt-0.5">Facts that are ALWAYS included in the AI's context when specific keywords are mentioned — use for critical info that must never be missed or answered incorrectly (e.g. fees, discounts, policies).</p>
               </div>
             </div>
-            {!showFactForm && (
-              <Button variant="secondary" size="sm" onClick={() => setShowFactForm(true)}>
-                <Plus size={14} /> Add Fact
-              </Button>
-            )}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => (showFactForm ? resetFactForm() : setShowFactForm(true))}
+              aria-expanded={showFactForm}
+              className="h-9 px-4 gap-2 rounded-lg font-semibold shrink-0 transition-all duration-200 active:scale-[0.98]"
+            >
+              <motion.span
+                animate={{ rotate: showFactForm ? 45 : 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                className="flex"
+              >
+                <Plus size={14} />
+              </motion.span>
+              {showFactForm ? "Close" : "Add fact"}
+            </Button>
           </div>
 
+          <AnimatePresence initial={false}>
           {showFactForm && (
-            <div className="p-4 border-b border-border-faint bg-brand-faint/5 space-y-3">
+            <motion.div
+              key="fact-form"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ height: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.2 } }}
+              className="overflow-hidden border-b border-border-faint"
+              onAnimationComplete={() => { if (showFactForm) document.getElementById("fact-title")?.focus(); }}
+            >
+            <motion.div
+              initial={{ y: -8 }}
+              animate={{ y: 0 }}
+              exit={{ y: -8 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="p-4 bg-brand-faint/5 space-y-3"
+            >
               <div>
                 <label className="text-[11px] font-semibold text-text-muted">Title</label>
                 <input
+                  id="fact-title"
                   type="text"
-                  className="w-full mt-1 bg-bg border border-border-mid rounded-lg h-9 px-3 text-[12px] outline-none text-text-primary"
+                  className="w-full mt-1 bg-bg border border-border-mid rounded-lg h-9 px-3 text-[12px] outline-none text-text-primary transition-colors focus:border-brand"
                   placeholder="e.g. BS Data Science Fee Structure"
                   value={factTitle}
                   onChange={(e) => setFactTitle(e.target.value)}
@@ -504,7 +538,7 @@ export const KnowledgeBase = () => {
               <div>
                 <label className="text-[11px] font-semibold text-text-muted">Fact content (exactly what the AI should say)</label>
                 <textarea
-                  className="w-full mt-1 min-h-[100px] bg-bg border border-border-mid rounded-lg p-3 text-[12px] outline-none text-text-primary resize-y"
+                  className="w-full mt-1 min-h-[100px] bg-bg border border-border-mid rounded-lg p-3 text-[12px] outline-none text-text-primary resize-y transition-colors focus:border-brand"
                   placeholder="Write the actual fact, as complete and precise as you want the AI's answer to be..."
                   value={factContent}
                   onChange={(e) => setFactContent(e.target.value)}
@@ -514,24 +548,39 @@ export const KnowledgeBase = () => {
                 <label className="text-[11px] font-semibold text-text-muted">Trigger keywords/phrases (comma-separated)</label>
                 <input
                   type="text"
-                  className="w-full mt-1 bg-bg border border-border-mid rounded-lg h-9 px-3 text-[12px] outline-none text-text-primary"
+                  className="w-full mt-1 bg-bg border border-border-mid rounded-lg h-9 px-3 text-[12px] outline-none text-text-primary transition-colors focus:border-brand"
                   placeholder="e.g. BS Data Science, data science, cybersecurity"
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSaveFact(); }}
                   value={factTriggers}
                   onChange={(e) => setFactTriggers(e.target.value)}
                 />
                 <p className="text-[10px] text-text-muted mt-1">This fact is force-included whenever a customer's message contains any of these words or phrases — regardless of how the AI would otherwise rank it.</p>
               </div>
-              <div className="flex items-center gap-2 pt-1">
-                <Button variant="primary" size="sm" onClick={handleSaveFact} disabled={factSaving}>
-                  {factSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                  {editingFactId ? "Update Fact" : "Add Fact"}
-                </Button>
-                <Button variant="secondary" size="sm" onClick={resetFactForm} disabled={factSaving}>
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={resetFactForm}
+                  disabled={factSaving}
+                  className="h-9 px-4 gap-2 rounded-lg font-semibold border border-border-mid bg-bg text-text-second transition-all duration-200 hover:bg-surface-high hover:text-text-primary active:scale-[0.98]"
+                >
                   <X size={14} /> Cancel
                 </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveFact}
+                  disabled={factSaving}
+                  className="h-9 px-4 gap-2 rounded-lg font-semibold shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98] disabled:opacity-60"
+                >
+                  {factSaving ? <Loader2 size={14} className="animate-spin" /> : editingFactId ? <Check size={14} /> : <Plus size={14} />}
+                  {factSaving ? "Saving…" : editingFactId ? "Update fact" : "Add fact"}
+                </Button>
               </div>
-            </div>
+            </motion.div>
+            </motion.div>
           )}
+          </AnimatePresence>
 
           <div className="divide-y divide-border-faint max-h-[400px] overflow-y-auto">
             {factsLoading && (
