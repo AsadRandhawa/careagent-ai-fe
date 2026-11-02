@@ -53,7 +53,7 @@ interface AppState {
   isFetchingInsights: boolean;
   fetchAIInsights:    () => Promise<void>;
 
-  // Sync Gmail → DB
+  // Kept as a no-op so existing callers (Dashboard) keep working.
   syncTickets: () => Promise<void>;
 
   // Take over a ticket (remove from list, server increments resolved via reply endpoint)
@@ -61,10 +61,6 @@ interface AppState {
 
   // Sidebar seen tracking — stored in DB, not localStorage
   markSectionSeen: (section: 'inbox' | 'escalations') => Promise<void>;
-
-  // Gmail channel toggle — stored in DB
-  gmailEnabled: boolean;
-  setGmailEnabled: (enabled: boolean) => Promise<void>;
 
   // Facebook channel toggle — stored in DB
   facebookEnabled: boolean;
@@ -141,19 +137,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     set({ isFetchingTickets: true });
     try {
-      // Fetch every channel in parallel. Previously this bailed out early
-      // with `if (!gmailEnabled) return mock data`, which made the
-      // Facebook/Instagram/WhatsApp fetches below completely unreachable
-      // for any account without Gmail connected — meaning non-Gmail
-      // accounts only ever saw hardcoded mock tickets, never their real
-      // ones, regardless of how many other channels were actually
-      // connected. Each fetch below already fails independently and
-      // gracefully (Promise.allSettled + a per-response .ok check), so
-      // there's no need to gate the whole function on one channel.
-      const [gmailRes, livechatRes, facebookRes, instagramRes, whatsappRes] = await Promise.allSettled([
-        fetch(`${getApiUrl()}/api/gmail/emails`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+      // Fetch every channel in parallel. Each fetch fails independently
+      // (Promise.allSettled + a per-response .ok check).
+      const [livechatRes, facebookRes, instagramRes, whatsappRes] = await Promise.allSettled([
         fetch(`${getApiUrl()}/api/livechat/tickets`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -167,14 +153,6 @@ export const useAppStore = create<AppState>((set, get) => ({
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
-
-      const gmailTickets: any[] = [];
-      if (gmailRes.status === 'fulfilled' && gmailRes.value.ok) {
-        const data = await gmailRes.value.json();
-        if (Array.isArray(data)) {
-          gmailTickets.push(...data.map((t: any) => ({ ...t, channel: 'gmail' })));
-        }
-      }
 
       const livechatTickets: any[] = [];
       if (livechatRes.status === 'fulfilled' && livechatRes.value.ok) {
@@ -200,7 +178,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (Array.isArray(data)) whatsappTickets.push(...data.map((t: any) => ({ ...t, channel: 'whatsapp' })));
       }
 
-      const realTickets = [...gmailTickets, ...livechatTickets, ...facebookTickets, ...instagramTickets, ...whatsappTickets];
+      const realTickets = [...livechatTickets, ...facebookTickets, ...instagramTickets, ...whatsappTickets];
 
       // A brand-new account with no channels connected yet has zero real
       // tickets, and that's exactly what should be shown — an empty
@@ -217,19 +195,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  // ── Sync Gmail → DB ────────────────────────────────────
-  syncTickets: async () => {
-    const { token } = get();
-    if (!token) return;
-    try {
-      await fetch(`${getApiUrl()}/api/tickets/sync`, {
-        method:  'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    } catch (err) {
-      console.error('Sync failed:', err);
-    }
-  },
+  // ── Sync (no-op) ───────────────────────────────────────
+  // This used to pull the Gmail inbox into the database. Gmail has been
+  // removed, and every other channel arrives by webhook, so there is
+  // nothing to sync. Kept so existing callers don't break.
+  syncTickets: async () => {},
 
   // ── Take Over Ticket ───────────────────────────────────
   takeOverTicket: (ticketId: string) => {
@@ -267,24 +237,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   // ── Pending Plan ──────────────────────────────────────
   pendingPlan: null,
   setPendingPlan: (plan) => set({ pendingPlan: plan }),
-
-  // ── Gmail Toggle (DB) ──────────────────────────────────
-  gmailEnabled: true, // will be overwritten by user profile load in App.tsx
-  setGmailEnabled: async (enabled: boolean) => {
-    const { token } = get();
-    set({ gmailEnabled: enabled });
-    if (!enabled) set({ tickets: [] });
-    if (!token) return;
-    try {
-      await fetch(`${getApiUrl()}/api/user/preferences`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ gmailEnabled: enabled }),
-      });
-    } catch (err) {
-      console.error('setGmailEnabled failed:', err);
-    }
-  },
 
   // ── Facebook Toggle (DB) ───────────────────────────────
   facebookEnabled: true, // will be overwritten by user profile load in App.tsx
@@ -415,7 +367,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         tickets: [],
         aiDrafts: {},
         pendingPlan: null,
-        gmailEnabled: true,
         facebookEnabled: true,
         instagramEnabled: true,
         aiAutoDrafting: true,
@@ -433,11 +384,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   user:    null,
   setUser: (user) => {
-    // Sync gmailEnabled from DB when user profile loads
+    // Sync channel/automation settings from DB when user profile loads
     if (user) {
       set({
         user,
-        gmailEnabled:       user.gmailEnabled       ?? true,
         facebookEnabled:    user.facebookEnabled    ?? true,
         instagramEnabled:   user.instagramEnabled    ?? true,
         aiAutoDrafting:     user.aiAutoDrafting     ?? true,
