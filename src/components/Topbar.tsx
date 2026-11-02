@@ -2,13 +2,22 @@ import * as React from "react";
 import { Search, Bell, HelpCircle, Command } from "lucide-react";
 import { IconButton } from "./ui/IconButton";
 import { useAppStore } from "../store";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+
+// Pages where the ticket search bar and the bell/help icons don't belong:
+// Channels is a settings page and Super Admin is a platform-wide view, so
+// searching this account's tickets makes no sense on either.
+const HIDE_TOPBAR_ON = ["/channels", "/admin"];
 
 export const Topbar = () => {
   const { tickets } = useAppStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const [query, setQuery] = React.useState("");
   const [focused, setFocused] = React.useState(false);
+
+  // After all hooks, so React's hook order stays the same on every render.
+  if (HIDE_TOPBAR_ON.includes(location.pathname)) return null;
 
   // Simple search — filter tickets by subject/customer
   const results = query.trim().length > 1
