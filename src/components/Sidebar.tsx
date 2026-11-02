@@ -1,7 +1,7 @@
 import { cn } from "@/src/lib/utils";
-import { 
+import {
   LayoutDashboard, Inbox, Sparkles, AlertTriangle, FileText,
-  Database, Rocket, Plug, ChartBar, LogOut, ChevronRight, CreditCard
+  Database, Rocket, Plug, ChartBar, LogOut, ChevronRight, CreditCard, ShieldCheck
 } from "lucide-react";
 import { Badge } from "./ui/Badge";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -9,7 +9,7 @@ import * as React from "react";
 import { useAppStore } from "../store";
 import { motion, AnimatePresence } from "motion/react";
 
-export type SectionType = "Operations" | "Admin" | "Analytics";
+export type SectionType = "Operations" | "Admin" | "Analytics" | "Platform";
 
 const navItems = {
   Operations: [
@@ -26,13 +26,23 @@ const navItems = {
   ],
   Analytics: [
     { id: "insights", label: "Analytics", icon: ChartBar, path: "/analytics" },
-  ]
+  ],
+  // Only shown to super admins (user.isSuperAdmin from /api/user/me, which
+  // the server derives from the SUPER_ADMIN_EMAILS env var). Hiding it is
+  // just tidiness — the server refuses every /api/admin call from anyone else.
+  Platform: [
+    { id: "admin", label: "Super Admin", icon: ShieldCheck, path: "/admin" },
+  ],
 };
 
 export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, setToken, tickets, aiDrafts, markSectionSeen } = useAppStore();
+
+  const sections = (Object.keys(navItems) as SectionType[]).filter(
+    section => section !== "Platform" || !!user?.isSuperAdmin
+  );
 
   const escalatedCount = tickets.filter(
     t => t.status === "escalated" || (aiDrafts && aiDrafts[t.id]?.status === "escalated")
@@ -72,7 +82,7 @@ export const Sidebar = () => {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-8">
-        {(Object.keys(navItems) as SectionType[]).map((section) => (
+        {sections.map((section) => (
           <div key={section}>
             <div className="px-2 mb-3 text-[11px] font-bold text-text-disabled uppercase tracking-[0.15em]">
               {section}
