@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   Search, Filter, Sparkles, Send, Edit3, RotateCw,
   AlertTriangle, User, Hash, MoreVertical, Paperclip,
-  Smile, Plus, MessageCircle, Globe, Mail, Instagram,
+  Smile, Plus, MessageCircle, Globe, Instagram,
 } from "lucide-react";
 import { SectionHeader } from "../components/SectionHeader";
 import { TicketRow } from "../components/TicketRow";
@@ -23,7 +23,6 @@ type AIDraftResponse = { status: "draft" | "escalated"; reason?: string; draft?:
 // ── Channel config ────────────────────────────────────────────────────────────
 const CHANNELS = [
   { id: "All",      label: "All",      icon: null,                  accent: "", bg: "", text: "", dot: "" },
-  { id: "gmail",    label: "Gmail",    icon: <Mail size={14} />,    accent: "border-danger/50",      bg: "bg-danger/8",      text: "text-danger",      dot: "bg-danger"      },
   { id: "whatsapp", label: "WhatsApp", icon: <MessageCircle size={14} />, accent: "border-[#25D366]/50", bg: "bg-[#25D366]/8",   text: "text-[#25D366]",   dot: "bg-[#25D366]"   },
   {
     id: "facebook", label: "Facebook",
@@ -108,14 +107,13 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
   // ── Per-channel escalation counts ────────────────────────────────────────────
   const channelEscCounts = React.useMemo(() => {
     const counts: Record<string, { total: number; escalated: number }> = {
-      gmail:     { total: 0, escalated: 0 },
       whatsapp:  { total: 0, escalated: 0 },
       facebook:  { total: 0, escalated: 0 },
       instagram: { total: 0, escalated: 0 },
       website:   { total: 0, escalated: 0 },
     };
     tickets.forEach(t => {
-      const ch = ((t as any).channel as string | undefined) ?? "gmail";
+      const ch = ((t as any).channel as string | undefined) ?? "";
       if (!counts[ch]) return;
       counts[ch].total++;
       if (t.status === "escalated" || aiDrafts[t.id]?.status === "escalated") {
@@ -279,7 +277,7 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
       });
       if (!res.ok) throw new Error("Failed to send");
       clearIdempotencyKey(selectedId);
-      toast("Reply sent successfully ✓", "success");
+      toast("Reply sent successfully", "success");
       if (isLivechat) {
         setChatMessages(prev => [...prev, { role: 'agent', content: draft.draft, createdAt: new Date().toISOString() }]);
         setAiDrafts(prev => { const d = { ...prev }; delete d[selectedId]; return d; });
@@ -338,7 +336,7 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
       });
       if (!res.ok) throw new Error("Failed to send");
       clearIdempotencyKey(selectedId as string);
-      toast("Reply sent successfully ✓", "success");
+      toast("Reply sent successfully", "success");
       setManualReply("");
       if (isLivechat) {
         setChatMessages(prev => [...prev, { role: 'agent', content: manualReply, createdAt: new Date().toISOString() }]);
