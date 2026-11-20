@@ -93,7 +93,7 @@ interface AppState {
   setShowOnboarding: (show: boolean) => void;
 }
 
-const getApiUrl = () => import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const getApiUrl = () => import.meta.env.VITE_API_URL || 'https://careagent-ai-be-production.up.railway.app';
 
 export const useAppStore = create<AppState>((set, get) => ({
   // ── Documents ──────────────────────────────────────────

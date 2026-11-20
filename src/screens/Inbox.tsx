@@ -128,7 +128,7 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     if (!ticket) return;
     setIsDrafting(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
       const response = await fetch(`${apiUrl}/api/ai/draft`, {
         method: "POST",
         headers: {
@@ -180,7 +180,7 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
       return;
     }
     setIsChatLoading(true);
-    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
 
     const request = channel === 'website'
       ? fetch(`${apiUrl}/api/livechat/messages/${(ticket as any).sessionId || selectedId}`, {
@@ -247,7 +247,7 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     if (!draft?.draft) return;
     setIsSending(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
       const channel = (selectedTicket as any).channel;
       const isLivechat = channel === 'website';
       const isFacebook = channel === 'facebook';
@@ -306,7 +306,7 @@ export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => 
     if (!selectedTicket || !manualReply.trim()) return;
     setIsSending(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
       const channel = (selectedTicket as any).channel;
       const isLivechat = channel === 'website';
       const isFacebook = channel === 'facebook';

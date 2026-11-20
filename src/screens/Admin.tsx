@@ -61,7 +61,7 @@ const PLANS: { id: Plan; label: string; limit: number | null; note: string }[] =
 ];
 const planLabel = (p: string) => PLANS.find(x => x.id === p)?.label ?? p;
 
-const apiUrl = () => (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/+$/, "");
+const apiUrl = () => (import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app").replace(/\/+$/, "");
 
 const timeAgo = (iso: string | null) => {
   if (!iso) return "Never";

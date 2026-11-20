@@ -37,7 +37,7 @@ export const Channels = () => {
   const saveInstagramAutoSend = async (val: boolean) => {
     setInstagramAutoSendLocal(val); // optimistic
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
       const res = await fetch(`${apiUrl}/api/user/preferences`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -64,6 +64,13 @@ export const Channels = () => {
   const [connectingWhatsApp, setConnectingWhatsApp] = React.useState(false);
   const [fbSdkReady, setFbSdkReady] = React.useState(false);
 
+  // ── Facebook Multi-Page Picker state ──────────────────────
+  const [showPagePicker, setShowPagePicker] = React.useState(false);
+  const [pendingPages, setPendingPages] = React.useState<Array<{ id: string; name: string; hasInstagram: boolean; instagramUsername: string | null }>>([]);
+  const [loadingPendingPages, setLoadingPendingPages] = React.useState(false);
+  const [selectingPageId, setSelectingPageId] = React.useState<string | null>(null);
+  const [pickerSessionId, setPickerSessionId] = React.useState<string | null>(null);
+
   const livechatConnected = !!livechatToken;
 
   // Load Meta's JS SDK once. Embedded Signup runs through FB.login(), not
@@ -78,7 +85,12 @@ export const Channels = () => {
       return;
     }
     (window as any).fbAsyncInit = function () {
-      (window as any).FB.init({ appId, autoLogAppEvents: true, xfbml: false, version: "v19.0" });
+      (window as any).FB.init({
+        appId,
+        autoLogAppEvents: true,
+        xfbml: false,
+        version: import.meta.env.VITE_GRAPH_VERSION || "v25.0",
+      });
       setFbSdkReady(true);
     };
     const script = document.createElement("script");
@@ -97,7 +109,60 @@ export const Channels = () => {
       toast("Facebook connection failed. Please try again.", "error");
       window.history.replaceState({}, "", "/channels");
     }
-  }, [searchParams, toast]);
+    if (searchParams.get("error") === "no_pages") {
+      toast("No Facebook Pages found. Please ensure your Facebook account manages a Page and granted permission.", "error");
+      window.history.replaceState({}, "", "/channels");
+    }
+    if (searchParams.get("select_page") === "true") {
+      const session = searchParams.get("session");
+      if (session) {
+        setPickerSessionId(session);
+        setShowPagePicker(true);
+        setLoadingPendingPages(true);
+        const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
+        fetch(`${apiUrl}/api/auth/facebook/pending-pages?session=${encodeURIComponent(session)}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then(async (res) => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to load Pages");
+            setPendingPages(data.pages || []);
+          })
+          .catch((err) => {
+            toast(err.message || "Failed to load Pages", "error");
+            setShowPagePicker(false);
+            window.history.replaceState({}, "", "/channels");
+          })
+          .finally(() => setLoadingPendingPages(false));
+      }
+    }
+  }, [searchParams, toast, token]);
+
+  const handleSelectPage = async (pageId: string) => {
+    if (!pickerSessionId) return;
+    setSelectingPageId(pageId);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
+      const res = await fetch(`${apiUrl}/api/auth/facebook/select-page`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ session: pickerSessionId, pageId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to connect selected Page");
+      toast(`Connected to ${data.pageName || "Facebook Page"}!`, "success");
+      setShowPagePicker(false);
+      window.history.replaceState({}, "", "/channels");
+      window.location.reload();
+    } catch (err: any) {
+      toast(err.message || "Failed to connect Facebook Page", "error");
+    } finally {
+      setSelectingPageId(null);
+    }
+  };
 
   const connectWhatsApp = () => {
     const appId = import.meta.env.VITE_META_APP_ID;
@@ -189,7 +254,7 @@ export const Channels = () => {
       }
 
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
         const res = await fetch(`${apiUrl}/api/whatsapp/connect`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
@@ -213,7 +278,7 @@ export const Channels = () => {
 
   const disconnectWhatsApp = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
       const res = await fetch(`${apiUrl}/api/whatsapp/disconnect`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` },
@@ -227,14 +292,14 @@ export const Channels = () => {
   };
 
   const connectFacebook = () => {
-    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
     window.location.href = `${apiUrl}/api/auth/facebook?token=${token || ""}`;
   };
 
   const disconnectFacebook = async () => {
     if (!window.confirm("Disconnect Facebook Messenger? You'll need to reconnect and re-approve access to reply to Messenger conversations again.")) return;
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
       await fetch(`${apiUrl}/api/user/disconnect/facebook`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -250,14 +315,14 @@ export const Channels = () => {
     if (!facebookConnected) {
       toast("Connect Facebook Messenger first — Instagram DMs connect automatically through your linked Page.", "info");
     }
-    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
     window.location.href = `${apiUrl}/api/auth/facebook?token=${token || ""}`;
   };
 
   const disconnectInstagram = async () => {
     if (!window.confirm("Disconnect Instagram DMs? You'll need to reconnect to reply to Instagram conversations again.")) return;
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
       await fetch(`${apiUrl}/api/user/disconnect/instagram`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -272,7 +337,7 @@ export const Channels = () => {
   const connectLivechat = async () => {
     setConnectingChat(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
       const res = await fetch(`${apiUrl}/api/livechat/token`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -365,6 +430,22 @@ export const Channels = () => {
       <AnimatePresence>
         {showEmbed && embedCode && (
           <LiveChatInstallModal embedCode={embedCode} onClose={() => setShowEmbed(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* ── Facebook Multi-Page Picker (popup) ──────────────────────────────── */}
+      <AnimatePresence>
+        {showPagePicker && (
+          <FacebookPagePickerModal
+            pages={pendingPages}
+            loading={loadingPendingPages}
+            selectingId={selectingPageId}
+            onSelect={handleSelectPage}
+            onClose={() => {
+              setShowPagePicker(false);
+              window.history.replaceState({}, "", "/channels");
+            }}
+          />
         )}
       </AnimatePresence>
 
@@ -707,3 +788,123 @@ const StepTitle = ({ n, title }: { n: number; title: string }) => (
     {title}
   </h3>
 );
+
+// ── Facebook Multi-Page Picker modal ───────────────────────
+interface PageOption {
+  id: string;
+  name: string;
+  hasInstagram: boolean;
+  instagramUsername: string | null;
+}
+
+interface FacebookPagePickerModalProps {
+  pages: PageOption[];
+  loading: boolean;
+  selectingId: string | null;
+  onSelect: (pageId: string) => void;
+  onClose: () => void;
+}
+
+const FacebookPagePickerModal = ({
+  pages,
+  loading,
+  selectingId,
+  onSelect,
+  onClose,
+}: FacebookPagePickerModalProps) => {
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="page-picker-title"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 16, scale: 0.98 }}
+        transition={{ duration: 0.2 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg rounded-2xl border border-border-faint bg-bg shadow-2xl overflow-hidden"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-border-faint bg-bg px-6 py-5">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-brand/10 flex items-center justify-center text-brand shrink-0">
+              <MessageSquare size={18} />
+            </div>
+            <div>
+              <h2 id="page-picker-title" className="text-[16px] font-bold text-text-primary">Select a Facebook Page</h2>
+              <p className="text-[12px] text-text-muted mt-0.5">
+                Choose the Facebook Page you want to connect to CareAgent.
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-text-muted hover:text-text-primary p-1" aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-3 max-h-[60vh] overflow-y-auto">
+          {loading ? (
+            <div className="py-8 text-center text-text-muted text-[13px]">
+              Loading your Facebook Pages…
+            </div>
+          ) : pages.length === 0 ? (
+            <div className="py-8 text-center text-text-muted text-[13px]">
+              No Facebook Pages found in this session. Please reconnect.
+            </div>
+          ) : (
+            pages.map((p) => (
+              <div
+                key={p.id}
+                className="flex items-center justify-between p-4 rounded-xl border border-border-faint hover:border-border-mid bg-surface transition-all"
+              >
+                <div className="space-y-1.5 pr-4">
+                  <div className="text-[14px] font-semibold text-text-primary">
+                    {p.name}
+                  </div>
+                  {p.hasInstagram ? (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                      <Instagram size={12} />
+                      <span>Instagram linked{p.instagramUsername ? ` (@${p.instagramUsername})` : ""}</span>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-text-muted">
+                      No Instagram account linked
+                    </div>
+                  )}
+                </div>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  disabled={selectingId !== null}
+                  onClick={() => onSelect(p.id)}
+                  className="shrink-0"
+                >
+                  {selectingId === p.id ? "Connecting…" : "Connect"}
+                </Button>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="border-t border-border-faint bg-surface-high/30 px-6 py-3.5 flex justify-between items-center text-[12px] text-text-muted">
+          <span>You can change or reconnect pages at any time.</span>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};

@@ -125,7 +125,7 @@ export const OnboardingModal = () => {
 
   const handleConnectGmail = () => {
     const state = useAppStore.getState();
-    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
     window.location.href = `${apiUrl}/api/auth/google?token=${state.token || ""}`;
   };
 

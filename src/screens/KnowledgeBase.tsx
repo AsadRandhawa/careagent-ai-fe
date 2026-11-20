@@ -59,7 +59,7 @@ async function extractText(file: File): Promise<string> {
 export const KnowledgeBase = () => {
   const { documents, hydrateDocuments, token } = useAppStore();
   const { toast } = useToast();
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
   const authHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 
   // ── AI Instructions (nativeRagPromptAddendum) ─────────────────────────

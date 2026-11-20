@@ -45,7 +45,7 @@ export default function App() {
   React.useEffect(() => {
     // Load user profile first, then fetch tickets once we know gmail is connected
     if (token) {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiUrl = (import.meta as any).env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
       fetch(`${apiUrl}/api/user/me`, {
         headers: { "Authorization": `Bearer ${token}`, "Cache-Control": "no-store" }
       })
@@ -88,7 +88,14 @@ export default function App() {
     }
   }, [token]);
 
-  const isLanding = location.pathname === "/" || location.pathname === "/privacy" || location.pathname === "/refund-policy" || location.pathname === "/terms";
+  const isLanding =
+    location.pathname === "/" ||
+    location.pathname === "/login" ||
+    location.pathname === "/signup" ||
+    location.pathname === "/privacy" ||
+    location.pathname === "/refund-policy" ||
+    location.pathname === "/terms" ||
+    location.pathname.endsWith(".html");
 
   // Unauthenticated visitor hitting a protected route directly (typed URL,
   // stale bookmark, shared link, or a token that just expired above) — send
@@ -106,8 +113,8 @@ export default function App() {
           key={location.pathname}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.5 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
         >
           {location.pathname === "/privacy" ? <Privacy />
             : location.pathname === "/refund-policy" ? <RefundPolicy />
