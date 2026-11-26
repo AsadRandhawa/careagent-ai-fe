@@ -111,10 +111,10 @@ export const Sidebar = () => {
                       {badge && (
                         <span className={cn(
                           "text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center",
-                          isActive ? "bg-white/20 text-white" : "bg-brand/15 text-brand"
+                          isActive ? "bg-brand/20 text-brand" : "bg-brand/15 text-brand"
                         )}>{badge}</span>
                       )}
-                      {isActive && <ChevronRight size={12} className="text-white/60" />}
+                      {isActive && <ChevronRight size={12} className="text-brand/70" />}
                     </div>
                   </button>
                 );

@@ -63,9 +63,9 @@ export const RefundPolicy = () => {
         <Section title="2. Subscription Plans">
           <p>CareAgent.ai currently offers the following subscription tiers:</p>
           <div className="space-y-1.5 mt-2">
-            <Bullet>Startup Plan — $0/month (Free, no payment required)</Bullet>
-            <Bullet>Growth Plan — $20/month (Recurring monthly subscription)</Bullet>
-            <Bullet>Enterprise Plan — Custom pricing (Contact sales)</Bullet>
+            <Bullet>Starter Plan: $49/month (1,500 AI replies a month, any 2 channels)</Bullet>
+            <Bullet>Growth Plan: $149/month (6,000 AI replies a month, all 4 channels)</Bullet>
+            <Bullet>Managed Plan: $45/month + usage ($0.03 per AI reply, fully managed)</Bullet>
           </div>
         </Section>
 
@@ -86,17 +86,17 @@ export const RefundPolicy = () => {
             <Bullet>Your account was suspended due to violation of our Terms of Service</Bullet>
             <Bullet>You did not use the service but the subscription period has already passed</Bullet>
             <Bullet>Partial month refunds for mid-cycle cancellations</Bullet>
-            <Bullet>The Startup (free) plan — as no payment is made</Bullet>
+            <Bullet>Usage charges incurred once substantial use of AI replies has occurred</Bullet>
           </div>
         </Section>
 
         <Section title="5. How to Request a Refund">
           <p>To request a refund, please follow these steps:</p>
           <div className="space-y-1.5 mt-2">
-            <Bullet>Send an email to <a href="mailto:support@careagent.ai" className="text-brand hover:underline font-semibold">support@careagent.ai</a> with the subject line: "Refund Request — [Your Account Email]"</Bullet>
+            <Bullet>Send an email to <a href="mailto:support@careagent.ai" className="text-brand hover:underline font-semibold">support@careagent.ai</a> with the subject line: "Refund Request: [Your Account Email]"</Bullet>
             <Bullet>Include your account email address, the date of the charge, and the reason for your refund request</Bullet>
             <Bullet>Our team will review your request within 3 business days and respond with a decision</Bullet>
-            <Bullet>If approved, refunds are processed within 5–10 business days to the original payment method</Bullet>
+            <Bullet>If approved, refunds are processed within 5-10 business days to the original payment method</Bullet>
           </div>
         </Section>
 

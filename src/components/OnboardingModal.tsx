@@ -198,22 +198,22 @@ export const OnboardingModal = () => {
                 <div className="flex-1 flex flex-col justify-center items-center text-center">
                   <div className="inline-block px-3 py-1 rounded-full bg-brand/10 text-brand text-[10px] font-black uppercase tracking-widest mb-4">Step 00</div>
                   <h2 className="text-3xl font-black text-text-primary tracking-tight mb-2">Pick your plan</h2>
-                  <p className="text-sm text-text-muted mb-8 max-w-md">Start free and upgrade anytime. No credit card required for Startup.</p>
+                  <p className="text-sm text-text-muted mb-8 max-w-md">Choose the plan that fits how many customers message you. Cancel any month.</p>
                   <div className="grid grid-cols-2 gap-4 w-full max-w-lg">
                     <button onClick={() => setCurrentStep(1)} className="p-6 rounded-2xl border-2 border-border-faint hover:border-brand/40 bg-surface text-left transition-all group hover:shadow-lg">
                       <div className="w-10 h-10 rounded-xl bg-surface-high flex items-center justify-center mb-3">
                         <Zap size={18} className="text-text-muted group-hover:text-brand transition-colors" />
                       </div>
-                      <div className="text-[16px] font-black text-text-primary mb-1">Startup</div>
-                      <div className="text-2xl font-black text-brand mb-3">$0<span className="text-[12px] text-text-muted font-semibold">/mo</span></div>
+                      <div className="text-[16px] font-black text-text-primary mb-1">Starter</div>
+                      <div className="text-2xl font-black text-brand mb-3">$49<span className="text-[12px] text-text-muted font-semibold">/mo</span></div>
                       <div className="space-y-1.5">
-                        {["100 AI Resolutions", "2 KB Sources", "Email Integration"].map(f => (
+                        {["1,500 AI replies a month", "Any 2 channels", "Knowledge base & pinned facts", "Approve-first or auto-send"].map(f => (
                           <div key={f} className="flex items-center gap-1.5 text-[11px] text-text-muted">
                             <CheckCircle2 size={10} className="text-brand flex-shrink-0" />{f}
                           </div>
                         ))}
                       </div>
-                      <div className="mt-4 text-[11px] font-black text-brand">Continue free →</div>
+                      <div className="mt-4 text-[11px] font-black text-brand">Get started with Starter →</div>
                     </button>
 
                     <button onClick={handleStripeCheckout} className="p-6 rounded-2xl border-2 border-brand bg-brand/5 text-left transition-all relative shadow-glow hover:shadow-xl">
@@ -222,9 +222,9 @@ export const OnboardingModal = () => {
                         <Sparkles size={18} className="text-brand" />
                       </div>
                       <div className="text-[16px] font-black text-text-primary mb-1">Growth</div>
-                      <div className="text-2xl font-black text-brand mb-3">$20<span className="text-[12px] text-text-muted font-semibold">/mo</span></div>
+                      <div className="text-2xl font-black text-brand mb-3">$149<span className="text-[12px] text-text-muted font-semibold">/mo</span></div>
                       <div className="space-y-1.5">
-                        {["2,500 AI Resolutions", "Unlimited KB Docs", "WhatsApp & Slack", "SSO Login"].map(f => (
+                        {["6,000 AI replies a month", "All 4 channels", "Parallel AI agents", "Priority support on WhatsApp"].map(f => (
                           <div key={f} className="flex items-center gap-1.5 text-[11px] text-text-muted">
                             <CheckCircle2 size={10} className="text-brand flex-shrink-0" />{f}
                           </div>

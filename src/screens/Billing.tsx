@@ -11,35 +11,58 @@ import { useNavigate } from "react-router-dom";
 
 const PLANS = [
   {
-    id: "startup",
-    name: "Startup",
-    price: "$0",
+    id: "starter",
+    name: "Starter",
+    price: "$49",
     period: "/mo",
     icon: Zap,
     color: "text-text-muted",
     bg: "bg-surface-high",
-    features: ["100 AI Resolutions/month", "2 KB Sources", "Email Integration", "Basic Dashboard"],
+    desc: "For a small business answering on one or two apps.",
+    features: [
+      "1,500 AI replies a month",
+      "Any 2 channels",
+      "Knowledge base and pinned facts",
+      "Approve-first or auto-send",
+      "Human handoff for uncertain answers",
+    ],
   },
   {
     id: "growth",
     name: "Growth",
-    price: "$20",
+    price: "$149",
     period: "/mo",
     icon: Sparkles,
     color: "text-brand",
     bg: "bg-brand/10",
     popular: true,
-    features: ["2,500 AI Resolutions/month", "Unlimited KB Docs", "WhatsApp & Slack", "SSO Login", "Priority Support"],
+    desc: "For teams running ads and handling inquiries all day.",
+    features: [
+      "6,000 AI replies a month",
+      "All 4 channels",
+      "Several AI agents working in parallel",
+      "Sentiment tracking and escalation",
+      "Analytics and reports",
+      "Priority support on WhatsApp",
+    ],
   },
   {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "Custom",
-    period: "",
+    id: "managed",
+    name: "Managed",
+    price: "$45",
+    period: "/mo + usage",
     icon: Building,
     color: "text-purple",
     bg: "bg-purple/10",
-    features: ["Custom AI Resolutions", "Private Deployment", "Audit Logging", "Account Manager", "SLA Guarantee"],
+    desc: "We set it up and run it. You only see your inbox.",
+    features: [
+      "Everything in Growth",
+      "$0.03 per AI reply, no monthly cap",
+      "We set up your WhatsApp Business and Meta accounts",
+      "We write and maintain your knowledge base",
+      "No accounts, keys or settings to manage",
+      "Live usage meter in your dashboard",
+    ],
   },
 ];
 
@@ -190,14 +213,16 @@ export const Billing = () => {
               Current plan: <span className="text-brand capitalize">{currentPlan}</span>
             </div>
             <div className="text-[11px] text-text-muted mt-0.5">
-              {currentPlan === "startup" ? "You're on the free plan. Upgrade to unlock more." : "Your subscription is active."}
+              {currentPlan === "startup" || currentPlan === "starter"
+                ? "Upgrade to Growth to unlock all 4 channels, 6,000 AI replies, and parallel agents."
+                : "Your subscription is active."}
             </div>
           </div>
         </div>
-        {currentPlan === "startup" && (
+        {(currentPlan === "startup" || currentPlan === "starter") && (
           <div className="flex gap-2">
             <Button variant="brand" size="sm" onClick={handleUpgrade} disabled={loading} className="shadow-glow">
-              {loading ? "..." : "Stripe"} <ArrowRight size={13} className="ml-1" />
+              {loading ? "..." : "Upgrade with Stripe"} <ArrowRight size={13} className="ml-1" />
             </Button>
             <Button variant="surface" size="sm" onClick={handlePaddleCheckout} disabled={paddleLoading}>
               {paddleLoading ? "..." : "Paddle"}
@@ -251,12 +276,14 @@ export const Billing = () => {
                     {paddleLoading ? "Loading..." : "Pay with Paddle"}
                   </Button>
                 </div>
-              ) : plan.id === "enterprise" ? (
+              ) : plan.id === "managed" ? (
                 <Button variant="surface" size="sm" className="w-full" onClick={() => navigate("/contact")}>
                   Contact sales
                 </Button>
               ) : (
-                <Button variant="surface" size="sm" className="w-full" disabled>Free forever</Button>
+                <Button variant="surface" size="sm" className="w-full" onClick={handleUpgrade} disabled={loading}>
+                  Get Starter
+                </Button>
               )}
             </motion.div>
           );
@@ -265,7 +292,7 @@ export const Billing = () => {
 
       {/* Usage note */}
       <p className="text-[11px] text-text-disabled text-center mt-8">
-        Payments are processed securely by Stripe. Test mode active — use card <span className="font-mono">4242 4242 4242 4242</span>.
+        Payments are processed securely by Stripe. Test mode active - use card <span className="font-mono">4242 4242 4242 4242</span>.
       </p>
     </motion.div>
   );

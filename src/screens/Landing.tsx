@@ -635,17 +635,17 @@ const HOW_IT_WORKS_STEPS = [
   {
     icon: <ChatCircleDots size={32} weight="duotone" className="text-brand" />,
     title: "1. Connect your channels",
-    desc: "Log in to WhatsApp Business, Instagram and Facebook with their official buttons, and add the chat widget to your website.",
+    desc: "Log in to WhatsApp, Instagram and Facebook with their official buttons. Paste the chat widget on your website.",
   },
   {
     icon: <PhosphorDatabase size={32} weight="duotone" className="text-brand" />,
     title: "2. Teach it your business",
-    desc: "Upload your price list, services, timings and FAQs, and set the tone you want. Pin the facts that must always be exact.",
+    desc: "Upload your prices, services, timings and FAQs. Choose how it should sound. Pin the facts that must be exact.",
   },
   {
     icon: <Bot size={32} className="text-brand" />,
     title: "3. Go live",
-    desc: "Start by approving every reply. Switch on auto-send for a channel once you trust the answers. Anything uncertain goes to your team.",
+    desc: "Start by approving every reply. Turn on auto-reply for a channel once you trust the answers. Anything it isn't sure about goes to your team.",
   },
 ];
 
@@ -1550,7 +1550,7 @@ const CareAgentBot = () => {
     {
       role: "assistant",
       content:
-        "Hi! I'm the CareAgent guide. Ask me anything about the platform: features, pricing, how to get started, anything!",
+        "Hi, I'm the CareAgent guide. Ask about features, pricing or how to get started.",
     },
   ]);
   const [input, setInput] = React.useState("");
@@ -1586,7 +1586,7 @@ const CareAgentBot = () => {
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Having trouble connecting. Please try again!" },
+        { role: "assistant", content: "Having trouble connecting. Please try again." },
       ]);
     } finally {
       setLoading(false);
@@ -2375,7 +2375,7 @@ export const Landing = () => {
             transition={{ delay: 0.16, duration: 0.5 }}
             className="max-w-2xl w-full text-[16px] sm:text-[19px] text-slate-600 leading-relaxed mb-6 font-normal break-words px-2"
           >
-            You pay for ads, SEO and Google listings to get customers messaging. CareAgent gives each one a correct answer in seconds, from your own prices and policies, on whichever app they used. Anything it can't answer goes straight to your team.
+            CareAgent answers customer messages in seconds, from your own prices and policies. Anything it can't answer goes to your team.
           </motion.p>
 
           {/* CTA row: Get started (primary pill, 52px) plus See pricing text link */}
@@ -2405,10 +2405,21 @@ export const Landing = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.32, duration: 0.5 }}
-            className="text-[12px] sm:text-[13px] text-slate-500 leading-relaxed max-w-2xl w-full mb-6 break-words px-2"
+            className="text-[12px] sm:text-[13px] text-slate-500 leading-relaxed max-w-2xl w-full mb-3 break-words px-2"
           >
-            Set up in an afternoon · Cancel any month · Already answering admissions questions for a university in Lahore
+            Set up in an afternoon. Cancel any month.
           </motion.p>
+
+          {/* Proof strip: small, below hero */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.36, duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface/80 border border-border-faint text-[12px] text-slate-500 mb-6 shadow-xs max-w-full"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
+            <span className="truncate">Already answering admissions questions for a university in Lahore.</span>
+          </motion.div>
 
           {/* Channels: thin row of four logos in slate-400 under the CTAs that turn to brand color on hover */}
           <motion.div
@@ -2459,7 +2470,7 @@ export const Landing = () => {
               Getting the lead is half the job.
             </h2>
             <p className="text-lg text-text-muted leading-relaxed">
-              The other half is replying before the customer messages your competitor. Most small teams can't
+              The other half is replying before they message your competitor. Most small teams can't
               watch four apps all day, so paid-for inquiries sit unread.
             </p>
           </motion.div>
@@ -2584,78 +2595,38 @@ export const Landing = () => {
           </div>
 
           <div className="grid lg:grid-cols-12 gap-6">
-            {/* Feature 1: Wide card with mini documents + pinned fact */}
+            {/* Feature 1: Answers from your own files */}
             <BentoSpotlightCard
               prefersReduced={prefersReduced}
-              className="lg:col-span-7 bg-surface p-8 md:p-10 shadow-card"
+              className="lg:col-span-4 bg-surface p-8 shadow-card"
             >
               <div className="flex items-center gap-3 text-brand mb-6">
                 <PhosphorFileText size={38} weight="duotone" className="text-brand" />
                 <PushPin size={24} weight="duotone" className="text-brand rotate-12" />
               </div>
 
-              <div className="mb-6 p-3 rounded-xl bg-bg border border-border-faint flex items-center justify-between max-w-md">
-                <div className="flex items-center gap-2.5">
-                  <PhosphorFileText size={18} weight="duotone" className="text-brand" />
-                  <span className="text-xs font-bold text-text-primary">Price_List_2026.pdf</span>
+              <div className="mb-6 p-3 rounded-xl bg-bg border border-border-faint flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <PhosphorFileText size={16} weight="duotone" className="text-brand" />
+                  <span className="text-xs font-bold text-text-primary">Price_List.pdf</span>
                 </div>
                 <span className="text-[10px] font-bold text-brand bg-brand/10 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand" />
-                  Pinned fact active
+                  Pinned fact
                 </span>
               </div>
 
-              <h3 className="text-2xl md:text-3xl font-black text-text-primary mb-4 tracking-tight">
-                Answers from your own information
+              <h3 className="text-xl md:text-2xl font-black text-text-primary mb-3 tracking-tight">
+                Answers from your own files
               </h3>
-              <p className="text-text-second text-base leading-relaxed max-w-lg">
-                Upload your price list, brochure, FAQ or website pages. CareAgent answers only from
-                what you give it, and you can pin the facts it must always get right.
+              <p className="text-text-muted text-sm leading-relaxed">
+                Upload your price list, brochure or FAQ. It answers only from what you give it. Pin the facts it must always get right.
               </p>
             </BentoSpotlightCard>
 
-            {/* Feature 2: Taller dark slate card with emerald glow and 3 sliding chat lanes */}
-            <BentoSpotlightCard
-              prefersReduced={prefersReduced}
-              className="lg:col-span-5 bg-text-primary text-white p-8 md:p-10 shadow-2xl ring-1 ring-white/10"
-            >
-              {/* Emerald ambient glow */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -top-16 -right-16 w-44 h-44 rounded-full bg-brand/20 blur-2xl"
-              />
+            {/* Feature 2: [HOLD, UNVERIFIED] Many chats at once: hidden until confirmed */}
 
-              <div className="space-y-2.5 mb-8 bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden">
-                {[0, 1, 2].map((lane) => (
-                  <div
-                    key={lane}
-                    className="h-6 w-full rounded-lg bg-white/5 relative overflow-hidden flex items-center"
-                  >
-                    <motion.div
-                      animate={prefersReduced ? undefined : { x: ["-100%", "260%"] }}
-                      transition={{
-                        duration: 3.5 + lane * 0.8,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: lane * 0.4,
-                      }}
-                      className="h-4 px-3 rounded-full bg-brand text-[10px] font-mono font-bold text-white flex items-center shrink-0 shadow-xs"
-                    >
-                      Chat #{lane + 1}
-                    </motion.div>
-                  </div>
-                ))}
-              </div>
-
-              <h3 className="text-2xl md:text-3xl font-black mb-4 tracking-tight text-white">
-                Many conversations at once
-              </h3>
-              <p className="text-white/85 text-base leading-relaxed">
-                Several AI agents work in parallel, so a busy ad campaign never creates a queue.
-              </p>
-            </BentoSpotlightCard>
-
-            {/* Feature 3: Sentiment meter */}
+            {/* Feature 3: Flags unhappy customers */}
             <BentoSpotlightCard
               prefersReduced={prefersReduced}
               className="lg:col-span-4 bg-surface p-8 shadow-card"
@@ -2671,15 +2642,14 @@ export const Landing = () => {
                 </div>
               </div>
               <h3 className="text-xl md:text-2xl font-black text-text-primary mb-3 tracking-tight">
-                Spots unhappy customers
+                Flags unhappy customers
               </h3>
               <p className="text-text-muted text-sm leading-relaxed">
-                Sentiment tracking flags frustrated customers and hands them to a person before they
-                leave.
+                Frustrated messages are marked and passed to your team.
               </p>
             </BentoSpotlightCard>
 
-            {/* Feature 4: Keycap "A" next to SealCheck */}
+            {/* Feature 4: Your team stays in charge */}
             <BentoSpotlightCard
               prefersReduced={prefersReduced}
               className="lg:col-span-4 bg-surface p-8 shadow-card"
@@ -2698,22 +2668,7 @@ export const Landing = () => {
               </p>
             </BentoSpotlightCard>
 
-            {/* Feature 5: ChartLineUp */}
-            <BentoSpotlightCard
-              prefersReduced={prefersReduced}
-              className="lg:col-span-4 bg-surface p-8 shadow-card"
-            >
-              <div className="text-brand mb-6">
-                <ChartLineUp size={38} weight="duotone" className="text-brand" />
-              </div>
-              <h3 className="text-xl md:text-2xl font-black text-text-primary mb-3 tracking-tight">
-                Gets better as you use it
-              </h3>
-              <p className="text-text-muted text-sm leading-relaxed">
-                When your team edits a reply or answers an escalation, CareAgent learns the better
-                answer.
-              </p>
-            </BentoSpotlightCard>
+            {/* Feature 5: [HOLD, UNVERIFIED] Gets better as you use it: hidden until confirmed */}
 
             {/* Feature 6: Safeguards with Duotone Phosphor Icons */}
             <BentoSpotlightCard
@@ -2725,13 +2680,13 @@ export const Landing = () => {
                   <ShieldCheck size={32} weight="duotone" className="text-brand" />
                 </div>
                 <h3 className="text-2xl md:text-3xl font-black text-text-primary mb-4 tracking-tight leading-[1.1]">
-                  Built with real safeguards
+                  What happens when it isn't sure
                 </h3>
                 <ul className="space-y-3">
                   {[
-                    "If the answer isn't in your information, CareAgent tells the customer a person will follow up, and flags it for your team",
-                    "Every conversation is logged. Nothing is sent silently",
-                    "Uses official Meta and Google connections, so your accounts stay in good standing",
+                    "If the answer isn't in your files, the customer is told a person will follow up, and your team is alerted.",
+                    "Every message and reply is saved in your inbox.",
+                    "It connects through Meta's official login, so your accounts stay in good standing.",
                   ].map((t) => (
                     <li key={t} className="flex items-start gap-3 font-medium text-text-second text-sm">
                       <div className="w-1.5 h-1.5 rounded-full bg-brand mt-2 shrink-0" />
@@ -2746,18 +2701,18 @@ export const Landing = () => {
                 {[
                   {
                     bullet:
-                      "If the answer isn't in your information, CareAgent tells the customer a person will follow up, and flags it for your team",
+                      "If the answer isn't in your files, the customer is told a person will follow up, and your team is alerted.",
                     icon: <ShieldCheck size={20} weight="duotone" className="text-brand shrink-0" />,
                   },
                   {
-                    bullet: "Every conversation is logged. Nothing is sent silently",
+                    bullet: "Every message and reply is saved in your inbox.",
                     icon: (
                       <PhosphorFileText size={20} weight="duotone" className="text-brand shrink-0" />
                     ),
                   },
                   {
                     bullet:
-                      "Uses official Meta and Google connections, so your accounts stay in good standing",
+                      "It connects through Meta's official login, so your accounts stay in good standing.",
                     icon: <CheckCircle size={20} weight="duotone" className="text-brand shrink-0" />,
                   },
                 ].map((item, i) => (
@@ -2789,7 +2744,7 @@ export const Landing = () => {
               </span>
             </h2>
             <p className="text-lg text-text-muted max-w-xl mx-auto">
-              All four channels are live. Connect each one with its official login button.
+              WhatsApp, Instagram and Facebook connect with Meta's official login. For website chat, you paste a short snippet into your site.
             </p>
           </motion.div>
 
@@ -2928,8 +2883,7 @@ export const Landing = () => {
             <div className="max-w-sm">
               <img src="/Logo-CareAgent-clean.png" alt="CareAgent" className="h-8 object-contain mb-6" />
               <p className="text-text-muted text-base font-medium leading-relaxed">
-                AI customer replies for WhatsApp, Instagram, Facebook and website chat. It answers from your
-                information, sends confident replies and hands the rest to your team.
+                Replies to customer messages on WhatsApp, Instagram, Facebook and website chat, using your own information. Anything it can't answer goes to your team.
               </p>
             </div>
 

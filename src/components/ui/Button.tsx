@@ -2,13 +2,15 @@ import * as React from "react";
 import { cn } from "@/src/lib/utils";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "ghost" | "surface" | "danger" | "success";
+  variant?: "primary" | "brand" | "outline" | "ghost" | "surface" | "danger" | "success";
   size?: "xs" | "sm" | "md" | "lg";
   icon?: React.ReactNode;
 }
 
 const variantStyles = {
   primary: "bg-brand text-white hover:bg-brand-dim active:scale-95 shadow-glow/10",
+  brand: "bg-brand text-white hover:bg-brand-dim active:scale-95 shadow-glow/10",
+  outline: "bg-transparent border border-border-mid text-text-primary hover:bg-surface-high active:scale-95",
   ghost: "bg-transparent border border-border-mid text-text-second hover:bg-surface-high hover:text-text-primary",
   surface: "bg-surface border border-border-mid text-text-primary hover:bg-surface-high",
   danger: "bg-danger-faint text-danger border border-danger/20 hover:bg-danger/10",

@@ -65,7 +65,7 @@ function formatDateSeparator(dateInput: string | undefined): string {
 export const Inbox = ({ defaultFilter = "All" }: { defaultFilter?: string }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const ticketIdParam = searchParams.get("ticketId");
+  const ticketIdParam = searchParams.get("ticketId") || searchParams.get("ticket");
 
   const {
     tickets, setTickets, isFetchingTickets,

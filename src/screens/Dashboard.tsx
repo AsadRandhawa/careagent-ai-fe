@@ -8,7 +8,9 @@ import { MiniBarChart } from "../components/MiniBarChart";
 import { TicketRow } from "../components/TicketRow";
 import { ProgressBar } from "../components/ui/ProgressBar";
 import { Button } from "../components/ui/Button";
-import { RefreshCw, Download, Inbox, Sparkles, Clock, Star, Zap, Activity, CreditCard, ArrowRight } from "lucide-react";
+import { Badge } from "../components/ui/Badge";
+import { Modal } from "../components/ui/Modal";
+import { RefreshCw, Download, Inbox, Sparkles, Clock, Star, Zap, Activity, CreditCard, ArrowRight, MessageSquare, Instagram, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../components/ToastProvider";
 import { useAppStore } from "../store";
@@ -17,6 +19,18 @@ const todayLabel = () =>
   new Date().toLocaleDateString("en-US", {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
   });
+
+const formatTimeWaiting = (dateStr?: string | Date) => {
+  if (!dateStr) return "—";
+  const ms = Date.now() - new Date(dateStr).getTime();
+  if (isNaN(ms) || ms < 0) return "just now";
+  const mins = Math.floor(ms / (1000 * 60));
+  if (mins < 60) return `${mins}m waiting`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h waiting`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d waiting`;
+};
 
 export const Dashboard = () => {
   const navigate    = useNavigate();
@@ -29,6 +43,29 @@ export const Dashboard = () => {
 
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [currentPlan, setCurrentPlan] = React.useState<string>("startup");
+  const [activeMetricModal, setActiveMetricModal] = React.useState<"open" | "resolution" | "escalation" | null>(null);
+  const [metricDetails, setMetricDetails] = React.useState<any>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = React.useState(false);
+
+  const openMetricModal = async (metric: "open" | "resolution" | "escalation") => {
+    setActiveMetricModal(metric);
+    setIsLoadingDetails(true);
+    setMetricDetails(null);
+    try {
+      const apiUrl = (import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app").replace(/\/+$/, "");
+      const res = await fetch(`${apiUrl}/api/tickets/stats/details?metric=${metric}&days=30`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMetricDetails(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch metric details:", err);
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
 
   React.useEffect(() => {
     if (!token) return;
@@ -140,6 +177,7 @@ export const Dashboard = () => {
           delta={{ value: "live", type: "increase" }}
           icon={<Inbox size={16} />}
           loading={isFetchingStats && !stats}
+          onClick={() => openMetricModal("open")}
         />
         <MetricCard
           label="Avg Resolution Time"
@@ -147,6 +185,7 @@ export const Dashboard = () => {
           subtext="This month"
           icon={<Clock size={16} />}
           loading={isFetchingStats && !stats}
+          onClick={() => openMetricModal("resolution")}
         />
         <MetricCard
           label="Escalation Rate"
@@ -154,6 +193,7 @@ export const Dashboard = () => {
           subtext="Last 30 days"
           icon={<Star size={16} className="text-warn" />}
           loading={isFetchingStats && !stats}
+          onClick={() => openMetricModal("escalation")}
         />
       </div>
 
@@ -255,14 +295,14 @@ export const Dashboard = () => {
           <Card>
             <h3 className="text-[13px] font-bold uppercase tracking-widest text-text-muted mb-4">Quick actions</h3>
             <div className="space-y-2">
-              {/* Upgrade prompt for startup users */}
-              {currentPlan === "startup" && (
+              {/* Upgrade prompt for startup/starter users */}
+              {(currentPlan === "startup" || currentPlan === "starter") && (
                 <div className="rounded-xl bg-brand/8 border border-brand/20 p-3 mb-3">
                   <div className="flex items-center gap-2 mb-1">
                     <Sparkles size={12} className="text-brand" />
                     <span className="text-[11px] font-black text-brand uppercase tracking-wide">Upgrade to Growth</span>
                   </div>
-                  <p className="text-[10px] text-text-muted mb-2 leading-relaxed">Get 2,500 AI resolutions, unlimited docs, and WhatsApp support.</p>
+                  <p className="text-[10px] text-text-muted mb-2 leading-relaxed">Get 6,000 AI replies a month, all 4 channels, and parallel agents.</p>
                   <Button variant="brand" size="sm" className="w-full shadow-glow text-[11px]" onClick={() => navigate("/billing")}>
                     View Plans <ArrowRight size={11} className="ml-1" />
                   </Button>
@@ -296,6 +336,209 @@ export const Dashboard = () => {
           </Card>
         </div>
       </div>
+
+      {/* ── Metric Details Modal ────────────────────────────────────── */}
+      <Modal
+        isOpen={activeMetricModal !== null}
+        onClose={() => setActiveMetricModal(null)}
+        title={
+          activeMetricModal === "open"
+            ? "Open Tickets"
+            : activeMetricModal === "resolution"
+            ? "Average Resolution Time"
+            : "Escalation Rate Details"
+        }
+        description={
+          activeMetricModal === "open"
+            ? `${metricDetails?.count ?? stats?.openTickets ?? 0} open tickets waiting for reply (oldest first)`
+            : activeMetricModal === "resolution"
+            ? `Based on ${metricDetails?.count ?? stats?.resolvedThisPeriod ?? 0} tickets resolved in the last 30 days`
+            : `Last 30 days: ${metricDetails?.ratioText || "0 of 0"} decided tickets escalated`
+        }
+        maxWidth="max-w-2xl"
+      >
+        {isLoadingDetails ? (
+          <div className="text-center text-text-muted text-sm py-12 flex flex-col items-center gap-2">
+            <RefreshCw size={18} className="animate-spin text-brand" />
+            <span>Loading metric details...</span>
+          </div>
+        ) : (
+          <div>
+            {activeMetricModal === "open" && (
+              <div>
+                {metricDetails?.items && metricDetails.items.length > 0 ? (
+                  <div className="divide-y divide-border-faint border border-border-faint rounded-xl overflow-hidden bg-surface-high/20 max-h-[420px] overflow-y-auto">
+                    {metricDetails.items.map((item: any) => (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          setActiveMetricModal(null);
+                          navigate(`/inbox?ticketId=${item.id}`);
+                        }}
+                        className="p-3.5 flex items-center justify-between hover:bg-surface-high cursor-pointer transition-colors gap-3"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-surface flex items-center justify-center text-text-muted border border-border-faint flex-shrink-0">
+                            {item.channel === "whatsapp" && <MessageSquare size={14} className="text-success" />}
+                            {item.channel === "facebook" && <MessageSquare size={14} className="text-brand" />}
+                            {item.channel === "instagram" && <Instagram size={14} className="text-danger" />}
+                            {item.channel === "livechat" && <Globe size={14} className="text-teal" />}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[13px] font-semibold text-text-primary truncate">{item.customerName || "Customer"}</span>
+                              <Badge variant="default" size="xs">New</Badge>
+                              {item.urgency && item.urgency !== "normal" && (
+                                <Badge variant={item.urgency === "high" ? "danger" : item.urgency === "medium" ? "warn" : "default"} size="xs">
+                                  {item.urgency}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-text-muted truncate capitalize">
+                              {item.channel} {item.subject ? `• ${item.subject}` : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0 text-[11px] text-text-muted font-mono">
+                          {formatTimeWaiting(item.receivedAt)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-text-muted text-sm py-8">No open tickets right now.</div>
+                )}
+              </div>
+            )}
+
+            {activeMetricModal === "resolution" && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="p-3 bg-surface-high/30 border border-border-faint rounded-xl">
+                    <div className="text-[11px] text-text-muted font-medium">Overall Average</div>
+                    <div className="text-xl font-bold text-text-primary mt-1">{metricDetails?.avgResolutionTime || "—"}</div>
+                  </div>
+                  <div className="p-3 bg-surface-high/30 border border-border-faint rounded-xl">
+                    <div className="text-[11px] text-text-muted font-medium">Resolved Sample</div>
+                    <div className="text-xl font-bold text-text-primary mt-1">{metricDetails?.count || 0}</div>
+                  </div>
+                  <div className="p-3 bg-surface-high/30 border border-border-faint rounded-xl">
+                    <div className="text-[11px] text-text-muted font-medium">Period</div>
+                    <div className="text-xl font-bold text-text-primary mt-1">30 days</div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-surface-high/50 border border-border-faint rounded-xl text-xs text-text-muted">
+                  💡 <strong>Calculation:</strong> {metricDetails?.calculationExplanation || "Counted from when the message arrived to when the ticket was resolved."}
+                </div>
+
+                {metricDetails?.channelAverages && metricDetails.channelAverages.length > 0 && (
+                  <div>
+                    <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">Average by Channel</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {metricDetails.channelAverages.map((ch: any) => (
+                        <div key={ch.channel} className="p-2.5 bg-surface-high/30 border border-border-faint rounded-lg">
+                          <div className="text-[11px] text-text-muted capitalize">{ch.channel}</div>
+                          <div className="text-sm font-bold text-text-primary">{ch.avgResolutionTime}</div>
+                          <div className="text-[10px] text-text-muted">{ch.count} tickets</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">10 Slowest Resolved Tickets</h4>
+                  {metricDetails?.slowestTickets && metricDetails.slowestTickets.length > 0 ? (
+                    <div className="divide-y divide-border-faint border border-border-faint rounded-xl overflow-hidden bg-surface-high/20 max-h-[220px] overflow-y-auto">
+                      {metricDetails.slowestTickets.map((t: any) => (
+                        <div
+                          key={t.id}
+                          onClick={() => { setActiveMetricModal(null); navigate(`/inbox?ticketId=${t.id}`); }}
+                          className="p-2.5 flex items-center justify-between hover:bg-surface-high cursor-pointer transition-colors"
+                        >
+                          <div>
+                            <div className="text-[12px] font-medium text-text-primary">{t.customerName || "Customer"}</div>
+                            <div className="text-[10px] text-text-muted capitalize">{t.channel} • {new Date(t.resolvedAt).toLocaleDateString()}</div>
+                          </div>
+                          <Badge variant="warn" size="xs">{t.durationFormatted}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-text-muted text-xs py-4">No resolved tickets in this period.</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeMetricModal === "escalation" && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="p-3 bg-surface-high/30 border border-border-faint rounded-xl">
+                    <div className="text-[11px] text-text-muted font-medium">Escalated / Total</div>
+                    <div className="text-xl font-bold text-text-primary mt-1">{metricDetails?.ratioText || "0 of 0"}</div>
+                  </div>
+                  <div className="p-3 bg-surface-high/30 border border-border-faint rounded-xl">
+                    <div className="text-[11px] text-text-muted font-medium">Escalation Rate</div>
+                    <div className="text-xl font-bold text-warn mt-1">{metricDetails?.escalationRate ?? stats?.escalationRate ?? "0.0%"}</div>
+                  </div>
+                  <div className="p-3 bg-surface-high/30 border border-border-faint rounded-xl">
+                    <div className="text-[11px] text-text-muted font-medium">Period</div>
+                    <div className="text-xl font-bold text-text-primary mt-1">30 days</div>
+                  </div>
+                </div>
+
+                {metricDetails?.channelCounts && Object.keys(metricDetails.channelCounts).length > 0 && (
+                  <div>
+                    <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">Escalations by Channel</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(metricDetails.channelCounts).map(([ch, count]: [string, any]) => (
+                        <div key={ch} className="px-2.5 py-1 bg-surface-high border border-border-faint rounded-lg flex items-center gap-1.5 text-xs">
+                          <span className="capitalize text-text-muted">{ch}:</span>
+                          <span className="font-bold text-warn">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">Escalated Tickets (Up to 50)</h4>
+                  {metricDetails?.items && metricDetails.items.length > 0 ? (
+                    <div className="divide-y divide-border-faint border border-border-faint rounded-xl overflow-hidden bg-surface-high/20 max-h-[260px] overflow-y-auto">
+                      {metricDetails.items.map((t: any) => (
+                        <div
+                          key={t.id}
+                          onClick={() => { setActiveMetricModal(null); navigate(`/inbox?ticketId=${t.id}`); }}
+                          className="p-3 flex items-start justify-between hover:bg-surface-high cursor-pointer transition-colors gap-3"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[12px] font-medium text-text-primary truncate">{t.customerName || "Customer"}</span>
+                              <Badge variant="danger" size="xs">Escalated</Badge>
+                              <span className="text-[10px] text-text-muted capitalize">• {t.channel}</span>
+                            </div>
+                            <p className="text-[11px] text-text-muted line-clamp-2">
+                              <span className="font-semibold text-text-second">Reason: </span>
+                              {t.escalationReason || "AI could not confidently answer — flagged for human follow-up."}
+                            </p>
+                          </div>
+                          <div className="text-right text-[10px] text-text-muted flex-shrink-0 font-mono">
+                            {formatTimeWaiting(t.updatedAt || t.receivedAt)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-text-muted text-xs py-4">No escalated tickets in this period.</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </motion.div>
   );
 };

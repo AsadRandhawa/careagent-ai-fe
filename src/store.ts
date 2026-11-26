@@ -22,6 +22,7 @@ export interface TicketStats {
   categoryStats:      { name: string; value: number; count: number }[];
   volumeTrend:        { name: string; count: number }[];
   miniBarData:        { day: string; value: number }[];
+  channelReplyRates?: { channel: string; data: { day: string; secs: number }[] }[];
 }
 
 export interface AIInsights {
@@ -88,6 +89,8 @@ interface AppState {
   setToken: (token: string | null) => void;
   user: any | null;
   setUser: (user: any | null) => void;
+  pendingPlan?: string | null;
+  setPendingPlan?: (plan: string | null) => void;
   saveKnowledgeBase: () => Promise<void>;
   showOnboarding: boolean;
   setShowOnboarding: (show: boolean) => void;

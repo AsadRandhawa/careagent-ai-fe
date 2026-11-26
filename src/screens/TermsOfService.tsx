@@ -83,28 +83,28 @@ export const TermsOfService = () => {
         <Section title="4. Subscription and Billing">
           <p>CareAgent.ai offers the following subscription plans:</p>
           <div className="space-y-1.5 mt-2">
-            <Bullet>Startup Plan: Free of charge, with limited features as described on our pricing page</Bullet>
-            <Bullet>Growth Plan: $20 USD per month, billed monthly on a recurring basis</Bullet>
-            <Bullet>Enterprise Plan: Custom pricing, billed as agreed upon in a separate agreement</Bullet>
+            <Bullet>Starter Plan: $49 USD per month, billed monthly on a recurring basis</Bullet>
+            <Bullet>Growth Plan: $149 USD per month, billed monthly on a recurring basis</Bullet>
+            <Bullet>Managed Plan: $45 USD per month plus usage fees ($0.03 per AI reply)</Bullet>
           </div>
           <p className="mt-3">Paid subscriptions automatically renew at the end of each billing cycle unless cancelled before the renewal date. By subscribing to a paid plan, you authorise CareAgent.ai and its payment processors to charge your payment method on a recurring basis.</p>
           <p>All prices are listed in USD. We reserve the right to change pricing at any time with at least 14 days prior notice to existing subscribers.</p>
         </Section>
 
-        <Section title="5. Free Plan Limitations">
-          <p>The free Startup Plan includes:</p>
+        <Section title="5. Plan Limits and Inclusions">
+          <p>Each plan includes the following standard features and limits:</p>
           <div className="space-y-1.5 mt-2">
-            <Bullet>Up to 100 AI-generated resolutions per month</Bullet>
-            <Bullet>Up to 2 knowledge base document sources</Bullet>
-            <Bullet>Email (Gmail) integration only</Bullet>
+            <Bullet>Starter Plan: 1,500 AI replies per month across any 2 channels</Bullet>
+            <Bullet>Growth Plan: 6,000 AI replies per month across all 4 channels</Bullet>
+            <Bullet>Managed Plan: $0.03 per AI reply with no monthly cap and managed setup</Bullet>
           </div>
-          <p className="mt-3">Features including WhatsApp integration, SSO login, unlimited knowledge base documents, and priority support are not available on the free plan. We reserve the right to modify free plan features and limits at any time.</p>
+          <p className="mt-3">Overages for Starter ($0.02 per reply) and Growth ($0.015 per reply) or Meta fees are billed in accordance with the current pricing published on our website.</p>
         </Section>
 
         <Section title="6. Cancellation">
           <p>You may cancel your subscription at any time through the Billing &amp; Plans section of your account dashboard or by contacting us at <a href="mailto:flintsol.internal@gmail.com" className="text-brand hover:underline font-semibold">flintsol.internal@gmail.com</a>.</p>
           <p>Cancellation takes effect at the end of the current billing period. You will retain access to paid plan features until that date. No refunds are issued for the unused portion of a billing period unless otherwise required by applicable law or stated in our Refund Policy.</p>
-          <p>Upon cancellation, your account will be downgraded to the free Startup Plan. Your data will be retained for 90 days after which it may be permanently deleted.</p>
+          <p>Upon cancellation, your subscription will remain active until the end of the current billing cycle. Your data will be retained for 90 days after which it may be permanently deleted.</p>
         </Section>
 
         <Section title="7. Acceptable Use">
@@ -148,7 +148,7 @@ export const TermsOfService = () => {
 
         <Section title="12. Limitation of Liability">
           <p className="uppercase text-[13px] font-semibold">To the maximum extent permitted by applicable law, CareAgent.ai and its officers, directors, employees, and agents shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service.</p>
-          <p>In no event shall our total liability to you for all claims arising out of or relating to these Terms or your use of the Service exceed the greater of: (a) the total amount you paid to CareAgent.ai in the twelve months preceding the claim, or (b) $20 USD.</p>
+          <p>In no event shall our total liability to you for all claims arising out of or relating to these Terms or your use of the Service exceed the greater of: (a) the total amount you paid to CareAgent.ai in the twelve months preceding the claim, or (b) $49 USD.</p>
         </Section>
 
         <Section title="13. Termination">

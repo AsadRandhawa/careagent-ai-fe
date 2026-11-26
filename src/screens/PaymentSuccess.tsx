@@ -34,14 +34,20 @@ export const PaymentSuccess = () => {
         </motion.div>
 
         <h1 className="text-3xl font-black text-text-primary tracking-tight mb-3">
-          You're on Growth! 🎉
+          You are on Growth
         </h1>
         <p className="text-text-muted mb-8 leading-relaxed">
-          Your subscription is active. You now have access to 2,500 AI resolutions, unlimited knowledge base docs, and all Growth features.
+          Your subscription is active. You now have access to 6,000 AI replies a month, all 4 channels, and all Growth features.
         </p>
 
         <div className="bg-brand/5 border border-brand/15 rounded-2xl p-4 mb-8 text-left space-y-2">
-          {["2,500 AI Resolutions/month", "Unlimited KB Documents", "WhatsApp & Slack (coming soon)", "SSO Login", "Priority Support"].map(f => (
+          {[
+            "6,000 AI replies a month",
+            "All 4 channels (WhatsApp, Instagram, Facebook, Website)",
+            "Several AI agents working in parallel",
+            "Sentiment tracking and escalation",
+            "Priority support on WhatsApp",
+          ].map(f => (
             <div key={f} className="flex items-center gap-2 text-[13px] text-text-second">
               <Sparkles size={12} className="text-brand flex-shrink-0" />
               {f}

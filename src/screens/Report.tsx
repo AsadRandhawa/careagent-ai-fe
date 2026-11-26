@@ -4,11 +4,14 @@ import { MetricCard } from "../components/MetricCard";
 import { Card } from "../components/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
-import { Users, Flame, Mail, TrendingUp, Calendar, Filter } from "lucide-react";
+import { Modal } from "../components/ui/Modal";
+import { Users, Flame, Mail, TrendingUp, Calendar, Filter, MessageSquare, ArrowUpRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAppStore } from "../store";
 
-type Lead = {
+export type Lead = {
   id: string;
+  ticketId: string;
   name: string;
   phone: string | null;
   email: string | null;
@@ -23,6 +26,7 @@ type Lead = {
   handledBy: string | null;
   otherNotes: string | null;
   updatedAt: string;
+  createdAt: string;
 };
 
 const INTEREST_BADGE: Record<string, "danger" | "warn" | "default" | "brand"> = {
@@ -35,12 +39,46 @@ const INTEREST_BADGE: Record<string, "danger" | "warn" | "default" | "brand"> = 
 const LEAD_STATUS_OPTIONS = ["New", "Nourishing", "Fee Submitted", "Lost"];
 const CALL_STATUS_OPTIONS = ["", "Not Answered", "Connected", "Voicemail", "Wrong Number"];
 
+export type LeadMetricKey = "total" | "hot" | "email" | "feeSubmitted";
+
+export const LEAD_PREDICATES: Record<LeadMetricKey, (lead: Lead) => boolean> = {
+  total: (_l: Lead) => true,
+  hot: (l: Lead) => l.interestLevel === "Hot",
+  email: (l: Lead) => Boolean(l.email && l.email.trim()),
+  feeSubmitted: (l: Lead) => l.leadStatus === "Fee Submitted",
+};
+
+const LEAD_METRIC_CONFIG: Record<LeadMetricKey, { title: string; subtext: string; icon: React.ReactNode }> = {
+  total: {
+    title: "Total Leads",
+    subtext: "Qualifying conversations",
+    icon: <Users size={16} />,
+  },
+  hot: {
+    title: "Hot Leads",
+    subtext: "Ready to follow up",
+    icon: <Flame size={16} className="text-danger" />,
+  },
+  email: {
+    title: "With Email",
+    subtext: "Have contact email",
+    icon: <Mail size={16} />,
+  },
+  feeSubmitted: {
+    title: "Fee Submitted",
+    subtext: "Converted so far",
+    icon: <TrendingUp size={16} className="text-success" />,
+  },
+};
+
 export const Report = () => {
+  const navigate = useNavigate();
   const { token } = useAppStore();
   const [leads, setLeads] = React.useState<Lead[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [savingId, setSavingId] = React.useState<string | null>(null);
   const [days, setDays] = React.useState(30);
+  const [activeModalMetric, setActiveModalMetric] = React.useState<LeadMetricKey | null>(null);
 
   const apiUrl = (import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app").replace(/\/+$/, "");
 
@@ -87,9 +125,19 @@ export const Report = () => {
     }
   };
 
-  const hotCount = leads.filter(l => l.interestLevel === "Hot").length;
-  const withEmail = leads.filter(l => l.email).length;
-  const feeSubmitted = leads.filter(l => l.leadStatus === "Fee Submitted").length;
+  const totalCount = leads.filter(LEAD_PREDICATES.total).length;
+  const hotCount = leads.filter(LEAD_PREDICATES.hot).length;
+  const withEmailCount = leads.filter(LEAD_PREDICATES.email).length;
+  const feeSubmittedCount = leads.filter(LEAD_PREDICATES.feeSubmitted).length;
+
+  const dateRangeLabel = React.useMemo(() => {
+    const end = new Date();
+    const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const formatDate = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    return `Last ${days} days (${formatDate(start)} – ${formatDate(end)})`;
+  }, [days]);
+
+  const modalLeads = activeModalMetric ? leads.filter(LEAD_PREDICATES[activeModalMetric]) : [];
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto">
@@ -108,11 +156,39 @@ export const Report = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-6 mb-8 mt-6">
-        <MetricCard label="Total Leads" value={String(leads.length)} subtext="Qualifying conversations" icon={<Users size={16} />} loading={isLoading && leads.length === 0} />
-        <MetricCard label="Hot Leads" value={String(hotCount)} subtext="Ready to follow up" icon={<Flame size={16} className="text-danger" />} loading={isLoading && leads.length === 0} />
-        <MetricCard label="With Email" value={String(withEmail)} subtext="Have contact email" icon={<Mail size={16} />} loading={isLoading && leads.length === 0} />
-        <MetricCard label="Fee Submitted" value={String(feeSubmitted)} subtext="Converted so far" icon={<TrendingUp size={16} className="text-success" />} loading={isLoading && leads.length === 0} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mt-6">
+        <MetricCard
+          label="Total Leads"
+          value={String(totalCount)}
+          subtext="Qualifying conversations"
+          icon={<Users size={16} />}
+          loading={isLoading && leads.length === 0}
+          onClick={() => setActiveModalMetric("total")}
+        />
+        <MetricCard
+          label="Hot Leads"
+          value={String(hotCount)}
+          subtext="Ready to follow up"
+          icon={<Flame size={16} className="text-danger" />}
+          loading={isLoading && leads.length === 0}
+          onClick={() => setActiveModalMetric("hot")}
+        />
+        <MetricCard
+          label="With Email"
+          value={String(withEmailCount)}
+          subtext="Have contact email"
+          icon={<Mail size={16} />}
+          loading={isLoading && leads.length === 0}
+          onClick={() => setActiveModalMetric("email")}
+        />
+        <MetricCard
+          label="Fee Submitted"
+          value={String(feeSubmittedCount)}
+          subtext="Converted so far"
+          icon={<TrendingUp size={16} className="text-success" />}
+          loading={isLoading && leads.length === 0}
+          onClick={() => setActiveModalMetric("feeSubmitted")}
+        />
       </div>
 
       <Card>
@@ -211,6 +287,82 @@ export const Report = () => {
           </div>
         )}
       </Card>
+
+      {/* ── Lead Metric Details Modal ───────────────────────────────── */}
+      <Modal
+        isOpen={activeModalMetric !== null}
+        onClose={() => setActiveModalMetric(null)}
+        title={activeModalMetric ? LEAD_METRIC_CONFIG[activeModalMetric].title : "Leads"}
+        description={`${dateRangeLabel} • ${modalLeads.length} leads matching`}
+        maxWidth="max-w-4xl"
+      >
+        {modalLeads.length === 0 ? (
+          <div className="text-center text-text-muted text-sm py-12">No leads match yet.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12px]">
+              <thead>
+                <tr className="border-b border-border-faint text-left text-text-muted uppercase tracking-wide text-[10px]">
+                  <th className="py-2.5 pr-4 font-semibold">Name</th>
+                  <th className="py-2.5 pr-4 font-semibold">Email</th>
+                  <th className="py-2.5 pr-4 font-semibold">Phone</th>
+                  <th className="py-2.5 pr-4 font-semibold">Interest</th>
+                  <th className="py-2.5 pr-4 font-semibold">Program</th>
+                  <th className="py-2.5 pr-4 font-semibold">Budget</th>
+                  <th className="py-2.5 pr-4 font-semibold">Eligibility</th>
+                  <th className="py-2.5 pr-4 font-semibold">Status</th>
+                  <th className="py-2.5 pr-4 font-semibold">Call Status</th>
+                  <th className="py-2.5 pr-4 font-semibold text-right">Conversation</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-faint/50">
+                {modalLeads.map((l) => (
+                  <tr key={l.id} className="hover:bg-surface-high/40 transition-colors">
+                    <td className="py-2.5 pr-4 font-medium text-text-primary whitespace-nowrap">{l.name}</td>
+                    <td className="py-2.5 pr-4 text-text-second whitespace-nowrap">{l.email || "—"}</td>
+                    <td className="py-2.5 pr-4 text-text-second whitespace-nowrap font-mono text-[11px]">{l.phone || "—"}</td>
+                    <td className="py-2.5 pr-4">
+                      {l.interestLevel ? (
+                        <Badge variant={INTEREST_BADGE[l.interestLevel] || "default"} size="xs">{l.interestLevel}</Badge>
+                      ) : "—"}
+                    </td>
+                    <td className="py-2.5 pr-4 text-text-second whitespace-nowrap">{l.programInterest || "—"}</td>
+                    <td className="py-2.5 pr-4 text-text-second whitespace-nowrap">{l.budget || "—"}</td>
+                    <td className="py-2.5 pr-4">
+                      {l.admissionEligibility ? (
+                        <Badge variant={l.admissionEligibility === "Eligible" ? "brand" : "danger"} size="xs">
+                          {l.admissionEligibility}
+                        </Badge>
+                      ) : "—"}
+                    </td>
+                    <td className="py-2.5 pr-4">
+                      <Badge variant="default" size="xs">{l.leadStatus}</Badge>
+                    </td>
+                    <td className="py-2.5 pr-4 text-text-second whitespace-nowrap">{l.callStatus || "—"}</td>
+                    <td className="py-2.5 pr-4 text-right whitespace-nowrap">
+                      {l.ticketId ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveModalMetric(null);
+                            navigate(`/inbox?ticketId=${l.ticketId}`);
+                          }}
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand hover:underline"
+                        >
+                          <MessageSquare size={12} />
+                          <span>View Chat</span>
+                        </button>
+                      ) : (
+                        <span className="text-text-muted text-[11px]">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

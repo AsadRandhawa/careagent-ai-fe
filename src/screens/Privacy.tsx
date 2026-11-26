@@ -88,7 +88,7 @@ export const Privacy = () => {
             <h1 className="text-[32px] font-black text-text-primary tracking-tight leading-tight">
               Privacy Policy
             </h1>
-            <p className="text-[13px] text-text-muted mt-0.5">CareAgent.ai — operated by Flint Sol</p>
+            <p className="text-[13px] text-text-muted mt-0.5">CareAgent.ai - operated by Flint Sol</p>
           </div>
         </div>
 
@@ -136,7 +136,7 @@ export const Privacy = () => {
               <P>When you create an account, we collect:</P>
               <Bullets items={[
                 "Email address",
-                "Password (stored in encrypted, hashed form — we never store your plain-text password)",
+                "Password (stored in encrypted, hashed form; we never store your plain-text password)",
               ]} />
             </SubSection>
 
@@ -195,7 +195,7 @@ export const Privacy = () => {
               <P>
                 As the Service expands, we may collect additional information including full name,
                 phone number (for WhatsApp integration), and payment information (for subscription
-                billing, processed via third-party payment processors — we will never store card
+                billing, processed via third-party payment processors; we will never store card
                 numbers directly). This Privacy Policy will be updated before any such collection
                 begins.
               </P>

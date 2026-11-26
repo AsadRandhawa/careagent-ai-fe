@@ -5,6 +5,7 @@ import { Card } from "../components/Card";
 import { ChannelRow } from "../components/ChannelRow";
 import { Toggle } from "../components/ui/Toggle";
 import { Button } from "../components/ui/Button";
+import { Modal } from "../components/ui/Modal";
 import { MessageSquare, Instagram, Globe, Zap, Copy, Check, X } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useToast } from "../components/ToastProvider";
@@ -13,7 +14,7 @@ import { useAppStore } from "../store";
 export const Channels = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { token, user,
+  const { token, user, setUser,
     facebookEnabled, setFacebookEnabled,
     instagramEnabled, setInstagramEnabled,
     aiAutoDrafting, setAiAutoDrafting,
@@ -25,32 +26,73 @@ export const Channels = () => {
   const facebookConnected = !!user?.facebookConnected;
   const instagramConnected = !!user?.instagramConnected;
 
-  // Instagram auto-send — opt-in, off by default. Kept as local state with
-  // its own direct save call rather than threaded through the global store
-  // like the other automation toggles, since it's specific to this one
-  // channel and this keeps the change self-contained.
-  const [instagramAutoSend, setInstagramAutoSendLocal] = React.useState(!!user?.instagramAutoSend);
-  React.useEffect(() => {
-    setInstagramAutoSendLocal(!!user?.instagramAutoSend);
-  }, [user?.instagramAutoSend]);
+  // Per-channel auto-send flags (opt-in per channel, off by default)
+  const [whatsappAutoSend, setWhatsappAutoSend] = React.useState(!!user?.whatsappAutoSend);
+  const [facebookAutoSend, setFacebookAutoSend] = React.useState(!!user?.facebookAutoSend);
+  const [instagramAutoSend, setInstagramAutoSend] = React.useState(!!user?.instagramAutoSend);
+  const [livechatAutoSend, setLivechatAutoSend] = React.useState(!!user?.livechatAutoSend);
 
-  const saveInstagramAutoSend = async (val: boolean) => {
-    setInstagramAutoSendLocal(val); // optimistic
+  React.useEffect(() => {
+    setWhatsappAutoSend(!!user?.whatsappAutoSend);
+    setFacebookAutoSend(!!user?.facebookAutoSend);
+    setInstagramAutoSend(!!user?.instagramAutoSend);
+    setLivechatAutoSend(!!user?.livechatAutoSend);
+  }, [user?.whatsappAutoSend, user?.facebookAutoSend, user?.instagramAutoSend, user?.livechatAutoSend]);
+
+  const [confirmDialog, setConfirmDialog] = React.useState<{
+    isOpen: boolean;
+    channelName: string;
+    field: "whatsappAutoSend" | "facebookAutoSend" | "instagramAutoSend" | "livechatAutoSend";
+  } | null>(null);
+
+  const updateAutoReply = async (
+    field: "whatsappAutoSend" | "facebookAutoSend" | "instagramAutoSend" | "livechatAutoSend",
+    newVal: boolean,
+    channelName: string
+  ) => {
+    const setters = {
+      whatsappAutoSend: setWhatsappAutoSend,
+      facebookAutoSend: setFacebookAutoSend,
+      instagramAutoSend: setInstagramAutoSend,
+      livechatAutoSend: setLivechatAutoSend,
+    };
+    const currentVal = {
+      whatsappAutoSend,
+      facebookAutoSend,
+      instagramAutoSend,
+      livechatAutoSend,
+    }[field];
+
+    // Optimistic UI update
+    setters[field](newVal);
+    if (user && setUser) {
+      setUser({ ...user, [field]: newVal });
+    }
+
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app";
+      const apiUrl = (import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app").replace(/\/+$/, "");
       const res = await fetch(`${apiUrl}/api/user/preferences`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ instagramAutoSend: val }),
+        body: JSON.stringify({ [field]: newVal }),
       });
-      if (!res.ok) throw new Error("Save failed");
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || "Save failed");
+      }
       toast(
-        val ? "Instagram will now reply automatically, without human approval." : "Instagram auto-send turned off — replies need approval again.",
-        val ? "success" : "info"
+        newVal
+          ? `Auto-reply turned on for ${channelName}.`
+          : `Auto-reply turned off for ${channelName}.`,
+        newVal ? "success" : "info"
       );
-    } catch (err) {
-      setInstagramAutoSendLocal(!val); // revert on failure
-      toast("Failed to update Instagram auto-send setting.", "error");
+    } catch (err: any) {
+      // Rollback optimistic update
+      setters[field](currentVal);
+      if (user && setUser) {
+        setUser({ ...user, [field]: currentVal });
+      }
+      toast(err.message || `Failed to update auto-reply for ${channelName}.`, "error");
     }
   };
 
@@ -355,6 +397,26 @@ export const Channels = () => {
   };
 
 
+  const disconnectLivechat = async () => {
+    if (!window.confirm("Disconnect Web Live Chat? The widget will stop responding until you reconnect.")) return;
+    try {
+      const apiUrl = (import.meta.env.VITE_API_URL || "https://careagent-ai-be-production.up.railway.app").replace(/\/+$/, "");
+      await fetch(`${apiUrl}/api/user/disconnect/livechat`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLivechatToken(null);
+      setShowEmbed(false);
+      setLivechatAutoSend(false);
+      if (user && setUser) {
+        setUser({ ...user, livechatToken: null, livechatAutoSend: false });
+      }
+      toast("Web Live Chat disconnected.", "info");
+    } catch {
+      toast("Failed to disconnect Web Live Chat.", "error");
+    }
+  };
+
   const channels = [
     {
       id:          "whatsapp",
@@ -365,15 +427,21 @@ export const Channels = () => {
       icon:        <MessageSquare size={18} />,
       connected:   whatsappConnected,
       enabled:     whatsappConnected,
-      // No separate "paused" state exists for WhatsApp on the backend
-      // (unlike Facebook, which has a real enabled/disabled flag
-      // independent of the connection itself) — so the toggle here IS
-      // the connect/disconnect control, not a second, different thing.
-      // Previously this was a no-op (`() => {}`), meaning the toggle sat
-      // there looking interactive but did nothing at all.
+      autoReply:   whatsappAutoSend,
+      onAutoReplyToggle: (val: boolean) => {
+        if (val) {
+          setConfirmDialog({
+            isOpen: true,
+            channelName: "WhatsApp Business",
+            field: "whatsappAutoSend",
+          });
+        } else {
+          updateAutoReply("whatsappAutoSend", false, "WhatsApp Business");
+        }
+      },
       onToggle:    (val: boolean) => { if (!val) disconnectWhatsApp(); },
       onConnect:   connectWhatsApp,
-      onDisconnect: undefined, // folded into the toggle above — no separate control needed
+      onDisconnect: disconnectWhatsApp,
     },
     {
       id:          "facebook",
@@ -384,6 +452,18 @@ export const Channels = () => {
       icon:        <MessageSquare size={18} />,
       connected:   facebookConnected,
       enabled:     facebookEnabled,
+      autoReply:   facebookAutoSend,
+      onAutoReplyToggle: (val: boolean) => {
+        if (val) {
+          setConfirmDialog({
+            isOpen: true,
+            channelName: "Facebook Messenger",
+            field: "facebookAutoSend",
+          });
+        } else {
+          updateAutoReply("facebookAutoSend", false, "Facebook Messenger");
+        }
+      },
       onToggle:    (val: boolean) => {
         setFacebookEnabled(val).then(() => {
           toast(val ? "Facebook Messenger enabled." : "Facebook Messenger paused.", val ? "success" : "info");
@@ -401,6 +481,18 @@ export const Channels = () => {
       icon:        <Instagram size={18} />,
       connected:   instagramConnected,
       enabled:     instagramEnabled,
+      autoReply:   instagramAutoSend,
+      onAutoReplyToggle: (val: boolean) => {
+        if (val) {
+          setConfirmDialog({
+            isOpen: true,
+            channelName: "Instagram DMs",
+            field: "instagramAutoSend",
+          });
+        } else {
+          updateAutoReply("instagramAutoSend", false, "Instagram DMs");
+        }
+      },
       onToggle:    (val: boolean) => {
         setInstagramEnabled(val).then(() => {
           toast(val ? "Instagram DMs enabled." : "Instagram DMs paused.", val ? "success" : "info");
@@ -416,15 +508,57 @@ export const Channels = () => {
       icon:        <Globe size={18} />,
       connected:   livechatConnected,
       enabled:     livechatConnected,
-      onToggle:    () => {},
+      autoReply:   livechatAutoSend,
+      onAutoReplyToggle: (val: boolean) => {
+        if (val) {
+          setConfirmDialog({
+            isOpen: true,
+            channelName: "Web Live Chat",
+            field: "livechatAutoSend",
+          });
+        } else {
+          updateAutoReply("livechatAutoSend", false, "Web Live Chat");
+        }
+      },
+      onToggle:    (val: boolean) => { if (!val) disconnectLivechat(); },
       onConnect:   connectLivechat,
-      onDisconnect: () => { setLivechatToken(null); setShowEmbed(false); },
+      onDisconnect: disconnectLivechat,
     },
   ];
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 max-w-[1200px] mx-auto">
       <SectionHeader title="Channel integrations" subtitle="Manage where your support agent listens and responds." />
+
+      {/* ── Auto-reply Confirmation Modal ──────────────────────────────── */}
+      <Modal
+        isOpen={!!confirmDialog?.isOpen}
+        onClose={() => setConfirmDialog(null)}
+        title={`Turn on auto-reply for ${confirmDialog?.channelName}?`}
+        description="CareAgent will send replies without waiting for you. Anything it can't answer still goes to your team."
+        maxWidth="max-w-md"
+      >
+        <div className="pt-4 flex justify-end gap-3">
+          <Button
+            variant="ghost"
+            onClick={() => setConfirmDialog(null)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="brand"
+            onClick={() => {
+              if (confirmDialog) {
+                const { field, channelName } = confirmDialog;
+                setConfirmDialog(null);
+                updateAutoReply(field, true, channelName);
+              }
+            }}
+          >
+            Turn on
+          </Button>
+        </div>
+      </Modal>
 
       {/* ── Live Chat install guide (popup) ─────────────────────────────────── */}
       <AnimatePresence>
@@ -463,6 +597,8 @@ export const Channels = () => {
                     icon={ch.icon}
                     connected={ch.connected}
                     enabled={ch.enabled}
+                    autoReply={ch.autoReply}
+                    onAutoReplyToggle={ch.onAutoReplyToggle}
                     onToggle={ch.onToggle}
                     onConnect={ch.id === "livechat" && ch.connected ? connectLivechat : ch.onConnect}
                     onDisconnect={ch.onDisconnect}
@@ -501,9 +637,6 @@ export const Channels = () => {
                 { label: "AI auto-drafting", sub: "Draft replies instantly", val: aiAutoDrafting, set: setAiAutoDrafting },
                 { label: "Auto-classification", sub: "Apply tags automatically", val: autoClassification, set: setAutoClassification },
                 { label: "Sentiment tracking", sub: "Real-time tone analysis", val: sentimentTracking, set: setSentimentTracking },
-                ...(instagramConnected ? [
-                  { label: "Instagram auto-send", sub: "Sends automatically, no approval step", val: instagramAutoSend, set: saveInstagramAutoSend },
-                ] : []),
               ].map(s => (
                 <div key={s.label} className="flex items-center justify-between">
                   <div>

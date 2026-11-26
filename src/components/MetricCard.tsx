@@ -11,11 +11,12 @@ export interface MetricCardProps extends React.HTMLAttributes<HTMLDivElement> {
   icon?: React.ReactNode;
   loading?: boolean;
   className?: string;
+  onClick?: React.MouseEventHandler<HTMLElement>;
 }
 
-export const MetricCard = ({ label, value, subtext, delta, icon, loading, className, ...props }: MetricCardProps) => {
-  return (
-    <Card className={cn("flex flex-col justify-between relative overflow-hidden min-h-[96px]", className)} {...props}>
+export const MetricCard = ({ label, value, subtext, delta, icon, loading, className, onClick, ...props }: MetricCardProps) => {
+  const content = (
+    <>
       <div className="flex justify-between items-start">
         <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">{label}</span>
         {icon && <div className="text-text-muted opacity-50">{icon}</div>}
@@ -52,6 +53,32 @@ export const MetricCard = ({ label, value, subtext, delta, icon, loading, classN
           </div>
         )}
       </div>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        onClick={onClick}
+        className={cn(
+          "flex flex-col justify-between relative overflow-hidden min-h-[96px] text-left w-full",
+          "rounded-card bg-surface border border-border-faint shadow-card p-[20px]",
+          "transition-all duration-200 cursor-pointer",
+          "hover:-translate-y-0.5 hover:shadow-md hover:border-border-mid",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+          className
+        )}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Card className={cn("flex flex-col justify-between relative overflow-hidden min-h-[96px]", className)} {...props}>
+      {content}
     </Card>
   );
 };
